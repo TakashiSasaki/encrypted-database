@@ -116,7 +116,7 @@
                                         if (e.ctrlKey || e.metaKey) return;
 
                                         e.preventDefault();
-                                        window.history.pushState({}, '', newUrl);
+                                        window.history.pushState({}, '', newUrl.toString());
                                         loadMarkdown();
                                     });
                                 } else {
