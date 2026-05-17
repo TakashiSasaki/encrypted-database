@@ -125,7 +125,9 @@ class EncryptedStorage:
                     self.active_db_kid = db_kid
                     unwrapped = True
                     break
-                except Exception:
+                except Exception as e:
+                    # In a real implementation we might want to log or be more specific
+                    # based on cryptography's InvalidTag exceptions
                     continue
 
         if not unwrapped:

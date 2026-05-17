@@ -36,6 +36,7 @@ class EncryptedStorage {
     async initializeDatabase(passphrase, platform = "cross_platform") {
         const dbKekBytes = cryptoUtils.generateRandomBytes(32);
         const dbKid = uuidv4();
+
         const salt = cryptoUtils.generateRandomBytes(16);
         const timeCost = 3;
         const memoryCost = 262144;
@@ -51,9 +52,6 @@ class EncryptedStorage {
             parallelism: parallelism
         };
 
-        const insertKeyStmt = this.conn.prepare("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)");
-        const insertUnlockKekStmt = this.conn.prepare("INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)");
-
         const aadContext = {
             v: 1,
             aad_policy: "wrap-database-key-v1",
@@ -61,17 +59,20 @@ class EncryptedStorage {
             wrapping_kid: unlockKid
         };
         const aadBytes = cryptoUtils.canonicalizeJson(aadContext);
-
         const { nonce, ciphertext: wrappedDbKek } = cryptoUtils.encryptAead(unlockKekBytes, dbKekBytes, aadBytes);
 
-        const insertWrappedKeyStmt = this.conn.prepare("INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        const initializeTransaction = this.conn.transaction(() => {
+        const runTransaction = this.conn.transaction(() => {
+            const insertKeyStmt = this.conn.prepare("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)");
             insertKeyStmt.run(dbKid, 'database_kek', 'wrap_record_keys', 'A256GCM', 'active', this._currentMs());
             insertKeyStmt.run(unlockKid, 'unlock_kek', 'wrap_database_keys', 'A256GCM', 'active', this._currentMs());
+
+            const insertUnlockKekStmt = this.conn.prepare("INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)");
             insertUnlockKekStmt.run(unlockKid, 'passphrase_argon2id', JSON.stringify(providerConfig), platform);
+
+            const insertWrappedKeyStmt = this.conn.prepare("INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?)");
             insertWrappedKeyStmt.run(dbKid, unlockKid, 'A256GCM', nonce, wrappedDbKek, aadBytes.toString('utf8'), this._currentMs());
         });
-        initializeTransaction();
+        runTransaction();
 
         this.activeDbKek = dbKekBytes;
         this.activeDbKid = dbKid;
@@ -117,9 +118,6 @@ class EncryptedStorage {
         const recordDekBytes = cryptoUtils.generateRandomBytes(32);
         const recordKid = uuidv4();
 
-        const insertKeyStmt = this.conn.prepare("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)");
-        insertKeyStmt.run(recordKid, 'record_dek', 'encrypt_payload', 'A256GCM', 'active', this._currentMs());
-
         const wrapAad = {
             v: 1,
             aad_policy: "wrap-record-key-v1",
@@ -127,11 +125,7 @@ class EncryptedStorage {
             wrapping_kid: this.activeDbKid
         };
         const wrapAadBytes = cryptoUtils.canonicalizeJson(wrapAad);
-
         const { nonce: nonceWrap, ciphertext: wrappedRecordDek } = cryptoUtils.encryptAead(this.activeDbKek, recordDekBytes, wrapAadBytes);
-
-        const insertWrappedKeyStmt = this.conn.prepare("INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        insertWrappedKeyStmt.run(recordKid, this.activeDbKid, 'A256GCM', nonceWrap, wrappedRecordDek, wrapAadBytes.toString('utf8'), this._currentMs());
 
         const payloadBytes = cryptoUtils.canonicalizeJson(payload);
         const payloadAad = {
@@ -146,8 +140,17 @@ class EncryptedStorage {
         const payloadAadBytes = cryptoUtils.canonicalizeJson(payloadAad);
         const { nonce: noncePayload, ciphertext } = cryptoUtils.encryptAead(recordDekBytes, payloadBytes, payloadAadBytes);
 
-        const insertEncryptedObjectStmt = this.conn.prepare("INSERT INTO encrypted_object_tbl (object_uuid, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        insertEncryptedObjectStmt.run(objectUuid, schemaUuid, contentType, 'A256GCM', recordKid, noncePayload, ciphertext, 'record-payload-v1', this._currentMs(), this._currentMs());
+        const runTransaction = this.conn.transaction(() => {
+            const insertKeyStmt = this.conn.prepare("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)");
+            insertKeyStmt.run(recordKid, 'record_dek', 'encrypt_payload', 'A256GCM', 'active', this._currentMs());
+
+            const insertWrappedKeyStmt = this.conn.prepare("INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            insertWrappedKeyStmt.run(recordKid, this.activeDbKid, 'A256GCM', nonceWrap, wrappedRecordDek, wrapAadBytes.toString('utf8'), this._currentMs());
+
+            const insertEncryptedObjectStmt = this.conn.prepare("INSERT INTO encrypted_object_tbl (object_uuid, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            insertEncryptedObjectStmt.run(objectUuid, schemaUuid, contentType, 'A256GCM', recordKid, noncePayload, ciphertext, 'record-payload-v1', this._currentMs(), this._currentMs());
+        });
+        runTransaction();
 
         return objectUuid;
     }
