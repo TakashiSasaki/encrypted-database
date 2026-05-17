@@ -15,7 +15,6 @@ class EncryptedStorage:
         self._init_db()
         self.active_db_kek = None
         self.active_db_kid = None
-        self.active_db_kid = None
 
     def _init_db(self):
         schema_path = Path(__file__).parent.parent.parent.parent / "docs" / "schema.sql"
@@ -42,13 +41,6 @@ class EncryptedStorage:
         db_kek_bytes = crypto.generate_random_bytes(32)
         db_kid = self._generate_kid()
 
-        # Save db_kek info
-        cur = self.conn.cursor()
-        cur.execute(
-            "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)",
-            (db_kid, 'database_kek', 'wrap_record_keys', 'A256GCM', 'active', self._current_ms())
-        )
-
         # Derive unlock KEK
         salt = crypto.generate_random_bytes(16)
         time_cost = 3
@@ -58,22 +50,12 @@ class EncryptedStorage:
         unlock_kek_bytes = crypto.derive_kek_argon2id(passphrase, salt, 32, time_cost, memory_cost, parallelism)
         unlock_kid = self._generate_kid()
 
-        cur.execute(
-            "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)",
-            (unlock_kid, 'unlock_kek', 'wrap_database_keys', 'A256GCM', 'active', self._current_ms())
-        )
-
         provider_config = {
             "salt": self._b64e(salt),
             "memory_kib": memory_cost,
             "iterations": time_cost,
             "parallelism": parallelism
         }
-
-        cur.execute(
-            "INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)",
-            (unlock_kid, 'passphrase_argon2id', json.dumps(provider_config), platform)
-        )
 
         # Wrap database KEK with unlock KEK
         aad_context = {
@@ -85,12 +67,31 @@ class EncryptedStorage:
         aad_bytes = crypto.canonicalize_json(aad_context)
         nonce, wrapped_db_kek = crypto.encrypt_aead(unlock_kek_bytes, db_kek_bytes, aad_bytes)
 
-        cur.execute(
-            "INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (db_kid, unlock_kid, 'A256GCM', nonce, wrapped_db_kek, crypto.canonicalize_json(aad_context).decode('utf-8'), self._current_ms())
-        )
+        cur = self.conn.cursor()
+        cur.execute("BEGIN TRANSACTION")
+        try:
+            # Save db_kek info
+            cur.execute(
+                "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)",
+                (db_kid, 'database_kek', 'wrap_record_keys', 'A256GCM', 'active', self._current_ms())
+            )
+            cur.execute(
+                "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)",
+                (unlock_kid, 'unlock_kek', 'wrap_database_keys', 'A256GCM', 'active', self._current_ms())
+            )
+            cur.execute(
+                "INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)",
+                (unlock_kid, 'passphrase_argon2id', json.dumps(provider_config), platform)
+            )
+            cur.execute(
+                "INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (db_kid, unlock_kid, 'A256GCM', nonce, wrapped_db_kek, crypto.canonicalize_json(aad_context).decode('utf-8'), self._current_ms())
+            )
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            raise e
 
-        self.conn.commit()
         self.active_db_kek = db_kek_bytes
         self.active_db_kid = db_kid
 
@@ -144,12 +145,6 @@ class EncryptedStorage:
         record_dek_bytes = crypto.generate_random_bytes(32)
         record_kid = self._generate_kid()
 
-        cur = self.conn.cursor()
-        cur.execute(
-            "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)",
-            (record_kid, 'record_dek', 'encrypt_payload', 'A256GCM', 'active', self._current_ms())
-        )
-
         # 2. Wrap record DEK with database KEK
         wrap_aad = {
             "v": 1,
@@ -159,11 +154,6 @@ class EncryptedStorage:
         }
         wrap_aad_bytes = crypto.canonicalize_json(wrap_aad)
         nonce_wrap, wrapped_record_dek = crypto.encrypt_aead(self.active_db_kek, record_dek_bytes, wrap_aad_bytes)
-
-        cur.execute(
-            "INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (record_kid, self.active_db_kid, 'A256GCM', nonce_wrap, wrapped_record_dek, wrap_aad_bytes.decode('utf-8'), self._current_ms())
-        )
 
         # 3. Encrypt payload with record DEK
         payload_bytes = crypto.canonicalize_json(payload)
@@ -179,12 +169,26 @@ class EncryptedStorage:
         payload_aad_bytes = crypto.canonicalize_json(payload_aad)
         nonce_payload, ciphertext = crypto.encrypt_aead(record_dek_bytes, payload_bytes, payload_aad_bytes)
 
-        cur.execute(
-            "INSERT INTO encrypted_object_tbl (object_uuid, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (object_uuid, schema_uuid, content_type, 'A256GCM', record_kid, nonce_payload, ciphertext, 'record-payload-v1', self._current_ms(), self._current_ms())
-        )
+        cur = self.conn.cursor()
+        cur.execute("BEGIN TRANSACTION")
+        try:
+            cur.execute(
+                "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)",
+                (record_kid, 'record_dek', 'encrypt_payload', 'A256GCM', 'active', self._current_ms())
+            )
+            cur.execute(
+                "INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (record_kid, self.active_db_kid, 'A256GCM', nonce_wrap, wrapped_record_dek, wrap_aad_bytes.decode('utf-8'), self._current_ms())
+            )
+            cur.execute(
+                "INSERT INTO encrypted_object_tbl (object_uuid, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (object_uuid, schema_uuid, content_type, 'A256GCM', record_kid, nonce_payload, ciphertext, 'record-payload-v1', self._current_ms(), self._current_ms())
+            )
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            raise e
 
-        self.conn.commit()
         return object_uuid
 
     def retrieve_payload(self, object_uuid: str) -> dict:
