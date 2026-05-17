@@ -56,12 +56,47 @@
                 return baseParts.join('/');
             }
 
-            async function loadMarkdown() {
-                let file = getQueryParam('file') || 'README.md';
+            function sanitizeRequestedFile(file) {
+                const requestedFile = (file || 'README.md').trim();
 
-                // Security check to prevent fetching external resources
-                if (/^[a-zA-Z]+:/.test(file) || file.startsWith('//')) {
-                    contentDiv.innerHTML = `<p>Error: Loading external files is not allowed.</p>`;
+                if (!requestedFile) {
+                    return 'README.md';
+                }
+
+                // Reject external URLs and protocol-relative URLs.
+                if (/^[a-zA-Z]+:/.test(requestedFile) || requestedFile.startsWith('//')) {
+                    return null;
+                }
+
+                // Normalize the path to remove "." segments and collapse traversal.
+                const normalizedPath = new URL(requestedFile, 'https://example.invalid/').pathname.replace(/^\/+/, '');
+                const segments = normalizedPath.split('/');
+
+                // Reject traversal, empty segments, and dotfiles/dot-directories.
+                if (
+                    !normalizedPath ||
+                    segments.some(segment => !segment || segment === '.' || segment === '..' || segment.startsWith('.'))
+                ) {
+                    return null;
+                }
+
+                // Allow only the known entry point and markdown files under docs/.
+                if (normalizedPath === 'README.md') {
+                    return normalizedPath;
+                }
+
+                if (/^docs\/.+\.md$/i.test(normalizedPath)) {
+                    return normalizedPath;
+                }
+
+                return null;
+            }
+
+            async function loadMarkdown() {
+                const file = sanitizeRequestedFile(getQueryParam('file'));
+
+                if (!file) {
+                    contentDiv.innerHTML = `<p>Error: Only approved markdown files can be loaded.</p>`;
                     return;
                 }
 
