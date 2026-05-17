@@ -4,6 +4,7 @@ import uuid
 import json
 import base64
 from pathlib import Path
+from cryptography.exceptions import InvalidTag
 
 from . import crypto
 
@@ -33,7 +34,7 @@ class EncryptedStorage:
         return base64.urlsafe_b64encode(b).decode('utf-8').rstrip('=')
 
     def _b64d(self, s: str) -> bytes:
-        pad = b'=' * (4 - (len(s) % 4))
+        pad = b'=' * ((-len(s)) % 4)
         return base64.urlsafe_b64decode(s.encode('utf-8') + pad)
 
     def initialize_database(self, passphrase: str, platform: str = "cross_platform"):
@@ -124,7 +125,7 @@ class EncryptedStorage:
                     self.active_db_kid = db_kid
                     unwrapped = True
                     break
-                except Exception:
+                except (InvalidTag, ValueError):
                     continue
 
         if not unwrapped:
