@@ -36,10 +36,6 @@ class EncryptedStorage {
     async initializeDatabase(passphrase, platform = "cross_platform") {
         const dbKekBytes = cryptoUtils.generateRandomBytes(32);
         const dbKid = uuidv4();
-
-        const insertKeyStmt = this.conn.prepare("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)");
-        insertKeyStmt.run(dbKid, 'database_kek', 'wrap_record_keys', 'A256GCM', 'active', this._currentMs());
-
         const salt = cryptoUtils.generateRandomBytes(16);
         const timeCost = 3;
         const memoryCost = 262144;
@@ -48,8 +44,6 @@ class EncryptedStorage {
         const unlockKekBytes = await cryptoUtils.deriveKekArgon2id(passphrase, salt, 32, timeCost, memoryCost, parallelism);
         const unlockKid = uuidv4();
 
-        insertKeyStmt.run(unlockKid, 'unlock_kek', 'wrap_database_keys', 'A256GCM', 'active', this._currentMs());
-
         const providerConfig = {
             salt: this._b64e(salt),
             memory_kib: memoryCost,
@@ -57,8 +51,8 @@ class EncryptedStorage {
             parallelism: parallelism
         };
 
+        const insertKeyStmt = this.conn.prepare("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)");
         const insertUnlockKekStmt = this.conn.prepare("INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)");
-        insertUnlockKekStmt.run(unlockKid, 'passphrase_argon2id', JSON.stringify(providerConfig), platform);
 
         const aadContext = {
             v: 1,
@@ -71,7 +65,13 @@ class EncryptedStorage {
         const { nonce, ciphertext: wrappedDbKek } = cryptoUtils.encryptAead(unlockKekBytes, dbKekBytes, aadBytes);
 
         const insertWrappedKeyStmt = this.conn.prepare("INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        insertWrappedKeyStmt.run(dbKid, unlockKid, 'A256GCM', nonce, wrappedDbKek, aadBytes.toString('utf8'), this._currentMs());
+        const initializeTransaction = this.conn.transaction(() => {
+            insertKeyStmt.run(dbKid, 'database_kek', 'wrap_record_keys', 'A256GCM', 'active', this._currentMs());
+            insertKeyStmt.run(unlockKid, 'unlock_kek', 'wrap_database_keys', 'A256GCM', 'active', this._currentMs());
+            insertUnlockKekStmt.run(unlockKid, 'passphrase_argon2id', JSON.stringify(providerConfig), platform);
+            insertWrappedKeyStmt.run(dbKid, unlockKid, 'A256GCM', nonce, wrappedDbKek, aadBytes.toString('utf8'), this._currentMs());
+        });
+        initializeTransaction();
 
         this.activeDbKek = dbKekBytes;
         this.activeDbKid = dbKid;
