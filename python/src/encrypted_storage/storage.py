@@ -4,7 +4,6 @@ import uuid
 import json
 import base64
 from pathlib import Path
-from cryptography.exceptions import InvalidTag
 
 from . import crypto
 
@@ -15,6 +14,7 @@ class EncryptedStorage:
         self.conn.execute("PRAGMA foreign_keys = ON")
         self._init_db()
         self.active_db_kek = None
+        self.active_db_kid = None
         self.active_db_kid = None
 
     def _init_db(self):
@@ -34,7 +34,7 @@ class EncryptedStorage:
         return base64.urlsafe_b64encode(b).decode('utf-8').rstrip('=')
 
     def _b64d(self, s: str) -> bytes:
-        pad = b'=' * ((-len(s)) % 4)
+        pad = b'=' * (4 - (len(s) % 4))
         return base64.urlsafe_b64decode(s.encode('utf-8') + pad)
 
     def initialize_database(self, passphrase: str, platform: str = "cross_platform"):
@@ -125,7 +125,7 @@ class EncryptedStorage:
                     self.active_db_kid = db_kid
                     unwrapped = True
                     break
-                except (InvalidTag, ValueError):
+                except Exception:
                     continue
 
         if not unwrapped:
@@ -227,3 +227,4 @@ class EncryptedStorage:
     def close(self):
         self.conn.close()
         self.active_db_kek = None
+        self.active_db_kid = None
