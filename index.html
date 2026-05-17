@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encrypted Database Library</title>
+    <!-- GitHub Markdown CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown.min.css">
+    <style>
+        body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+        }
+        @media (max-width: 767px) {
+            body {
+                padding: 15px;
+            }
+        }
+    </style>
+    <!-- Marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DOMPurify for sanitization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+</head>
+<body class="markdown-body">
+    <div id="content">Loading...</div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const contentDiv = document.getElementById('content');
+
+            function getQueryParam(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+
+            function resolvePath(base, relative) {
+                if (relative.startsWith('/')) return relative.substring(1);
+                // Ignore external URLs and specific schemes (http, mailto, etc.)
+                if (/^[a-zA-Z]+:/.test(relative) || relative.startsWith('//')) return relative;
+
+                const baseParts = base.split('/');
+                baseParts.pop(); // Remove the filename
+                const relativeParts = relative.split('/');
+
+                for (let part of relativeParts) {
+                    if (part === '.') {
+                        continue;
+                    } else if (part === '..') {
+                        if (baseParts.length > 0) baseParts.pop();
+                    } else {
+                        baseParts.push(part);
+                    }
+                }
+                return baseParts.join('/');
+            }
+
+            async function loadMarkdown() {
+                let file = getQueryParam('file') || 'README.md';
+
+                // Security check to prevent fetching external resources
+                if (/^[a-zA-Z]+:/.test(file) || file.startsWith('//')) {
+                    contentDiv.innerHTML = `<p>Error: Loading external files is not allowed.</p>`;
+                    return;
+                }
+
+                try {
+                    const response = await fetch(file);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const text = await response.text();
+                    // Parse markdown to HTML, then sanitize it to prevent DOM XSS
+                    const rawHtml = marked.parse(text);
+                    const cleanHtml = DOMPurify.sanitize(rawHtml);
+                    contentDiv.innerHTML = cleanHtml;
+
+                    // Fix relative image paths
+                    const images = contentDiv.querySelectorAll('img');
+                    images.forEach(img => {
+                        const src = img.getAttribute('src');
+                        if (src && !/^[a-zA-Z]+:/.test(src) && !src.startsWith('//')) {
+                            img.setAttribute('src', resolvePath(file, src));
+                        }
+                    });
+
+                    // Intercept links
+                    const links = contentDiv.querySelectorAll('a');
+                    links.forEach(link => {
+                        const href = link.getAttribute('href');
+                        if (href && !/^[a-zA-Z]+:/.test(href) && !href.startsWith('//') && !href.startsWith('#')) {
+                            // Handle path and hash
+                            let path = href;
+                            let hash = '';
+                            const hashIndex = href.indexOf('#');
+                            if (hashIndex !== -1) {
+                                path = href.substring(0, hashIndex);
+                                hash = href.substring(hashIndex);
+                            }
+
+                            // If path is empty, it's just a hash link, which we skip processing
+                            if (path) {
+                                const resolvedPath = resolvePath(file, path);
+                                if (resolvedPath.endsWith('.md')) {
+                                    // Change href so users can hover and see a sensible link or open in new tab
+                                    const newUrl = new URL(window.location);
+                                    newUrl.searchParams.set('file', resolvedPath);
+                                    newUrl.hash = hash;
+                                    link.setAttribute('href', newUrl.toString());
+
+                                    link.addEventListener('click', (e) => {
+                                        // Allow cmd+click / ctrl+click to open in new tab normally
+                                        if (e.ctrlKey || e.metaKey) return;
+
+                                        e.preventDefault();
+                                        window.history.pushState({}, '', newUrl.toString());
+                                        loadMarkdown();
+                                    });
+                                } else {
+                                    link.setAttribute('href', resolvedPath + hash);
+                                }
+                            }
+                        }
+                    });
+
+                    // Scroll to hash if present
+                    if (window.location.hash) {
+                        setTimeout(() => {
+                            const id = window.location.hash.substring(1);
+                            // marked might create ids depending on config.
+                            const target = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+                            if (target) {
+                                target.scrollIntoView();
+                            }
+                        }, 100);
+                    }
+
+                } catch (error) {
+                    contentDiv.innerHTML = `<p>Error loading markdown file: <code>${file}</code></p><p>${error.message}</p>`;
+                }
+            }
+
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', loadMarkdown);
+
+            // Initial load
+            loadMarkdown();
+        });
+    </script>
+</body>
+</html>
