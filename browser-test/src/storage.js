@@ -216,6 +216,12 @@ class EncryptedStorage {
         return JSON.parse(payloadBytes.toString('utf8'));
     }
 
+
+    lock() {
+        this.activeDbKek = null;
+        this.activeDbKid = null;
+    }
+
     close() {
         if (this.db) {
             this.db.close();

@@ -5,7 +5,10 @@ function logOutput(message) {
     console.log(message);
     const outputDiv = document.getElementById('output');
     if (outputDiv) {
-        outputDiv.innerHTML += message + '<br/>';
+        // DOMPurify could be used here in production, but for testing textContent inside a created element avoids XSS.
+        const div = document.createElement('div');
+        div.textContent = message;
+        outputDiv.appendChild(div);
     }
 }
 
@@ -41,8 +44,7 @@ async function runTest() {
 
         // Test Unlock
         logOutput("--- 一旦ロックして再解錠のテスト ---");
-        storage.activeDbKek = null;
-        storage.activeDbKid = null;
+        storage.lock();
         logOutput("データベースをロックしました。");
 
         logOutput("パスフレーズで再解錠中...");
