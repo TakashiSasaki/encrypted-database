@@ -22,6 +22,8 @@
     </style>
     <!-- Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DOMPurify for sanitization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 </head>
 <body class="markdown-body">
     <div id="content">Loading...</div>
@@ -56,47 +58,12 @@
                 return baseParts.join('/');
             }
 
-            function sanitizeRequestedFile(file) {
-                const requestedFile = (file || 'README.md').trim();
-
-                if (!requestedFile) {
-                    return 'README.md';
-                }
-
-                // Reject external URLs and protocol-relative URLs.
-                if (/^[a-zA-Z]+:/.test(requestedFile) || requestedFile.startsWith('//')) {
-                    return null;
-                }
-
-                // Normalize the path to remove "." segments and collapse traversal.
-                const normalizedPath = new URL(requestedFile, 'https://example.invalid/').pathname.replace(/^\/+/, '');
-                const segments = normalizedPath.split('/');
-
-                // Reject traversal, empty segments, and dotfiles/dot-directories.
-                if (
-                    !normalizedPath ||
-                    segments.some(segment => !segment || segment === '.' || segment === '..' || segment.startsWith('.'))
-                ) {
-                    return null;
-                }
-
-                // Allow only the known entry point and markdown files under docs/.
-                if (normalizedPath === 'README.md') {
-                    return normalizedPath;
-                }
-
-                if (/^docs\/.+\.md$/i.test(normalizedPath)) {
-                    return normalizedPath;
-                }
-
-                return null;
-            }
-
             async function loadMarkdown() {
-                const file = sanitizeRequestedFile(getQueryParam('file'));
+                let file = getQueryParam('file') || 'README.md';
 
-                if (!file) {
-                    contentDiv.innerHTML = `<p>Error: Only approved markdown files can be loaded.</p>`;
+                // Security check to prevent fetching external resources
+                if (/^[a-zA-Z]+:/.test(file) || file.startsWith('//')) {
+                    contentDiv.innerHTML = `<p>Error: Loading external files is not allowed.</p>`;
                     return;
                 }
 
@@ -106,7 +73,10 @@
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     const text = await response.text();
-                    contentDiv.innerHTML = marked.parse(text);
+                    // Parse markdown to HTML, then sanitize it to prevent DOM XSS
+                    const rawHtml = marked.parse(text);
+                    const cleanHtml = DOMPurify.sanitize(rawHtml);
+                    contentDiv.innerHTML = cleanHtml;
 
                     // Fix relative image paths
                     const images = contentDiv.querySelectorAll('img');
@@ -169,16 +139,7 @@
                     }
 
                 } catch (error) {
-                    const fileErrorParagraph = document.createElement('p');
-                    fileErrorParagraph.appendChild(document.createTextNode('Error loading markdown file: '));
-                    const fileCode = document.createElement('code');
-                    fileCode.textContent = file;
-                    fileErrorParagraph.appendChild(fileCode);
-
-                    const messageParagraph = document.createElement('p');
-                    messageParagraph.textContent = error.message;
-
-                    contentDiv.replaceChildren(fileErrorParagraph, messageParagraph);
+                    contentDiv.innerHTML = `<p>Error loading markdown file: <code>${file}</code></p><p>${error.message}</p>`;
                 }
             }
 
