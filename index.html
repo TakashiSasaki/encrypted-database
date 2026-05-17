@@ -134,7 +134,16 @@
                     }
 
                 } catch (error) {
-                    contentDiv.innerHTML = `<p>Error loading markdown file: <code>${file}</code></p><p>${error.message}</p>`;
+                    const fileErrorParagraph = document.createElement('p');
+                    fileErrorParagraph.appendChild(document.createTextNode('Error loading markdown file: '));
+                    const fileCode = document.createElement('code');
+                    fileCode.textContent = file;
+                    fileErrorParagraph.appendChild(fileCode);
+
+                    const messageParagraph = document.createElement('p');
+                    messageParagraph.textContent = error.message;
+
+                    contentDiv.replaceChildren(fileErrorParagraph, messageParagraph);
                 }
             }
 
