@@ -1,0 +1,21 @@
+{
+  "name": "encrypted-storage",
+  "version": "0.1.0",
+  "description": "A Node.js library for an encrypted database with unified key management.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"No tests specified\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "TBD"
+  },
+  "keywords": [
+    "encryption",
+    "database",
+    "sqlite",
+    "security"
+  ],
+  "author": "Author",
+  "license": "MIT"
+}
