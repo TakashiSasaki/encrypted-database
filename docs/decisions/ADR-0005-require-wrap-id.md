@@ -25,6 +25,5 @@ The schema MUST use `wrap_id` as the `PRIMARY KEY` for `wrapped_key_tbl`. The co
 - `wrap_id` must be generated as a UUIDv4 and validated.
 
 ## Related Files
-- `docs/spec/open-questions.md` (Tracks this as an unresolved architectural consideration)
-- `docs/backend/sqlite/schema.sql` (Maintains composite primary key)
+- `docs/backend/sqlite/schema.sql` (Now updated to use `wrap_id` as primary key)
 - `docs/legacy/encrypted_storage_key_management_spec.md`

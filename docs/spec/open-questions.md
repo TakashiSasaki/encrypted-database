@@ -12,7 +12,6 @@ This document tracks unresolved design questions, ongoing considerations, and fu
 
 ## 2. Key Wrapping and Schema
 
-*   **`wrap_id`:** The primary key for `wrapped_key_tbl` currently relies on `(wrapped_kid, wrapping_kid)`, which struggles with multiple generations of the same wrap. The introduction of a dedicated `wrap_id` UUIDv4 is a deferred decision that needs to be finalized.
 *   **Per-wrap Status:** Whether wrap rows should have independent status (`status`, `created_at_ms`, `deactivated_at_ms`, `destroyed_at_ms`) separate from the main `key_tbl.status` to handle multiple unwrap paths.
 *   **Encrypted Object Versioning:** Whether `encrypted_object_tbl` should only support overwrite updates, or keep a version history of the ciphertext for synchronization and auditing purposes.
 *   **Workspace KEK:** Whether to implement `workspace_kek` in the initial phase, or delay it until sharing, project boundaries, or collection boundaries are required.
