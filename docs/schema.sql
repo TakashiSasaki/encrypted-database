@@ -48,9 +48,12 @@ CREATE TABLE IF NOT EXISTS key_tbl (
 CREATE TABLE IF NOT EXISTS wrapped_key_tbl (
     wrapped_kid TEXT NOT NULL,
     wrapping_kid TEXT NOT NULL,
+    envelope_v INTEGER NOT NULL DEFAULT 1 CHECK (envelope_v >= 1),
+    envelope_type TEXT NOT NULL DEFAULT 'key_wrap' CHECK (envelope_type IN ('key_wrap')),
     wrap_alg TEXT NOT NULL,
     nonce BLOB NOT NULL,
     wrapped_key BLOB NOT NULL,
+    aad_policy TEXT NOT NULL,
     aad_context_json TEXT NOT NULL CHECK (json_valid(aad_context_json)),
     created_at_ms INTEGER NOT NULL,
     PRIMARY KEY (wrapped_kid, wrapping_kid),
@@ -60,6 +63,8 @@ CREATE TABLE IF NOT EXISTS wrapped_key_tbl (
 
 CREATE TABLE IF NOT EXISTS encrypted_object_tbl (
     object_uuid TEXT PRIMARY KEY,
+    envelope_v INTEGER NOT NULL DEFAULT 1 CHECK (envelope_v >= 1),
+    envelope_type TEXT NOT NULL DEFAULT 'aead' CHECK (envelope_type IN ('aead')),
     schema_uuid TEXT NOT NULL,
     content_type TEXT NOT NULL,
     alg TEXT NOT NULL,
