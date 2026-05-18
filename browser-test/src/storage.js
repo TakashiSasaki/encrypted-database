@@ -183,21 +183,37 @@ class EncryptedStorage {
     retrievePayload(objectUuid) {
         if (!this.activeDbKek) throw new Error("Database is locked");
 
-        const resObj = this.db.exec(`SELECT schema_uuid, content_type, kid, nonce, ciphertext FROM encrypted_object_tbl WHERE object_uuid = '${objectUuid}'`);
-        if (resObj.length === 0) throw new Error("Object not found");
-        const row = resObj[0].values[0];
-        const schema_uuid = row[0];
-        const content_type = row[1];
-        const kid = row[2];
-        const nonce = row[3];
-        const ciphertext = row[4];
+        let rowObj;
+        const objStmt = this.db.prepare(
+            'SELECT schema_uuid, content_type, kid, nonce, ciphertext FROM encrypted_object_tbl WHERE object_uuid = ?'
+        );
+        try {
+            objStmt.bind([objectUuid]);
+            if (!objStmt.step()) throw new Error("Object not found");
+            rowObj = objStmt.getAsObject();
+        } finally {
+            objStmt.free();
+        }
+        const schema_uuid = rowObj.schema_uuid;
+        const content_type = rowObj.content_type;
+        const kid = rowObj.kid;
+        const nonce = rowObj.nonce;
+        const ciphertext = rowObj.ciphertext;
 
-        const resWrap = this.db.exec(`SELECT nonce, wrapped_key, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = '${kid}' AND wrapping_kid = '${this.activeDbKid}'`);
-        if (resWrap.length === 0) throw new Error("Record DEK wrap info not found");
-        const wrapRow = resWrap[0].values[0];
-        const wrap_nonce = wrapRow[0];
-        const wrapped_key = wrapRow[1];
-        const aad_context_json = wrapRow[2];
+        let wrapRowObj;
+        const wrapStmt = this.db.prepare(
+            'SELECT nonce, wrapped_key, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?'
+        );
+        try {
+            wrapStmt.bind([kid, this.activeDbKid]);
+            if (!wrapStmt.step()) throw new Error("Record DEK wrap info not found");
+            wrapRowObj = wrapStmt.getAsObject();
+        } finally {
+            wrapStmt.free();
+        }
+        const wrap_nonce = wrapRowObj.nonce;
+        const wrapped_key = wrapRowObj.wrapped_key;
+        const aad_context_json = wrapRowObj.aad_context_json;
 
         const recordDekBytes = cryptoUtils.decryptAead(this.activeDbKek, wrap_nonce, wrapped_key, Buffer.from(aad_context_json, 'utf8'));
 
