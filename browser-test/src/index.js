@@ -3,15 +3,30 @@ const { v4: uuidv4 } = require('uuid');
 
 const tablePages = {};
 const ROWS_PER_PAGE = 10;
-const SETUP_TABLE_NAMES = new Set([
-    'key_class_tbl',
-    'key_profile_tbl',
-    'unlock_method_tbl',
-    'unlock_provider_tbl',
-    'platform_tbl',
-    'unlock_provider_platform_tbl'
-]);
 let currentStorage = null;
+
+function initializeTabs() {
+    const container = document.getElementById('tables-container');
+    if (!container) return;
+
+    const tabButtons = container.querySelectorAll('.tab-button');
+    const tabContents = container.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const targetId = event.currentTarget.getAttribute('data-tab-target');
+
+            tabContents.forEach(content => content.classList.remove('active'));
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+
+            const targetContent = container.querySelector(`#${targetId}`);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+            event.currentTarget.classList.add('active');
+        });
+    });
+}
 
 function logOutput(message) {
     console.log(message);
@@ -47,6 +62,15 @@ function renderTables(storage) {
 
     setupTablesContainer.innerHTML = ''; // clear
     dynamicTablesContainer.innerHTML = ''; // clear
+
+    const setupTableNames = [
+        'key_class_tbl',
+        'key_profile_tbl',
+        'unlock_method_tbl',
+        'unlock_provider_tbl',
+        'platform_tbl',
+        'unlock_provider_platform_tbl'
+    ];
 
     tables.forEach(tableName => {
         if (!tablePages[tableName]) {
@@ -163,46 +187,11 @@ function renderTables(storage) {
         pagination.appendChild(nextBtn);
         wrapper.appendChild(pagination);
 
-        if (SETUP_TABLE_NAMES.has(tableName)) {
+        if (setupTableNames.includes(tableName)) {
             setupTablesContainer.appendChild(wrapper);
         } else {
             dynamicTablesContainer.appendChild(wrapper);
         }
-    });
-}
-
-function setActiveTableTab(tabName) {
-    const tablesContainer = document.getElementById('tables-container');
-    if (!tablesContainer) return;
-
-    const tabContents = tablesContainer.querySelectorAll('.tab-content');
-    tabContents.forEach((tabContent) => {
-        const isActive = tabContent.id === tabName;
-        tabContent.classList.toggle('active', isActive);
-        tabContent.hidden = !isActive;
-    });
-
-    const tabButtons = tablesContainer.querySelectorAll('.tab-button');
-    tabButtons.forEach((tabButton) => {
-        const isActive = tabButton.getAttribute('aria-controls') === tabName;
-        tabButton.classList.toggle('active', isActive);
-        tabButton.setAttribute('aria-selected', String(isActive));
-        tabButton.setAttribute('tabindex', isActive ? '0' : '-1');
-    });
-}
-
-function initializeTableTabs() {
-    const tablesContainer = document.getElementById('tables-container');
-    if (!tablesContainer) return;
-
-    const tabButtons = tablesContainer.querySelectorAll('.tab-button[aria-controls]');
-    tabButtons.forEach((tabButton) => {
-        tabButton.addEventListener('click', () => {
-            const tabName = tabButton.getAttribute('aria-controls');
-            if (tabName) {
-                setActiveTableTab(tabName);
-            }
-        });
     });
 }
 
@@ -457,7 +446,7 @@ function closeDatabase() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    initializeTableTabs();
+    initializeTabs();
 
     const btn = document.getElementById('nextStepBtn');
     if (btn) {

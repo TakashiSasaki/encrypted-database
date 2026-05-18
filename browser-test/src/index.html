@@ -56,32 +56,14 @@
 
     <div id="output"></div>
     <div id="tables-container">
-        <div class="tabs" role="tablist" aria-label="Table data tabs">
-            <button
-                id="dynamic-tables-tab"
-                class="tab-button active"
-                type="button"
-                role="tab"
-                aria-selected="true"
-                aria-controls="dynamic-tables"
-            >
-                Dynamic Data
-            </button>
-            <button
-                id="setup-tables-tab"
-                class="tab-button"
-                type="button"
-                role="tab"
-                aria-selected="false"
-                aria-controls="setup-tables"
-                tabindex="-1"
-            >
-                Setup Data
-            </button>
+        <div class="tabs">
+            <button class="tab-button active" data-tab-target="dynamic-tables">Dynamic Data</button>
+            <button class="tab-button" data-tab-target="setup-tables">Setup Data</button>
         </div>
-        <div id="dynamic-tables" class="tab-content active" role="tabpanel" aria-labelledby="dynamic-tables-tab"></div>
-        <div id="setup-tables" class="tab-content" role="tabpanel" aria-labelledby="setup-tables-tab" hidden></div>
+        <div id="dynamic-tables" class="tab-content active"></div>
+        <div id="setup-tables" class="tab-content"></div>
     </div>
+
     <script src="bundle.js"></script>
 </body>
 </html>
