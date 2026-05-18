@@ -100,9 +100,10 @@ class EncryptedStorage:
                 "INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)",
                 (unlock_kid, 'passphrase_argon2id', crypto.canonicalize_json(provider_config).decode('utf-8'), platform)
             )
+            wrap_id = self._generate_kid()
             cur.execute(
-                "INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (db_kid, unlock_kid, wrap_alg, nonce, wrapped_db_kek, aad_policy_name, crypto.canonicalize_json(aad_context).decode('utf-8'), self._current_ms())
+                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (wrap_id, db_kid, unlock_kid, 1, 'key_wrap', wrap_alg, nonce, wrapped_db_kek, aad_policy_name, crypto.canonicalize_json(aad_context).decode('utf-8'), self._current_ms())
             )
             self.conn.commit()
         except Exception as e:
@@ -202,13 +203,14 @@ class EncryptedStorage:
                 "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)",
                 (record_kid, 'record_dek', 'encrypt_payload', alg, 'active', self._current_ms())
             )
+            wrap_id = self._generate_kid()
             cur.execute(
-                "INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (record_kid, self.active_db_kid, alg, nonce_wrap, wrapped_record_dek, wrap_aad_policy, crypto.canonicalize_json(wrap_aad).decode('utf-8'), self._current_ms())
+                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (wrap_id, record_kid, self.active_db_kid, 1, 'key_wrap', alg, nonce_wrap, wrapped_record_dek, wrap_aad_policy, crypto.canonicalize_json(wrap_aad).decode('utf-8'), self._current_ms())
             )
             cur.execute(
-                "INSERT INTO encrypted_object_tbl (object_uuid, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (object_uuid, schema_uuid, content_type, alg, record_kid, nonce_payload, ciphertext, payload_aad_policy, self._current_ms(), self._current_ms())
+                "INSERT INTO encrypted_object_tbl (object_uuid, envelope_v, envelope_type, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (object_uuid, 1, 'aead', schema_uuid, content_type, alg, record_kid, nonce_payload, ciphertext, payload_aad_policy, self._current_ms(), self._current_ms())
             )
             self.conn.commit()
         except Exception as e:

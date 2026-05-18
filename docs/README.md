@@ -60,7 +60,7 @@ The documentation has been refactored into focused modules.
 - [`decisions/ADR-0002-require-rfc8785-jcs.md`](./decisions/ADR-0002-require-rfc8785-jcs.md): JSON canonicalization.
 - [`decisions/ADR-0003-prohibit-cross-platform-platform.md`](./decisions/ADR-0003-prohibit-cross-platform-platform.md): Concrete platform names.
 - [`decisions/ADR-0004-version-envelopes-from-v1.md`](./decisions/ADR-0004-version-envelopes-from-v1.md): Versioned envelopes from the first schema.
-- [`decisions/ADR-0005-defer-wrap-id.md`](./decisions/ADR-0005-defer-wrap-id.md): Deferral of dedicated wrap ID in the schema.
+- [`decisions/ADR-0005-require-wrap-id.md`](./decisions/ADR-0005-require-wrap-id.md): Dedicated wrap ID in the schema.
 
 ### Implementation Notes
 - [`implementation-notes/implementation-gaps.md`](./implementation-notes/implementation-gaps.md): Known gaps between the canonical specifications and the current implementations, including implementation issue history.
