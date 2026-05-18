@@ -3,7 +3,6 @@ const { v4: uuidv4 } = require('uuid');
 
 const tablePages = {};
 const ROWS_PER_PAGE = 10;
-let currentStorage = null;
 
 function logOutput(message) {
     console.log(message);
@@ -173,7 +172,6 @@ async function runTest() {
         } catch (e) {
             console.error("Failed to close previous storage", e);
         }
-        currentStorage = null;
     }
 
     const outputDiv = document.getElementById('output');
@@ -305,11 +303,11 @@ function closeDatabase() {
         try {
             currentStorage.close();
             logOutput("データベースを手動で閉じました。（テーブルの表示はそのまま残しています）");
+            currentStorage = null;
         } catch (e) {
             console.error("Failed to close storage", e);
             logOutput("データベースを閉じる際にエラーが発生しました。");
         }
-        currentStorage = null;
     } else {
         logOutput("開いているデータベースはありません。");
     }
