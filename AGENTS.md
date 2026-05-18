@@ -7,3 +7,4 @@
 - When using SQLite as the backend, the Node.js and Python implementations must be able to use the exact same SQLite database.
 - When generating Argon2id parameters, always refer to `docs/providers/passphrase-argon2id.md` for the correct parameters (Time Cost 3, Memory 256MB, Parallelism 4).
 - The JSON recorded in the database and the JSON before encryption must always be JCS (RFC 8785) normalized. Both the Python and Node.js implementations must strictly enforce JCS normalization. If an existing JCS normalization library is not fully compliant with the RFC, a custom JCS normalization library must be implemented and verified against all official test vectors before it is used.
+- All web pages viewed in the browser, including the root `index.html` and any demo pages (e.g., in `browser-test/`), must be responsive. Use standard techniques such as CSS media queries, Flexbox, or Grid to ensure a responsive design.
