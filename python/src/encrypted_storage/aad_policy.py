@@ -18,9 +18,8 @@ class AadPolicy:
         return self.build_context(**kwargs)
 
     def aad_bytes(self, **kwargs: Any) -> bytes:
-        # crypto.canonicalize_json is the canonicalization boundary used by the
-        # current prototype. It must be replaced or backed by an RFC 8785 JCS
-        # implementation before this format is considered interoperable.
+        # crypto.canonicalize_json uses an RFC 8785 JCS implementation (jcs)
+        # to ensure the format is interoperable across languages.
         return crypto.canonicalize_json(self.context(**kwargs))
 
 

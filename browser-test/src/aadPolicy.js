@@ -19,9 +19,8 @@ class AadPolicy {
     }
 
     aadBytes(args) {
-        // cryptoUtils.canonicalizeJson is the canonicalization boundary used by
-        // the current prototype. It must be replaced or backed by an RFC 8785
-        // JCS implementation before this format is considered interoperable.
+        // cryptoUtils.canonicalizeJson uses an RFC 8785 JCS implementation (json-canonicalize)
+        // to ensure the format is interoperable across languages.
         return cryptoUtils.canonicalizeJson(this.context(args));
     }
 }

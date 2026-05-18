@@ -4,13 +4,13 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ## Active Gaps
 
-*   **JSON Canonicalizers:** The current Python and Node.js implementations use prototype JSON canonicalization, and are not yet full RFC 8785 JSON Canonicalization Scheme (JCS) implementations.
 *   **Missing Documentation:** The Python and Node.js implementation `README.md` files are still marked as TBD.
 *   **Deferred Schema Changes:** The inclusion of `wrap_id` in `wrapped_key_tbl` remains a deferred decision, meaning the schema and code do not currently support multi-generational wrap IDs for the same logical pair.
 *   **UUIDv4 Validation:** The UUIDv4 canonical format is specified by ADR-0001, but is not yet enforced by SQLite CHECK constraints.
 
 ## Resolved or Historical Gaps
 
+*   **JSON Canonicalizers:** The Python and Node.js implementations have been updated to use full RFC 8785 JSON Canonicalization Scheme (JCS) libraries (`jcs` in Python and `json-canonicalize` in Node.js/browser-test).
 *   **Legacy Spec Examples:** The legacy integrated draft (`docs/legacy/encrypted_storage_key_management_spec.md`) contains stale prefixed `kid` examples which have been superseded by the UUIDv4 decision (ADR-0001).
 *   **Legacy Spec `cross_platform` Discussion:** The legacy draft discussed `cross_platform`. This is now superseded by ADR-0003 and must not be reintroduced.
 *   **Legacy Spec SQL Snippets:** SQL snippets within the legacy draft are older and out of sync with the canonical schema defined in `docs/backend/sqlite/schema.sql`.
