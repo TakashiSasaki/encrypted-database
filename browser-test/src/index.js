@@ -3,6 +3,14 @@ const { v4: uuidv4 } = require('uuid');
 
 const tablePages = {};
 const ROWS_PER_PAGE = 10;
+const SETUP_TABLE_NAMES = new Set([
+    'key_class_tbl',
+    'key_profile_tbl',
+    'unlock_method_tbl',
+    'unlock_provider_tbl',
+    'platform_tbl',
+    'unlock_provider_platform_tbl'
+]);
 let currentStorage = null;
 
 function logOutput(message) {
@@ -39,15 +47,6 @@ function renderTables(storage) {
 
     setupTablesContainer.innerHTML = ''; // clear
     dynamicTablesContainer.innerHTML = ''; // clear
-
-    const setupTableNames = [
-        'key_class_tbl',
-        'key_profile_tbl',
-        'unlock_method_tbl',
-        'unlock_provider_tbl',
-        'platform_tbl',
-        'unlock_provider_platform_tbl'
-    ];
 
     tables.forEach(tableName => {
         if (!tablePages[tableName]) {
@@ -164,11 +163,46 @@ function renderTables(storage) {
         pagination.appendChild(nextBtn);
         wrapper.appendChild(pagination);
 
-        if (setupTableNames.includes(tableName)) {
+        if (SETUP_TABLE_NAMES.has(tableName)) {
             setupTablesContainer.appendChild(wrapper);
         } else {
             dynamicTablesContainer.appendChild(wrapper);
         }
+    });
+}
+
+function setActiveTableTab(tabName) {
+    const tablesContainer = document.getElementById('tables-container');
+    if (!tablesContainer) return;
+
+    const tabContents = tablesContainer.querySelectorAll('.tab-content');
+    tabContents.forEach((tabContent) => {
+        const isActive = tabContent.id === tabName;
+        tabContent.classList.toggle('active', isActive);
+        tabContent.hidden = !isActive;
+    });
+
+    const tabButtons = tablesContainer.querySelectorAll('.tab-button');
+    tabButtons.forEach((tabButton) => {
+        const isActive = tabButton.getAttribute('aria-controls') === tabName;
+        tabButton.classList.toggle('active', isActive);
+        tabButton.setAttribute('aria-selected', String(isActive));
+        tabButton.setAttribute('tabindex', isActive ? '0' : '-1');
+    });
+}
+
+function initializeTableTabs() {
+    const tablesContainer = document.getElementById('tables-container');
+    if (!tablesContainer) return;
+
+    const tabButtons = tablesContainer.querySelectorAll('.tab-button[aria-controls]');
+    tabButtons.forEach((tabButton) => {
+        tabButton.addEventListener('click', () => {
+            const tabName = tabButton.getAttribute('aria-controls');
+            if (tabName) {
+                setActiveTableTab(tabName);
+            }
+        });
     });
 }
 
@@ -423,6 +457,8 @@ function closeDatabase() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initializeTableTabs();
+
     const btn = document.getElementById('nextStepBtn');
     if (btn) {
         btn.addEventListener('click', executeNextStep);
