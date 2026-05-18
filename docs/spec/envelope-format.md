@@ -32,7 +32,7 @@ For encrypted payloads, the standard version-1 JSON envelope is:
 
 ## SQLite Representation
 
-Within the SQLite database, envelopes are decomposed into columns. See the SQLite documentation for details on how `envelope_v` and `envelope_type` are implemented.
+Within the SQLite database, envelopes are decomposed into columns. See [`docs/backend/sqlite/schema.md`](../backend/sqlite/schema.md) for the concrete column definitions and [`docs/backend/sqlite/constraints.md`](../backend/sqlite/constraints.md) for the associated constraints on `envelope_v` and `envelope_type`.
 
 ## Nonce and IV Generation
 
