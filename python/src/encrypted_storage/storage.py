@@ -5,6 +5,7 @@ import json
 import base64
 from pathlib import Path
 
+from . import aad_policy
 from . import crypto
 
 class EncryptedStorage:
@@ -67,15 +68,20 @@ class EncryptedStorage:
             "parallelism": parallelism
         }
 
-        # Wrap database KEK with unlock KEK
-        aad_policy = "wrap-database-key-v1"
-        aad_context = {
-            "v": 1,
-            "aad_policy": aad_policy,
-            "wrapped_kid": db_kid,
-            "wrapping_kid": unlock_kid
-        }
-        aad_bytes = crypto.canonicalize_json(aad_context)
+        # Wrap database KEK with unlock KEK. The library selects the AAD policy
+        # from the operation and wrapped key class; callers do not provide it.
+        wrap_alg = "A256GCM"
+        aad_policy_name = aad_policy.select_key_wrap_policy(wrapped_key_class="database_kek", alg=wrap_alg)
+        aad_context = aad_policy.build_aad_context(
+            aad_policy_name,
+            wrapped_kid=db_kid,
+            wrapping_kid=unlock_kid,
+        )
+        aad_bytes = aad_policy.build_aad_bytes(
+            aad_policy_name,
+            wrapped_kid=db_kid,
+            wrapping_kid=unlock_kid,
+        )
         nonce, wrapped_db_kek = crypto.encrypt_aead(unlock_kek_bytes, db_kek_bytes, aad_bytes)
 
         cur = self.conn.cursor()
@@ -84,11 +90,11 @@ class EncryptedStorage:
             # Save db_kek info
             cur.execute(
                 "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)",
-                (db_kid, 'database_kek', 'wrap_record_keys', 'A256GCM', 'active', self._current_ms())
+                (db_kid, 'database_kek', 'wrap_record_keys', wrap_alg, 'active', self._current_ms())
             )
             cur.execute(
                 "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)",
-                (unlock_kid, 'unlock_kek', 'wrap_database_keys', 'A256GCM', 'active', self._current_ms())
+                (unlock_kid, 'unlock_kek', 'wrap_database_keys', wrap_alg, 'active', self._current_ms())
             )
             cur.execute(
                 "INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)",
@@ -96,7 +102,7 @@ class EncryptedStorage:
             )
             cur.execute(
                 "INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (db_kid, unlock_kid, 'A256GCM', nonce, wrapped_db_kek, aad_policy, crypto.canonicalize_json(aad_context).decode('utf-8'), self._current_ms())
+                (db_kid, unlock_kid, wrap_alg, nonce, wrapped_db_kek, aad_policy_name, crypto.canonicalize_json(aad_context).decode('utf-8'), self._current_ms())
             )
             self.conn.commit()
         except Exception as e:
@@ -118,11 +124,12 @@ class EncryptedStorage:
         db_kid = row[0]
 
         # Get wrap info
-        cur.execute("SELECT wrapping_kid, nonce, wrapped_key, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ?", (db_kid,))
+        cur.execute("SELECT wrapping_kid, nonce, wrapped_key, aad_policy, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ?", (db_kid,))
         wrap_rows = cur.fetchall()
 
         unwrapped = False
-        for wrapping_kid, nonce, wrapped_key, aad_context_json in wrap_rows:
+        for wrapping_kid, nonce, wrapped_key, aad_policy_name, aad_context_json in wrap_rows:
+            aad_policy.get_policy(aad_policy_name)
             cur.execute("SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = ?", (wrapping_kid,))
             prov_row = cur.fetchone()
             if prov_row and prov_row[0] == 'passphrase_argon2id':
@@ -155,30 +162,41 @@ class EncryptedStorage:
         # 1. Generate record DEK
         record_dek_bytes = crypto.generate_random_bytes(32)
         record_kid = self._generate_kid()
+        alg = "A256GCM"
 
         # 2. Wrap record DEK with database KEK
-        wrap_aad_policy = "wrap-record-key-v1"
-        wrap_aad = {
-            "v": 1,
-            "aad_policy": wrap_aad_policy,
-            "wrapped_kid": record_kid,
-            "wrapping_kid": self.active_db_kid
-        }
-        wrap_aad_bytes = crypto.canonicalize_json(wrap_aad)
+        wrap_aad_policy = aad_policy.select_key_wrap_policy(wrapped_key_class="record_dek", alg=alg)
+        wrap_aad = aad_policy.build_aad_context(
+            wrap_aad_policy,
+            wrapped_kid=record_kid,
+            wrapping_kid=self.active_db_kid,
+        )
+        wrap_aad_bytes = aad_policy.build_aad_bytes(
+            wrap_aad_policy,
+            wrapped_kid=record_kid,
+            wrapping_kid=self.active_db_kid,
+        )
         nonce_wrap, wrapped_record_dek = crypto.encrypt_aead(self.active_db_kek, record_dek_bytes, wrap_aad_bytes)
 
         # 3. Encrypt payload with record DEK
         payload_bytes = crypto.canonicalize_json(payload)
-        payload_aad = {
-            "v": 1,
-            "aad_policy": "record-payload-v1",
-            "object_uuid": object_uuid,
-            "schema_uuid": schema_uuid,
-            "content_type": content_type,
-            "kid": record_kid,
-            "alg": "A256GCM"
-        }
-        payload_aad_bytes = crypto.canonicalize_json(payload_aad)
+        payload_aad_policy = aad_policy.select_payload_policy(alg=alg)
+        payload_aad = aad_policy.build_aad_context(
+            payload_aad_policy,
+            object_uuid=object_uuid,
+            schema_uuid=schema_uuid,
+            content_type=content_type,
+            kid=record_kid,
+            alg=alg,
+        )
+        payload_aad_bytes = aad_policy.build_aad_bytes(
+            payload_aad_policy,
+            object_uuid=object_uuid,
+            schema_uuid=schema_uuid,
+            content_type=content_type,
+            kid=record_kid,
+            alg=alg,
+        )
         nonce_payload, ciphertext = crypto.encrypt_aead(record_dek_bytes, payload_bytes, payload_aad_bytes)
 
         cur = self.conn.cursor()
@@ -186,15 +204,15 @@ class EncryptedStorage:
         try:
             cur.execute(
                 "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)",
-                (record_kid, 'record_dek', 'encrypt_payload', 'A256GCM', 'active', self._current_ms())
+                (record_kid, 'record_dek', 'encrypt_payload', alg, 'active', self._current_ms())
             )
             cur.execute(
                 "INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (record_kid, self.active_db_kid, 'A256GCM', nonce_wrap, wrapped_record_dek, wrap_aad_policy, wrap_aad_bytes.decode('utf-8'), self._current_ms())
+                (record_kid, self.active_db_kid, alg, nonce_wrap, wrapped_record_dek, wrap_aad_policy, crypto.canonicalize_json(wrap_aad).decode('utf-8'), self._current_ms())
             )
             cur.execute(
                 "INSERT INTO encrypted_object_tbl (object_uuid, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (object_uuid, schema_uuid, content_type, 'A256GCM', record_kid, nonce_payload, ciphertext, 'record-payload-v1', self._current_ms(), self._current_ms())
+                (object_uuid, schema_uuid, content_type, alg, record_kid, nonce_payload, ciphertext, payload_aad_policy, self._current_ms(), self._current_ms())
             )
             self.conn.commit()
         except Exception as e:
@@ -209,35 +227,35 @@ class EncryptedStorage:
             raise ValueError("Database is locked")
 
         cur = self.conn.cursor()
-        cur.execute("SELECT schema_uuid, content_type, kid, nonce, ciphertext FROM encrypted_object_tbl WHERE object_uuid = ?", (object_uuid,))
+        cur.execute("SELECT schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy FROM encrypted_object_tbl WHERE object_uuid = ?", (object_uuid,))
         row = cur.fetchone()
         if not row:
             raise ValueError("Object not found")
 
-        schema_uuid, content_type, record_kid, nonce_payload, ciphertext = row
+        schema_uuid, content_type, alg, record_kid, nonce_payload, ciphertext, payload_aad_policy = row
+        aad_policy.get_policy(payload_aad_policy)
 
         # Get wrapped record DEK
-        cur.execute("SELECT nonce, wrapped_key, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?", (record_kid, self.active_db_kid))
+        cur.execute("SELECT nonce, wrapped_key, aad_policy, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?", (record_kid, self.active_db_kid))
         wrap_row = cur.fetchone()
         if not wrap_row:
             raise ValueError("Record DEK wrap info not found")
 
-        nonce_wrap, wrapped_record_dek, aad_context_json_wrap = wrap_row
+        nonce_wrap, wrapped_record_dek, wrap_aad_policy, aad_context_json_wrap = wrap_row
+        aad_policy.get_policy(wrap_aad_policy)
 
         # Unwrap record DEK
         record_dek_bytes = crypto.decrypt_aead(self.active_db_kek, nonce_wrap, wrapped_record_dek, aad_context_json_wrap.encode('utf-8'))
 
-        # Decrypt payload
-        payload_aad = {
-            "v": 1,
-            "aad_policy": "record-payload-v1",
-            "object_uuid": object_uuid,
-            "schema_uuid": schema_uuid,
-            "content_type": content_type,
-            "kid": record_kid,
-            "alg": "A256GCM"
-        }
-        payload_aad_bytes = crypto.canonicalize_json(payload_aad)
+        # Decrypt payload using the registered policy saved with the object.
+        payload_aad_bytes = aad_policy.build_aad_bytes(
+            payload_aad_policy,
+            object_uuid=object_uuid,
+            schema_uuid=schema_uuid,
+            content_type=content_type,
+            kid=record_kid,
+            alg=alg,
+        )
 
         payload_bytes = crypto.decrypt_aead(record_dek_bytes, nonce_payload, ciphertext, payload_aad_bytes)
         return json.loads(payload_bytes.decode('utf-8'))
