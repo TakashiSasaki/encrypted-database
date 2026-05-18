@@ -198,9 +198,15 @@ class EncryptedStorage {
     retrievePayload(objectUuid) {
         if (!this.activeDbKek) throw new Error("Database is locked");
 
-        const resObj = this.db.exec(`SELECT schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy FROM encrypted_object_tbl WHERE object_uuid = '${objectUuid}'`);
-        if (resObj.length === 0) throw new Error("Object not found");
-        const row = resObj[0].values[0];
+        const stmtObj = this.db.prepare(`SELECT schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy FROM encrypted_object_tbl WHERE object_uuid = ?`);
+        stmtObj.bind([objectUuid]);
+        const hasObject = stmtObj.step();
+        if (!hasObject) {
+            stmtObj.free();
+            throw new Error("Object not found");
+        }
+        const row = stmtObj.get();
+        stmtObj.free();
         const schema_uuid = row[0];
         const content_type = row[1];
         const alg = row[2];
