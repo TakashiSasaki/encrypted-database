@@ -160,6 +160,25 @@ function renderTables(storage) {
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
 async function runTest() {
+    const runTestBtn = document.getElementById('runTestBtn');
+    const closeDbBtn = document.getElementById('closeDbBtn');
+    if (runTestBtn) runTestBtn.disabled = true;
+    if (closeDbBtn) closeDbBtn.disabled = true;
+
+    if (currentStorage) {
+        try {
+            currentStorage.close();
+            currentStorage = null;
+            logOutput("前回のデータベースを閉じました。");
+        } catch (e) {
+            console.error("Failed to close previous storage", e);
+            logOutput("前回のデータベースを閉じられませんでした。「データベースを閉じる」ボタンから再試行してください。");
+            if (runTestBtn) runTestBtn.disabled = false;
+            if (closeDbBtn) closeDbBtn.disabled = false;
+            return;
+        }
+    }
+
     const outputDiv = document.getElementById('output');
     if (outputDiv) outputDiv.innerHTML = ''; // clear previous
     const tablesContainer = document.getElementById('tables-container');
@@ -167,9 +186,12 @@ async function runTest() {
 
     logOutput("テスト開始...");
 
+    let storage = null;
+
     try {
-        const storage = new EncryptedStorage();
+        storage = new EncryptedStorage();
         await storage.init(); // スキーマを生成して初期の空テーブルを表示するため手動でinitを呼ぶ
+        currentStorage = storage;
 
         // --- モンキーパッチでクエリを監視して自動更新 ---
         const originalExec = storage.db.exec.bind(storage.db);
@@ -271,14 +293,44 @@ async function runTest() {
             logOutput("❌ 再解錠後のデータ取得失敗。");
         }
 
-        storage.close();
-        logOutput("データベースを閉じました。");
-        const tablesContainer = document.getElementById('tables-container');
-        if (tablesContainer) tablesContainer.innerHTML = '';
-
+        logOutput("テスト完了！データベースは開いたままです。確認が終わったら「データベースを閉じる」ボタンを押してください。");
     } catch (err) {
         logOutput(`エラー発生: ${err.message}`);
         console.error(err);
+        if (storage) {
+            try {
+                storage.close();
+                if (currentStorage === storage) {
+                    currentStorage = null;
+                }
+            } catch (closeErr) {
+                console.error("Failed to close storage after test error", closeErr);
+                currentStorage = storage;
+                logOutput("テスト失敗後のデータベースを閉じられませんでした。「データベースを閉じる」ボタンから再試行してください。");
+            }
+        }
+    } finally {
+        if (runTestBtn) runTestBtn.disabled = false;
+        if (closeDbBtn) closeDbBtn.disabled = !currentStorage;
+    }
+}
+
+function closeDatabase() {
+    const closeDbBtn = document.getElementById('closeDbBtn');
+
+    if (currentStorage) {
+        try {
+            currentStorage.close();
+            logOutput("データベースを手動で閉じました。（テーブルの表示はそのまま残しています）");
+            currentStorage = null;
+            if (closeDbBtn) closeDbBtn.disabled = true;
+        } catch (e) {
+            console.error("Failed to close storage", e);
+            logOutput("データベースを閉じる際にエラーが発生しました。");
+        }
+    } else {
+        logOutput("開いているデータベースはありません。");
+        if (closeDbBtn) closeDbBtn.disabled = true;
     }
 }
 
@@ -286,5 +338,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('runTestBtn');
     if (btn) {
         btn.addEventListener('click', runTest);
+    }
+    const closeBtn = document.getElementById('closeDbBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeDatabase);
     }
 });

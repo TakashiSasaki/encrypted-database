@@ -2,7 +2,7 @@ const initSqlJs = require('sql.js');
 const { v4: uuidv4 } = require('uuid');
 const aadPolicy = require('./aadPolicy');
 const cryptoUtils = require('./crypto');
-const schemaSql = require('!!raw-loader!../../docs/schema.sql').default;
+const schemaSql = require('!!raw-loader!../../docs/backend/sqlite/schema.sql').default;
 
 class EncryptedStorage {
     constructor() {
