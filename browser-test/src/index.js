@@ -273,7 +273,8 @@ async function runTest() {
 
         storage.close();
         logOutput("データベースを閉じました。");
-        renderTables(null); // クリア
+        const tablesContainer = document.getElementById('tables-container');
+        if (tablesContainer) tablesContainer.innerHTML = '';
 
     } catch (err) {
         logOutput(`エラー発生: ${err.message}`);
