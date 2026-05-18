@@ -8,6 +8,22 @@ Implementations must ensure their JSON serialization exactly matches the bytes p
 
 Any JSON values whose bytes are authenticated, hashed, MACed, signed, indexed, or used as UUID/hash input, or compared across test suites, must be strictly canonicalized.
 
+## AAD Test Vectors
+
+Implementations must verify their AAD byte generation logic using provided test vectors. The requirements for AAD test vectors include:
+- AAD policy name.
+- AAD context object.
+- Expected JCS canonical JSON string.
+- Expected AAD bytes, preferably represented as lowercase hexadecimal.
+- At least one AES-GCM test vector using:
+  - fixed key
+  - fixed nonce
+  - fixed plaintext
+  - fixed AAD bytes
+  - expected ciphertext plus authentication tag
+
+Python and Node.js implementations must verify these vectors in their CI or test suites.
+
 ## UUID Formats
 
 UUIDv4 generation must output the standard lowercase hyphen-separated format (e.g., `550e8400-e29b-41d4-a716-446655440000`). Test suites should explicitly verify string equivalence.
