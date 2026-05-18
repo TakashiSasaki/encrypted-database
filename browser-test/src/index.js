@@ -157,41 +157,20 @@ function renderTables(storage) {
     });
 }
 
-// ユーティリティ: 遅延を入れることでリアルタイム更新を視覚的に分かりやすくする
-const delay = ms => new Promise(r => setTimeout(r, ms));
+// ステップ管理
+let currentStepIndex = 0;
+let testState = {
+    schemaUuid: null,
+    payload: null,
+    objectUuid: null,
+    passphrase: "secure_passphrase123"
+};
 
-async function runTest() {
-    const runTestBtn = document.getElementById('runTestBtn');
-    const closeDbBtn = document.getElementById('closeDbBtn');
-    if (runTestBtn) runTestBtn.disabled = true;
-    if (closeDbBtn) closeDbBtn.disabled = true;
-
-    if (currentStorage) {
-        try {
-            currentStorage.close();
-            currentStorage = null;
-            logOutput("前回のデータベースを閉じました。");
-        } catch (e) {
-            console.error("Failed to close previous storage", e);
-            logOutput("前回のデータベースを閉じられませんでした。「データベースを閉じる」ボタンから再試行してください。");
-            if (runTestBtn) runTestBtn.disabled = false;
-            if (closeDbBtn) closeDbBtn.disabled = false;
-            return;
-        }
-    }
-
-    const outputDiv = document.getElementById('output');
-    if (outputDiv) outputDiv.innerHTML = ''; // clear previous
-    const tablesContainer = document.getElementById('tables-container');
-    if (tablesContainer) tablesContainer.innerHTML = '';
-
-    logOutput("テスト開始...");
-
-    let storage = null;
-
-    try {
-        storage = new EncryptedStorage();
-        await storage.init(); // スキーマを生成して初期の空テーブルを表示するため手動でinitを呼ぶ
+const steps = [
+    async () => {
+        logOutput("ステップ 1: storageインスタンスの作成中...");
+        const storage = new EncryptedStorage();
+        await storage.init();
         currentStorage = storage;
 
         // --- モンキーパッチでクエリを監視して自動更新 ---
@@ -247,77 +226,162 @@ async function runTest() {
         };
         // --- モンキーパッチ終了 ---
 
-        // 初期状態の表示
         renderTables(storage);
-
         logOutput("storageインスタンス作成完了");
-        await delay(1000);
-
-        logOutput("データベースの初期化中...");
-        await storage.initializeDatabase("secure_passphrase123");
+    },
+    async () => {
+        logOutput("ステップ 2: データベースの初期化中...");
+        await currentStorage.initializeDatabase(testState.passphrase);
         logOutput("データベース初期化完了！");
-        await delay(1000);
-
-        logOutput("データの保存中...");
-        const schemaUuid = uuidv4();
-        const payload = { message: "Hello from WebAssembly SQLite!", timestamp: Date.now() };
-        const objectUuid = storage.storePayload(schemaUuid, "application/json", payload);
-        logOutput(`データを保存しました。Object UUID: ${objectUuid}`);
-        await delay(1000);
-
-        logOutput("データの取得中...");
-        const retrievedPayload = storage.retrievePayload(objectUuid);
+    },
+    async () => {
+        logOutput("ステップ 3: データの保存中...");
+        testState.schemaUuid = uuidv4();
+        testState.payload = { message: "Hello from WebAssembly SQLite!", timestamp: Date.now() };
+        testState.objectUuid = currentStorage.storePayload(testState.schemaUuid, "application/json", testState.payload);
+        logOutput(`データを保存しました。Object UUID: ${testState.objectUuid}`);
+    },
+    async () => {
+        logOutput("ステップ 4: データの取得と検証中...");
+        const retrievedPayload = currentStorage.retrievePayload(testState.objectUuid);
         logOutput("取得したデータ: " + JSON.stringify(retrievedPayload));
 
-        if (retrievedPayload.message === payload.message) {
-            logOutput("✅ テスト成功：データが正しく保存・取得されました！");
+        if (retrievedPayload.message === testState.payload.message) {
+            logOutput("✅ データの取得と検証成功！");
         } else {
-            logOutput("❌ テスト失敗：データが一致しません。");
+            throw new Error("取得したデータが一致しません。");
         }
-        await delay(1000);
-
-        // Test Unlock
-        logOutput("--- 一旦ロックして再解錠のテスト ---");
-        storage.lock();
+    },
+    async () => {
+        logOutput("ステップ 5: データベースのロック中...");
+        currentStorage.lock();
         logOutput("データベースをロックしました。");
-        await delay(1000);
-
-        logOutput("パスフレーズで再解錠中...");
-        await storage.unlockDatabase("secure_passphrase123");
+    },
+    async () => {
+        logOutput("ステップ 6: パスフレーズで再解錠中...");
+        await currentStorage.unlockDatabase(testState.passphrase);
         logOutput("再解錠成功！");
-        await delay(1000);
-
-        const retrievedPayload2 = storage.retrievePayload(objectUuid);
-        if (retrievedPayload2.message === payload.message) {
+    },
+    async () => {
+        logOutput("ステップ 7: 再解錠後のデータ取得検証中...");
+        const retrievedPayload2 = currentStorage.retrievePayload(testState.objectUuid);
+        if (retrievedPayload2.message === testState.payload.message) {
             logOutput("✅ 再解錠後のデータ取得テスト成功！");
+            logOutput("テスト完了！データベースは開いたままです。確認が終わったら「データベースを閉じる」ボタンを押してください。");
         } else {
-            logOutput("❌ 再解錠後のデータ取得失敗。");
+            throw new Error("再解錠後のデータ取得失敗。");
         }
+    }
+];
 
-        logOutput("テスト完了！データベースは開いたままです。確認が終わったら「データベースを閉じる」ボタンを押してください。");
-    } catch (err) {
-        logOutput(`エラー発生: ${err.message}`);
-        console.error(err);
-        if (storage) {
-            try {
-                storage.close();
-                if (currentStorage === storage) {
-                    currentStorage = null;
-                }
-            } catch (closeErr) {
-                console.error("Failed to close storage after test error", closeErr);
-                currentStorage = storage;
-                logOutput("テスト失敗後のデータベースを閉じられませんでした。「データベースを閉じる」ボタンから再試行してください。");
+function updateStepUI(index, status) {
+    const li = document.getElementById(`step-${index}`);
+    if (!li) return;
+    li.classList.remove('pending', 'active', 'completed', 'error');
+    li.classList.add(status);
+
+    const originalText = li.textContent.replace(/^\[.*?\]\s*/, '');
+    let prefix = '[-]';
+    if (status === 'active') prefix = '[▶]';
+    if (status === 'completed') prefix = '[✓]';
+    if (status === 'error') prefix = '[✕]';
+
+    li.textContent = `${prefix} ${originalText}`;
+}
+
+async function executeNextStep() {
+    const nextStepBtn = document.getElementById('nextStepBtn');
+    const resetTestBtn = document.getElementById('resetTestBtn');
+    const closeDbBtn = document.getElementById('closeDbBtn');
+
+    if (nextStepBtn) nextStepBtn.disabled = true;
+
+    if (currentStepIndex === 0) {
+        // Clear previous state if starting fresh
+        const outputDiv = document.getElementById('output');
+        if (outputDiv) outputDiv.innerHTML = '';
+        const tablesContainer = document.getElementById('tables-container');
+        if (tablesContainer) tablesContainer.innerHTML = '';
+
+        // Reset all steps to pending
+        steps.forEach((_, idx) => updateStepUI(idx, 'pending'));
+
+        if (resetTestBtn) resetTestBtn.style.display = 'inline-block';
+    }
+
+    try {
+        updateStepUI(currentStepIndex, 'active');
+
+        // Execute the step
+        await steps[currentStepIndex]();
+
+        updateStepUI(currentStepIndex, 'completed');
+        currentStepIndex++;
+
+        if (currentStepIndex < steps.length) {
+            if (nextStepBtn) {
+                nextStepBtn.textContent = '次のステップへ';
+                nextStepBtn.disabled = false;
+            }
+        } else {
+            if (nextStepBtn) {
+                nextStepBtn.textContent = '全ステップ完了';
+                nextStepBtn.disabled = true;
             }
         }
+    } catch (err) {
+        updateStepUI(currentStepIndex, 'error');
+        logOutput(`エラー発生: ${err.message}`);
+        console.error(err);
+        if (nextStepBtn) nextStepBtn.disabled = true;
     } finally {
-        if (runTestBtn) runTestBtn.disabled = false;
         if (closeDbBtn) closeDbBtn.disabled = !currentStorage;
     }
 }
 
+async function resetTest() {
+    const nextStepBtn = document.getElementById('nextStepBtn');
+    const resetTestBtn = document.getElementById('resetTestBtn');
+    const closeDbBtn = document.getElementById('closeDbBtn');
+
+    if (currentStorage) {
+        try {
+            currentStorage.close();
+            currentStorage = null;
+            logOutput("データベースを閉じました。");
+        } catch (e) {
+            console.error("Failed to close previous storage", e);
+            logOutput("データベースを閉じられませんでした。");
+        }
+    }
+
+    currentStepIndex = 0;
+    testState = {
+        schemaUuid: null,
+        payload: null,
+        objectUuid: null,
+        passphrase: "secure_passphrase123"
+    };
+
+    steps.forEach((_, idx) => updateStepUI(idx, 'pending'));
+
+    const outputDiv = document.getElementById('output');
+    if (outputDiv) outputDiv.innerHTML = '';
+    const tablesContainer = document.getElementById('tables-container');
+    if (tablesContainer) tablesContainer.innerHTML = '';
+
+    if (nextStepBtn) {
+        nextStepBtn.textContent = 'テスト開始 / 次のステップへ';
+        nextStepBtn.disabled = false;
+    }
+    if (resetTestBtn) resetTestBtn.style.display = 'none';
+    if (closeDbBtn) closeDbBtn.disabled = true;
+}
+
 function closeDatabase() {
     const closeDbBtn = document.getElementById('closeDbBtn');
+    const nextStepBtn = document.getElementById('nextStepBtn');
+    const resetTestBtn = document.getElementById('resetTestBtn');
 
     if (currentStorage) {
         try {
@@ -325,6 +389,10 @@ function closeDatabase() {
             logOutput("データベースを手動で閉じました。（テーブルの表示はそのまま残しています）");
             currentStorage = null;
             if (closeDbBtn) closeDbBtn.disabled = true;
+
+            // Disable next step button as the database is closed
+            if (nextStepBtn) nextStepBtn.disabled = true;
+            if (resetTestBtn) resetTestBtn.style.display = 'inline-block';
         } catch (e) {
             console.error("Failed to close storage", e);
             logOutput("データベースを閉じる際にエラーが発生しました。");
@@ -336,9 +404,13 @@ function closeDatabase() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('runTestBtn');
+    const btn = document.getElementById('nextStepBtn');
     if (btn) {
-        btn.addEventListener('click', runTest);
+        btn.addEventListener('click', executeNextStep);
+    }
+    const resetBtn = document.getElementById('resetTestBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetTest);
     }
     const closeBtn = document.getElementById('closeDbBtn');
     if (closeBtn) {
