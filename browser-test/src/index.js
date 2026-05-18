@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const tablePages = {};
 const ROWS_PER_PAGE = 10;
+let currentStorage = null;
 
 function logOutput(message) {
     console.log(message);
