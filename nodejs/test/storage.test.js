@@ -18,7 +18,7 @@ describe('EncryptedStorage', () => {
 
     test('initialization and unlock', async () => {
         const storage = new EncryptedStorage(tempDbPath);
-        await storage.initializeDatabase('my_secure_password');
+        await storage.initializeDatabase('my_secure_password', 'linux');
         storage.close();
 
         const storage2 = new EncryptedStorage(tempDbPath);
@@ -31,7 +31,7 @@ describe('EncryptedStorage', () => {
 
     test('store and retrieve payload', async () => {
         const storage = new EncryptedStorage(tempDbPath);
-        await storage.initializeDatabase('my_secure_password');
+        await storage.initializeDatabase('my_secure_password', 'linux');
 
         const payload = { secret: 'data', value: 42 };
         const schemaUuid = '00000000-0000-0000-0000-000000000001';
