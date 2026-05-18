@@ -102,12 +102,18 @@ class EncryptedStorage {
         if (resDbKek.length === 0) throw new Error("No active database KEK found");
         const dbKid = resDbKek[0].values[0][0];
 
-        const resWrap = this.db.exec(`SELECT wrapping_kid, nonce, wrapped_key, aad_policy, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = '${dbKid}'`);
-        if (resWrap.length === 0) throw new Error("No wrap info found");
+        const stmtWrap = this.db.prepare(`SELECT wrapping_kid, nonce, wrapped_key, aad_policy, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ?`);
+        stmtWrap.bind([dbKid]);
+        const wrapRows = [];
+        while (stmtWrap.step()) {
+            wrapRows.push(stmtWrap.get());
+        }
+        stmtWrap.free();
+        if (wrapRows.length === 0) throw new Error("No wrap info found");
 
         let unwrapped = false;
 
-        for (const row of resWrap[0].values) {
+        for (const row of wrapRows) {
             const wrapping_kid = row[0];
             const nonce = row[1];
             const wrapped_key = row[2];
@@ -123,9 +129,12 @@ class EncryptedStorage {
                 throw err;
             }
 
-            const resProv = this.db.exec(`SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = '${wrapping_kid}'`);
-            if (resProv.length > 0) {
-                const provRow = resProv[0].values[0];
+            const stmtProv = this.db.prepare(`SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = ?`);
+            stmtProv.bind([wrapping_kid]);
+            const hasProv = stmtProv.step();
+            if (hasProv) {
+                const provRow = stmtProv.get();
+                stmtProv.free();
                 const unlock_provider = provRow[0];
                 const provider_config_json = provRow[1];
 
@@ -143,6 +152,8 @@ class EncryptedStorage {
                         continue;
                     }
                 }
+            } else {
+                stmtProv.free();
             }
         }
 
@@ -170,13 +181,6 @@ class EncryptedStorage {
 
         const payloadBytes = cryptoUtils.canonicalizeJson(payload);
         const payloadAadPolicy = aadPolicy.selectPayloadPolicy({ alg });
-        const payloadAad = aadPolicy.buildAadContext(payloadAadPolicy, {
-            objectUuid,
-            schemaUuid,
-            contentType,
-            kid: recordKid,
-            alg
-        });
         const payloadAadBytes = aadPolicy.buildAadBytes(payloadAadPolicy, {
             objectUuid,
             schemaUuid,
@@ -205,9 +209,15 @@ class EncryptedStorage {
     retrievePayload(objectUuid) {
         if (!this.activeDbKek) throw new Error("Database is locked");
 
-        const resObj = this.db.exec(`SELECT schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy FROM encrypted_object_tbl WHERE object_uuid = '${objectUuid}'`);
-        if (resObj.length === 0) throw new Error("Object not found");
-        const row = resObj[0].values[0];
+        const stmtObj = this.db.prepare(`SELECT schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy FROM encrypted_object_tbl WHERE object_uuid = ?`);
+        stmtObj.bind([objectUuid]);
+        const hasObj = stmtObj.step();
+        if (!hasObj) {
+            stmtObj.free();
+            throw new Error("Object not found");
+        }
+        const row = stmtObj.get();
+        stmtObj.free();
         const schema_uuid = row[0];
         const content_type = row[1];
         const alg = row[2];

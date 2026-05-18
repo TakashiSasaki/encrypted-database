@@ -12,7 +12,7 @@ def temp_db():
 
 def test_initialization_and_unlock(temp_db):
     storage = EncryptedStorage(temp_db)
-    storage.initialize_database("my_secure_password")
+    storage.initialize_database("my_secure_password", "linux")
     storage.close()
 
     storage2 = EncryptedStorage(temp_db)
@@ -25,7 +25,7 @@ def test_initialization_and_unlock(temp_db):
 
 def test_store_and_retrieve_payload(temp_db):
     storage = EncryptedStorage(temp_db)
-    storage.initialize_database("my_secure_password")
+    storage.initialize_database("my_secure_password", "linux")
 
     payload = {"secret": "data", "value": 42}
     schema_uuid = "00000000-0000-0000-0000-000000000001"

@@ -158,13 +158,6 @@ class EncryptedStorage {
 
         const payloadBytes = cryptoUtils.canonicalizeJson(payload);
         const payloadAadPolicy = aadPolicy.selectPayloadPolicy({ alg });
-        const payloadAad = aadPolicy.buildAadContext(payloadAadPolicy, {
-            objectUuid,
-            schemaUuid,
-            contentType,
-            kid: recordKid,
-            alg
-        });
         const payloadAadBytes = aadPolicy.buildAadBytes(payloadAadPolicy, {
             objectUuid,
             schemaUuid,

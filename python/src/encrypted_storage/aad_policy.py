@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any, Callable, Dict
 
 from . import crypto
 
@@ -12,9 +12,9 @@ class AadPolicyError(ValueError):
 class AadPolicy:
     name: str
     envelope_type: str
-    build_context: Callable[..., dict[str, Any]]
+    build_context: Callable[..., Dict[str, Any]]
 
-    def context(self, **kwargs: Any) -> dict[str, Any]:
+    def context(self, **kwargs: Any) -> Dict[str, Any]:
         return self.build_context(**kwargs)
 
     def aad_bytes(self, **kwargs: Any) -> bytes:
@@ -29,7 +29,7 @@ WRAP_DATABASE_KEY_V1 = "wrap-database-key-v1"
 WRAP_RECORD_KEY_V1 = "wrap-record-key-v1"
 
 
-def _record_payload_v1_context(*, object_uuid: str, schema_uuid: str, content_type: str, kid: str, alg: str) -> dict[str, Any]:
+def _record_payload_v1_context(*, object_uuid: str, schema_uuid: str, content_type: str, kid: str, alg: str) -> Dict[str, Any]:
     return {
         "v": 1,
         "aad_policy": RECORD_PAYLOAD_V1,
@@ -41,7 +41,7 @@ def _record_payload_v1_context(*, object_uuid: str, schema_uuid: str, content_ty
     }
 
 
-def _wrap_database_key_v1_context(*, wrapped_kid: str, wrapping_kid: str) -> dict[str, Any]:
+def _wrap_database_key_v1_context(*, wrapped_kid: str, wrapping_kid: str) -> Dict[str, Any]:
     return {
         "v": 1,
         "aad_policy": WRAP_DATABASE_KEY_V1,
@@ -50,7 +50,7 @@ def _wrap_database_key_v1_context(*, wrapped_kid: str, wrapping_kid: str) -> dic
     }
 
 
-def _wrap_record_key_v1_context(*, wrapped_kid: str, wrapping_kid: str) -> dict[str, Any]:
+def _wrap_record_key_v1_context(*, wrapped_kid: str, wrapping_kid: str) -> Dict[str, Any]:
     return {
         "v": 1,
         "aad_policy": WRAP_RECORD_KEY_V1,
@@ -59,7 +59,7 @@ def _wrap_record_key_v1_context(*, wrapped_kid: str, wrapping_kid: str) -> dict[
     }
 
 
-AAD_POLICY_REGISTRY: dict[str, AadPolicy] = {
+AAD_POLICY_REGISTRY: Dict[str, AadPolicy] = {
     RECORD_PAYLOAD_V1: AadPolicy(
         name=RECORD_PAYLOAD_V1,
         envelope_type="aead",
