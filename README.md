@@ -1,5 +1,12 @@
 # Encrypted Database Library
 
+[![Python Tests](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-python.yml/badge.svg)](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-python.yml)
+[![Python Coverage](https://codecov.io/gh/TakashiSasaki/encrypted-database/graph/badge.svg?flag=python)](https://codecov.io/gh/TakashiSasaki/encrypted-database)
+[![Node.js Tests](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-nodejs.yml/badge.svg)](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-nodejs.yml)
+[![Node.js Coverage](https://codecov.io/gh/TakashiSasaki/encrypted-database/graph/badge.svg?flag=nodejs)](https://codecov.io/gh/TakashiSasaki/encrypted-database)
+[![Browser Tests](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-browser.yml/badge.svg)](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-browser.yml)
+[![Browser Coverage](https://codecov.io/gh/TakashiSasaki/encrypted-database/graph/badge.svg?flag=browser)](https://codecov.io/gh/TakashiSasaki/encrypted-database)
+
 これは新しく作成する暗号化データベース（暗号化ストレージ）のライブラリです。
 SQLite などのローカル永続化層に秘匿対象データを保存するアプリケーション向けに、アプリケーション層暗号化、鍵階層、鍵ラッピング、アンロック手段、復旧経路、検索用補助鍵を統一的に扱う機能を提供します。
 
