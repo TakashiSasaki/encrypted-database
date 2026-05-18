@@ -38,18 +38,11 @@ function decryptAead(key, nonce, ciphertextWithTag, associatedData) {
     return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
 }
 
+const { canonicalize } = require('json-canonicalize');
+
 function canonicalizeJson(data) {
-    // Sort keys and remove whitespace
-    const sortObject = (obj) => {
-        if (obj === null) return null;
-        if (typeof obj !== 'object') return obj;
-        if (Array.isArray(obj)) return obj.map(sortObject);
-        return Object.keys(obj).sort().reduce((result, key) => {
-            result[key] = sortObject(obj[key]);
-            return result;
-        }, {});
-    };
-    return Buffer.from(JSON.stringify(sortObject(data)));
+    // Uses json-canonicalize for RFC 8785 JSON Canonicalization Scheme
+    return Buffer.from(canonicalize(data), 'utf8');
 }
 
 module.exports = {

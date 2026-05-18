@@ -85,7 +85,7 @@ def get_policy(policy_name: str) -> AadPolicy:
         raise AadPolicyError(f"Unknown AAD policy: {policy_name}") from exc
 
 
-def build_aad_context(policy_name: str, **kwargs: Any) -> dict[str, Any]:
+def build_aad_context(policy_name: str, **kwargs: Any) -> Dict[str, Any]:
     return get_policy(policy_name).context(**kwargs)
 
 
