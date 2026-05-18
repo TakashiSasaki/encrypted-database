@@ -12,7 +12,6 @@ class EncryptedStorage {
         this._initDb();
         this.activeDbKek = null;
         this.activeDbKid = null;
-        this.activeDbKid = null;
     }
 
     _initDb() {
@@ -33,7 +32,19 @@ class EncryptedStorage {
         return Buffer.from(s, 'base64url');
     }
 
-    async initializeDatabase(passphrase, platform = "cross_platform") {
+    _validatePlatform(platform) {
+        if (!platform || platform === 'cross_platform') {
+            throw new Error('A concrete platform name is required; cross_platform is not allowed');
+        }
+        const row = this.conn.prepare('SELECT 1 FROM platform_tbl WHERE platform = ?').get(platform);
+        if (!row) {
+            throw new Error(`Unsupported platform: ${platform}`);
+        }
+    }
+
+    async initializeDatabase(passphrase, platform) {
+        this._validatePlatform(platform);
+
         const dbKekBytes = cryptoUtils.generateRandomBytes(32);
         const dbKid = uuidv4();
 
@@ -67,7 +78,7 @@ class EncryptedStorage {
             insertKeyStmt.run(unlockKid, 'unlock_kek', 'wrap_database_keys', 'A256GCM', 'active', this._currentMs());
 
             const insertUnlockKekStmt = this.conn.prepare("INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)");
-            insertUnlockKekStmt.run(unlockKid, 'passphrase_argon2id', JSON.stringify(providerConfig), platform);
+            insertUnlockKekStmt.run(unlockKid, 'passphrase_argon2id', cryptoUtils.canonicalizeJson(providerConfig).toString('utf8'), platform);
 
             const insertWrappedKeyStmt = this.conn.prepare("INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?)");
             insertWrappedKeyStmt.run(dbKid, unlockKid, 'A256GCM', nonce, wrappedDbKek, aadBytes.toString('utf8'), this._currentMs());
