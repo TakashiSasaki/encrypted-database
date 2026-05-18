@@ -31,3 +31,11 @@ envelope_type TEXT NOT NULL DEFAULT 'key_wrap' CHECK (envelope_type IN ('key_wra
 ```
 
 These explicit `CHECK` constraints prevent applications from accidentally inserting unversioned payloads or incompatible envelope types into the database. If new formats are supported in the future, the `CHECK` constraints must be explicitly migrated.
+
+## UUID Format Enforcement
+
+The abstract specification and ADR-0001 require that key identifiers (`kid`) and relevant UUID fields are represented as lowercase hyphen-separated UUIDv4 canonical strings.
+
+However, in the current concrete SQLite schema, these fields are stored simply as `TEXT` without `CHECK` constraints enforcing the UUIDv4 format pattern.
+
+Format validation is currently the responsibility of the library/API boundary. Ensuring the database schema strictly enforces this via `CHECK` constraints is tracked as an active implementation gap.

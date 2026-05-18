@@ -25,5 +25,6 @@ Key semantics MUST be stored in explicit metadata columns such as `key_class`, `
 - Any existing code or examples using prefixed IDs must be updated.
 
 ## Related Files
-- `docs/encrypted_storage_key_management_spec.md` (Contains older, superseded examples)
-- `docs/schema.sql` (Schema requires updating to enforce UUIDv4 if not already done)
+- `docs/spec/terminology.md` (Defines canonical kid format)
+- `docs/backend/sqlite/schema.sql` (Schema requires updating to enforce UUIDv4 if not already done)
+- `docs/legacy/encrypted_storage_key_management_spec.md` (Contains older, superseded examples)

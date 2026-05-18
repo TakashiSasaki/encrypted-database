@@ -21,5 +21,6 @@ If an implementation language lacks a suitable JCS library, the implementation M
 - Requires current Python and Node.js implementations (which currently use prototype canonicalizers) to be updated to full RFC 8785 JCS compliance.
 
 ## Related Files
-- `docs/encrypted_storage_key_management_spec.md`
+- `docs/spec/terminology.md`
+- `docs/legacy/encrypted_storage_key_management_spec.md`
 - Current Python and Node.js implementations (require updates)
