@@ -193,7 +193,8 @@ class EncryptedStorage {
         const ciphertext = row[4];
 
         const stmtWrap = this.db.prepare(`SELECT nonce, wrapped_key, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?`);
-        const hasWrap = stmtWrap.step([kid, this.activeDbKid]);
+        stmtWrap.bind([kid, this.activeDbKid]);
+        const hasWrap = stmtWrap.step();
         if (!hasWrap) {
             stmtWrap.free();
             throw new Error("Record DEK wrap info not found");
