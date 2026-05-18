@@ -98,38 +98,20 @@ class EncryptedStorage {
         if (resDbKek.length === 0) throw new Error("No active database KEK found");
         const dbKid = resDbKek[0].values[0][0];
 
-        const wrapStmt = this.db.prepare("SELECT wrapping_kid, nonce, wrapped_key, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ?");
-        wrapStmt.bind([dbKid]);
-        const wrapRows = [];
-        while (wrapStmt.step()) {
-            const row = wrapStmt.getAsObject();
-            wrapRows.push([
-                row.wrapping_kid,
-                row.nonce,
-                row.wrapped_key,
-                row.aad_context_json
-            ]);
-        }
-        wrapStmt.free();
-        if (wrapRows.length === 0) throw new Error("No wrap info found");
+        const resWrap = this.db.exec(`SELECT wrapping_kid, nonce, wrapped_key, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = '${dbKid}'`);
+        if (resWrap.length === 0) throw new Error("No wrap info found");
 
         let unwrapped = false;
 
-        for (const row of wrapRows) {
+        for (const row of resWrap[0].values) {
             const wrapping_kid = row[0];
             const nonce = row[1];
             const wrapped_key = row[2];
             const aad_context_json = row[3];
 
-            const provStmt = this.db.prepare("SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = ?");
-            provStmt.bind([wrapping_kid]);
-            let provRow = null;
-            if (provStmt.step()) {
-                const prov = provStmt.getAsObject();
-                provRow = [prov.unlock_provider, prov.provider_config_json];
-            }
-            provStmt.free();
-            if (provRow) {
+            const resProv = this.db.exec(`SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = '${wrapping_kid}'`);
+            if (resProv.length > 0) {
+                const provRow = resProv[0].values[0];
                 const unlock_provider = provRow[0];
                 const provider_config_json = provRow[1];
 
@@ -236,7 +218,10 @@ class EncryptedStorage {
 
 
     lock() {
-        this.activeDbKek = null;
+        if (this.activeDbKek) {
+            this.activeDbKek.fill(0);
+            this.activeDbKek = null;
+        }
         this.activeDbKid = null;
     }
 
