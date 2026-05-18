@@ -181,6 +181,14 @@ class EncryptedStorage:
         # 3. Encrypt payload with record DEK
         payload_bytes = crypto.canonicalize_json(payload)
         payload_aad_policy = aad_policy.select_payload_policy(alg=alg)
+        payload_aad = aad_policy.build_aad_context(
+            payload_aad_policy,
+            object_uuid=object_uuid,
+            schema_uuid=schema_uuid,
+            content_type=content_type,
+            kid=record_kid,
+            alg=alg,
+        )
         payload_aad_bytes = aad_policy.build_aad_bytes(
             payload_aad_policy,
             object_uuid=object_uuid,
