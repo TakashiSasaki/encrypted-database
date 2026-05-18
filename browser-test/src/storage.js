@@ -114,7 +114,14 @@ class EncryptedStorage {
             const aad_policy_name = row[3];
             const aad_context_json = row[4];
 
-            aadPolicy.getPolicy(aad_policy_name);
+            try {
+                aadPolicy.getPolicy(aad_policy_name);
+            } catch (err) {
+                if (err instanceof aadPolicy.AadPolicyError) {
+                    continue;
+                }
+                throw err;
+            }
 
             const resProv = this.db.exec(`SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = '${wrapping_kid}'`);
             if (resProv.length > 0) {
