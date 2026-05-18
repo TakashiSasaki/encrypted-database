@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Encrypted Storage Browser Test</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #output { margin-top: 20px; padding: 10px; background: #f0f0f0; border: 1px solid #ccc; font-family: monospace; white-space: pre-wrap; min-height: 200px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Encrypted Storage Browser Test</h1>
+    <p>WebAssembly版のSQLite（sql.js）とargon2-browserを用いて、暗号化データベースの初期化・保存・取得をテストします。</p>
+    <button id="runTestBtn">テストを実行</button>
+    <div id="output"></div>
+    <script src="bundle.js"></script>
+</body>
+</html>
