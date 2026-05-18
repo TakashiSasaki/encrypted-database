@@ -5,6 +5,29 @@ const tablePages = {};
 const ROWS_PER_PAGE = 10;
 let currentStorage = null;
 
+function initializeTabs() {
+    const container = document.getElementById('tables-container');
+    if (!container) return;
+
+    const tabButtons = container.querySelectorAll('.tab-button');
+    const tabContents = container.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const targetId = event.currentTarget.getAttribute('data-tab-target');
+
+            tabContents.forEach(content => content.classList.remove('active'));
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+
+            const targetContent = container.querySelector(`#${targetId}`);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+            event.currentTarget.classList.add('active');
+        });
+    });
+}
+
 function logOutput(message) {
     console.log(message);
     const outputDiv = document.getElementById('output');
@@ -20,8 +43,9 @@ function logOutput(message) {
 function renderTables(storage) {
     if (!storage || !storage.db) return;
 
-    const tablesContainer = document.getElementById('tables-container');
-    if (!tablesContainer) return;
+    const setupTablesContainer = document.getElementById('setup-tables');
+    const dynamicTablesContainer = document.getElementById('dynamic-tables');
+    if (!setupTablesContainer || !dynamicTablesContainer) return;
 
     // Get all user tables
     let tables = [];
@@ -36,7 +60,17 @@ function renderTables(storage) {
         return;
     }
 
-    tablesContainer.innerHTML = ''; // clear
+    setupTablesContainer.innerHTML = ''; // clear
+    dynamicTablesContainer.innerHTML = ''; // clear
+
+    const setupTableNames = [
+        'key_class_tbl',
+        'key_profile_tbl',
+        'unlock_method_tbl',
+        'unlock_provider_tbl',
+        'platform_tbl',
+        'unlock_provider_platform_tbl'
+    ];
 
     tables.forEach(tableName => {
         if (!tablePages[tableName]) {
@@ -153,7 +187,11 @@ function renderTables(storage) {
         pagination.appendChild(nextBtn);
         wrapper.appendChild(pagination);
 
-        tablesContainer.appendChild(wrapper);
+        if (setupTableNames.includes(tableName)) {
+            setupTablesContainer.appendChild(wrapper);
+        } else {
+            dynamicTablesContainer.appendChild(wrapper);
+        }
     });
 }
 
@@ -300,8 +338,10 @@ async function executeNextStep() {
         // Clear previous state if starting fresh
         const outputDiv = document.getElementById('output');
         if (outputDiv) outputDiv.innerHTML = '';
-        const tablesContainer = document.getElementById('tables-container');
-        if (tablesContainer) tablesContainer.innerHTML = '';
+        const setupTablesContainer = document.getElementById('setup-tables');
+        if (setupTablesContainer) setupTablesContainer.innerHTML = '';
+        const dynamicTablesContainer = document.getElementById('dynamic-tables');
+        if (dynamicTablesContainer) dynamicTablesContainer.innerHTML = '';
 
         // Reset all steps to pending
         steps.forEach((_, idx) => updateStepUI(idx, 'pending'));
@@ -367,8 +407,10 @@ async function resetTest() {
 
     const outputDiv = document.getElementById('output');
     if (outputDiv) outputDiv.innerHTML = '';
-    const tablesContainer = document.getElementById('tables-container');
-    if (tablesContainer) tablesContainer.innerHTML = '';
+    const setupTablesContainer = document.getElementById('setup-tables');
+    if (setupTablesContainer) setupTablesContainer.innerHTML = '';
+    const dynamicTablesContainer = document.getElementById('dynamic-tables');
+    if (dynamicTablesContainer) dynamicTablesContainer.innerHTML = '';
 
     if (nextStepBtn) {
         nextStepBtn.textContent = 'テスト開始 / 次のステップへ';
@@ -404,6 +446,8 @@ function closeDatabase() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initializeTabs();
+
     const btn = document.getElementById('nextStepBtn');
     if (btn) {
         btn.addEventListener('click', executeNextStep);
