@@ -129,7 +129,11 @@ class EncryptedStorage:
 
         unwrapped = False
         for wrapping_kid, nonce, wrapped_key, aad_policy_name, aad_context_json in wrap_rows:
-            aad_policy.get_policy(aad_policy_name)
+            try:
+                aad_policy.get_policy(aad_policy_name)
+            except aad_policy.AadPolicyError:
+                continue
+
             cur.execute("SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = ?", (wrapping_kid,))
             prov_row = cur.fetchone()
             if prov_row and prov_row[0] == 'passphrase_argon2id':
