@@ -34,7 +34,7 @@ describe('EncryptedStorage', () => {
         await storage.initializeDatabase('my_secure_password', 'linux');
 
         const payload = { secret: 'data', value: 42 };
-        const schemaUuid = '00000000-0000-0000-0000-000000000001';
+        const schemaUuid = '00000000-0000-4000-8000-000000000001';
 
         const objectUuid = storage.storePayload(schemaUuid, 'application/json', payload);
 

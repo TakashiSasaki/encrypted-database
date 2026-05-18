@@ -2,11 +2,11 @@
 
 ## Identifiers and JSON Canonicalization Policy
 
-`kid` MUST be a UUIDv4 string formatted as standard lowercase, hyphen-separated values (e.g., `550e8400-e29b-41d4-a716-446655440000`). Human-readable prefixes (like `ulk-`, `dbk-`, `dek-`), key types, creation dates, provider names, or purpose names MUST NOT be embedded in the `kid`.
+`kid` and other identifiers (`object_uuid`, `schema_uuid`, `wrap_id`) MUST be a UUID string (versions 1 through 8 are accepted) formatted as standard lowercase, hyphen-separated values (e.g., `550e8400-e29b-41d4-a716-446655440000`). Human-readable prefixes (like `ulk-`, `dbk-`, `dek-`), key types, provider names, or purpose names MUST NOT be embedded in the `kid`.
 
 Key semantics MUST be stored in explicit metadata columns such as `key_class`, `purpose`, `alg`, `status`, `created_at_ms`, `unlock_provider`, `created_on_platform`, and `description_json`.
 
-Rationale: Identifiers should remain stable across renaming, reclassification, migration, and UI changes. Encoding meaning in `kid` creates metadata leakage and makes later normalization difficult. UUIDv4 is standardized as it contains no temporal or semantic information, avoiding metadata leakage.
+Rationale: Identifiers should remain stable across renaming, reclassification, migration, and UI changes. Encoding meaning in `kid` creates metadata leakage and makes later normalization difficult. Using standard UUID formats ensures maximum interoperability and avoids metadata leakage in the string itself.
 
 ## JSON Canonicalization
 

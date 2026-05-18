@@ -32,7 +32,7 @@ INSERT OR IGNORE INTO key_profile_tbl (key_class, purpose, alg, description) VAL
 ('index_key',    'blind_index',        'HMAC-SHA256', 'Key used for deterministic keyed indexes.');
 
 CREATE TABLE IF NOT EXISTS key_tbl (
-    kid TEXT PRIMARY KEY,
+    kid TEXT PRIMARY KEY NOT NULL CHECK (kid GLOB '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[1-8][0-9a-f][0-9a-f][0-9a-f]-[89ab][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
     key_class TEXT NOT NULL,
     purpose TEXT NOT NULL,
     alg TEXT NOT NULL,
@@ -46,29 +46,29 @@ CREATE TABLE IF NOT EXISTS key_tbl (
 );
 
 CREATE TABLE IF NOT EXISTS wrapped_key_tbl (
-    wrapped_kid TEXT NOT NULL,
-    wrapping_kid TEXT NOT NULL,
-    envelope_v INTEGER NOT NULL DEFAULT 1 CHECK (envelope_v >= 1),
-    envelope_type TEXT NOT NULL DEFAULT 'key_wrap' CHECK (envelope_type IN ('key_wrap')),
+    wrap_id TEXT PRIMARY KEY NOT NULL CHECK (wrap_id GLOB '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[1-8][0-9a-f][0-9a-f][0-9a-f]-[89ab][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
+    wrapped_kid TEXT NOT NULL CHECK (wrapped_kid GLOB '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[1-8][0-9a-f][0-9a-f][0-9a-f]-[89ab][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
+    wrapping_kid TEXT NOT NULL CHECK (wrapping_kid GLOB '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[1-8][0-9a-f][0-9a-f][0-9a-f]-[89ab][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
+    envelope_v INTEGER NOT NULL CHECK (envelope_v = 1),
+    envelope_type TEXT NOT NULL CHECK (envelope_type = 'key_wrap'),
     wrap_alg TEXT NOT NULL,
     nonce BLOB NOT NULL,
     wrapped_key BLOB NOT NULL,
     aad_policy TEXT NOT NULL,
     aad_context_json TEXT NOT NULL CHECK (json_valid(aad_context_json)),
     created_at_ms INTEGER NOT NULL,
-    PRIMARY KEY (wrapped_kid, wrapping_kid),
     FOREIGN KEY (wrapped_kid) REFERENCES key_tbl(kid),
     FOREIGN KEY (wrapping_kid) REFERENCES key_tbl(kid)
 );
 
 CREATE TABLE IF NOT EXISTS encrypted_object_tbl (
-    object_uuid TEXT PRIMARY KEY,
-    envelope_v INTEGER NOT NULL DEFAULT 1 CHECK (envelope_v >= 1),
-    envelope_type TEXT NOT NULL DEFAULT 'aead' CHECK (envelope_type IN ('aead')),
-    schema_uuid TEXT NOT NULL,
+    object_uuid TEXT PRIMARY KEY NOT NULL CHECK (object_uuid GLOB '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[1-8][0-9a-f][0-9a-f][0-9a-f]-[89ab][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
+    envelope_v INTEGER NOT NULL CHECK (envelope_v = 1),
+    envelope_type TEXT NOT NULL CHECK (envelope_type = 'aead'),
+    schema_uuid TEXT NOT NULL CHECK (schema_uuid GLOB '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[1-8][0-9a-f][0-9a-f][0-9a-f]-[89ab][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
     content_type TEXT NOT NULL,
     alg TEXT NOT NULL,
-    kid TEXT NOT NULL,
+    kid TEXT NOT NULL CHECK (kid GLOB '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[1-8][0-9a-f][0-9a-f][0-9a-f]-[89ab][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
     nonce BLOB NOT NULL,
     ciphertext BLOB NOT NULL,
     aad_policy TEXT NOT NULL,
@@ -178,7 +178,7 @@ INSERT OR IGNORE INTO unlock_provider_platform_tbl (unlock_provider, platform, s
 ('passphrase_argon2id', 'ios', 'supported', 'planned');
 
 CREATE TABLE IF NOT EXISTS unlock_kek_tbl (
-    kid TEXT PRIMARY KEY,
+    kid TEXT PRIMARY KEY NOT NULL CHECK (kid GLOB '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[1-8][0-9a-f][0-9a-f][0-9a-f]-[89ab][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
     unlock_provider TEXT NOT NULL,
     provider_config_json TEXT NOT NULL CHECK (json_valid(provider_config_json)),
     device_id TEXT,

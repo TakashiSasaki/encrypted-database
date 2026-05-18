@@ -28,7 +28,7 @@ def test_store_and_retrieve_payload(temp_db):
     storage.initialize_database("my_secure_password", "linux")
 
     payload = {"secret": "data", "value": 42}
-    schema_uuid = "00000000-0000-0000-0000-000000000001"
+    schema_uuid = "00000000-0000-4000-8000-000000000001"
 
     object_uuid = storage.store_payload(schema_uuid, "application/json", payload)
 
