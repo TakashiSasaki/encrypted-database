@@ -108,7 +108,15 @@ class EncryptedStorage {
         const findUnlockProviderStmt = this.conn.prepare("SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = ?");
 
         for (const wrapRow of wrapRows) {
-            aadPolicy.getPolicy(wrapRow.aad_policy);
+            try {
+                aadPolicy.getPolicy(wrapRow.aad_policy);
+            } catch (err) {
+                if (err instanceof aadPolicy.AadPolicyError) {
+                    continue;
+                }
+                throw err;
+            }
+
             const provRow = findUnlockProviderStmt.get(wrapRow.wrapping_kid);
             if (provRow && provRow.unlock_provider === 'passphrase_argon2id') {
                 const config = JSON.parse(provRow.provider_config_json);
