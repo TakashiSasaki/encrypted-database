@@ -5,8 +5,17 @@
     <title>Encrypted Storage Browser Test</title>
     <style>
         body { font-family: sans-serif; padding: 20px; }
-        #output { margin-top: 20px; padding: 10px; background: #f0f0f0; border: 1px solid #ccc; font-family: monospace; white-space: pre-wrap; min-height: 200px; }
+        #output { margin-top: 20px; padding: 10px; background: #f0f0f0; border: 1px solid #ccc; font-family: monospace; white-space: pre-wrap; min-height: 200px; max-height: 300px; overflow-y: auto; }
         button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+
+        #tables-container { margin-top: 30px; }
+        .table-wrapper { margin-bottom: 30px; border: 1px solid #ddd; padding: 10px; border-radius: 5px; }
+        .table-wrapper h3 { margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; table-layout: fixed; }
+        th, td { border: 1px solid #bbb; padding: 8px; text-align: left; word-wrap: break-word; word-break: break-all; font-size: 13px; }
+        th { background-color: #eee; }
+        .pagination { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .pagination button { padding: 5px 10px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -14,6 +23,7 @@
     <p>WebAssembly版のSQLite（sql.js）とargon2-browserを用いて、暗号化データベースの初期化・保存・取得をテストします。</p>
     <button id="runTestBtn">テストを実行</button>
     <div id="output"></div>
+    <div id="tables-container"></div>
     <script src="bundle.js"></script>
 </body>
 </html>
