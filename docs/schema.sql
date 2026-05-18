@@ -163,17 +163,22 @@ CREATE TABLE IF NOT EXISTS unlock_provider_platform_tbl (
     FOREIGN KEY (platform) REFERENCES platform_tbl(platform)
 );
 
+INSERT OR IGNORE INTO unlock_provider_platform_tbl (unlock_provider, platform, support_level, implementation_status) VALUES
+('passphrase_argon2id', 'windows', 'supported', 'implemented'),
+('passphrase_argon2id', 'macos', 'supported', 'implemented'),
+('passphrase_argon2id', 'linux', 'supported', 'implemented'),
+('passphrase_argon2id', 'server', 'supported', 'implemented'),
+('passphrase_argon2id', 'web', 'supported', 'planned'),
+('passphrase_argon2id', 'android', 'supported', 'planned'),
+('passphrase_argon2id', 'ios', 'supported', 'planned');
+
 CREATE TABLE IF NOT EXISTS unlock_kek_tbl (
     kid TEXT PRIMARY KEY,
     unlock_provider TEXT NOT NULL,
     provider_config_json TEXT NOT NULL CHECK (json_valid(provider_config_json)),
     device_id TEXT,
-    created_on_platform TEXT,
+    created_on_platform TEXT NOT NULL,
     FOREIGN KEY (kid) REFERENCES key_tbl(kid),
     FOREIGN KEY (unlock_provider) REFERENCES unlock_provider_tbl(unlock_provider),
     FOREIGN KEY (created_on_platform) REFERENCES platform_tbl(platform)
 );
-INSERT OR IGNORE INTO platform_tbl (platform, description) VALUES
-('cross_platform', 'Abstract platform for implementation-agnostic cross platform paths.');
-INSERT OR IGNORE INTO unlock_provider_platform_tbl (unlock_provider, platform, support_level, implementation_status) VALUES
-('passphrase_argon2id', 'cross_platform', 'supported', 'implemented');
