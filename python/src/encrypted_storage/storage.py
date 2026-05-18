@@ -36,8 +36,18 @@ class EncryptedStorage:
         pad = b'=' * (4 - (len(s) % 4))
         return base64.urlsafe_b64decode(s.encode('utf-8') + pad)
 
-    def initialize_database(self, passphrase: str, platform: str = "cross_platform"):
+    def _validate_platform(self, platform: str):
+        if not platform or platform == "cross_platform":
+            raise ValueError("A concrete platform name is required; cross_platform is not allowed")
+        cur = self.conn.cursor()
+        cur.execute("SELECT 1 FROM platform_tbl WHERE platform = ?", (platform,))
+        if not cur.fetchone():
+            raise ValueError(f"Unsupported platform: {platform}")
+
+    def initialize_database(self, passphrase: str, platform: str):
         """Initializes a new database with a new database_kek wrapped by a new unlock_kek."""
+        self._validate_platform(platform)
+
         db_kek_bytes = crypto.generate_random_bytes(32)
         db_kid = self._generate_kid()
 
@@ -81,7 +91,7 @@ class EncryptedStorage:
             )
             cur.execute(
                 "INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)",
-                (unlock_kid, 'passphrase_argon2id', json.dumps(provider_config), platform)
+                (unlock_kid, 'passphrase_argon2id', crypto.canonicalize_json(provider_config).decode('utf-8'), platform)
             )
             cur.execute(
                 "INSERT INTO wrapped_key_tbl (wrapped_kid, wrapping_kid, wrap_alg, nonce, wrapped_key, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?)",
