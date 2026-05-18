@@ -16,7 +16,7 @@ class EncryptedStorage {
     }
 
     _initDb() {
-        const schemaPath = path.join(__dirname, '..', '..', 'docs', 'schema.sql');
+        const schemaPath = path.join(__dirname, '..', '..', 'docs', 'backend', 'sqlite', 'schema.sql');
         const schemaSql = fs.readFileSync(schemaPath, 'utf8');
         this.conn.exec(schemaSql);
     }
