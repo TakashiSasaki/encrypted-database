@@ -192,9 +192,14 @@ class EncryptedStorage {
         const nonce = row[3];
         const ciphertext = row[4];
 
-        const resWrap = this.db.exec(`SELECT nonce, wrapped_key, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = '${kid}' AND wrapping_kid = '${this.activeDbKid}'`);
-        if (resWrap.length === 0) throw new Error("Record DEK wrap info not found");
-        const wrapRow = resWrap[0].values[0];
+        const stmtWrap = this.db.prepare(`SELECT nonce, wrapped_key, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?`);
+        const hasWrap = stmtWrap.step([kid, this.activeDbKid]);
+        if (!hasWrap) {
+            stmtWrap.free();
+            throw new Error("Record DEK wrap info not found");
+        }
+        const wrapRow = stmtWrap.get();
+        stmtWrap.free();
         const wrap_nonce = wrapRow[0];
         const wrapped_key = wrapRow[1];
         const aad_context_json = wrapRow[2];
