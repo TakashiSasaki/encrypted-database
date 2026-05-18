@@ -21,5 +21,6 @@ For SQLite internal storage, tables containing wrapped keys or encrypted payload
 - Storage footprint is slightly increased to accommodate the explicit version metadata.
 
 ## Related Files
-- `docs/schema.sql` (reflects these columns)
-- `docs/encrypted_storage_key_management_spec.md`
+- `docs/spec/envelope-format.md`
+- `docs/backend/sqlite/schema.sql` (reflects these columns)
+- `docs/legacy/encrypted_storage_key_management_spec.md`

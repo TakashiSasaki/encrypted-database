@@ -26,4 +26,15 @@ The `unlock_provider_tbl.material_handling` column indicates how sensitive key m
 - `non_exportable_key`: (e.g., Secure Enclave, Android Keystore) The key itself never enters application memory; the application requests cryptographic operations via handles.
 - `remote_unwrap`: (e.g., AWS KMS) The KEK never enters local memory. The wrapped `database_kek` is sent, and the unwrapped `database_kek` is received.
 
-Implementers MUST ensure that any intermediate secrets (like passphrases) and unwrapped KEKs/DEKs are zeroed from memory as soon as they are no longer needed.
+The overarching security goal is to minimize the lifetime and exposure of secret material in memory.
+
+Where the runtime and language permit, implementers MUST strictly zero or overwrite secret buffers (such as intermediate passphrases and unwrapped KEKs/DEKs) immediately after use.
+
+However, in higher-level languages (such as Python and JavaScript), reliable memory zeroing is often constrained by language semantics, such as immutable strings, opaque object memory management, garbage collection, and runtime internal copying.
+
+Regardless of the language capabilities, implementers MUST adopt the following mitigations to minimize exposure:
+- Avoid logging secrets (e.g., plaintext keys, passwords, nonces).
+- Avoid persistent plaintext caches of key material.
+- Keep secret material in the narrowest possible lexical and temporal scope.
+- Release references to secret materials promptly so they can be garbage collected.
+- Document known runtime memory handling limitations.

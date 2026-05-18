@@ -25,6 +25,6 @@ The current schema will remain as `PRIMARY KEY (wrapped_kid, wrapping_kid)` unti
 - Future work may require a schema migration to introduce `wrap_id` if the documented limitations become blockers.
 
 ## Related Files
-- `docs/schema.sql` (Maintains composite primary key)
 - `docs/spec/open-questions.md` (Tracks this as an unresolved architectural consideration)
-- `docs/encrypted_storage_key_management_spec.md`
+- `docs/backend/sqlite/schema.sql` (Maintains composite primary key)
+- `docs/legacy/encrypted_storage_key_management_spec.md`

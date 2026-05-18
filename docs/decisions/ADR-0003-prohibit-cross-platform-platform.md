@@ -21,5 +21,6 @@ A conceptually portable provider (like `passphrase_argon2id`) MUST be explicitly
 - Requires updates to any draft text, tests, or initializations that rely on the `cross_platform` concept or omit platform names entirely.
 
 ## Related Files
-- `docs/encrypted_storage_key_management_spec.md`
-- `docs/schema.sql`
+- `docs/spec/provider-platform-model.md`
+- `docs/backend/sqlite/schema.sql`
+- `docs/legacy/encrypted_storage_key_management_spec.md`
