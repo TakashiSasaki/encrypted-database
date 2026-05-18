@@ -9,12 +9,16 @@ OUTPUT_DIR = os.path.join(TESTDATA_DIR, "output")
 
 def get_test_vectors():
     vectors = []
-    if not os.path.exists(INPUT_DIR):
-        return vectors
+    if not os.path.isdir(INPUT_DIR):
+        raise pytest.UsageError(f"Required test vector input directory is missing: {INPUT_DIR}")
 
     for filename in os.listdir(INPUT_DIR):
         if filename.endswith(".json"):
             vectors.append(filename)
+
+    if not vectors:
+        raise pytest.UsageError(f"No JSON test vectors found in: {INPUT_DIR}")
+
     return vectors
 
 @pytest.mark.parametrize("filename", get_test_vectors())
