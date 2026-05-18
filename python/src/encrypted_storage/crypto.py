@@ -1,4 +1,5 @@
 import os
+from typing import Any
 import jcs
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.argon2 import Argon2id
@@ -30,6 +31,6 @@ def decrypt_aead(key: bytes, nonce: bytes, ciphertext: bytes, associated_data: b
     aesgcm = AESGCM(key)
     return aesgcm.decrypt(nonce, ciphertext, associated_data)
 
-def canonicalize_json(data: dict) -> bytes:
+def canonicalize_json(data: Any) -> bytes:
     # Uses jcs for RFC 8785 JSON Canonicalization Scheme
     return jcs.canonicalize(data)
