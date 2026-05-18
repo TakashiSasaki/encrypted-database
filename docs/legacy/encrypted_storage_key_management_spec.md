@@ -1,3 +1,5 @@
+> **Archived Note:** This document is the original integrated draft specification and is kept here for historical reference. Please refer to the split, updated documentation under `docs/spec/`, `docs/backend/`, and `docs/providers/` for current and authoritative information.
+
 # 暗号化保存ライブラリ 鍵管理・保存仕様ドラフト
 
 ## 1. 目的
@@ -1352,4 +1354,3 @@ payload 暗号化 test vector は、最低限以下のフィールドを含む�
 10. 生体認証は独立した unlock method ではなく、`os_secret_store` または `os_key_handle` のアクセス制御条件として扱う。
 11. Shamir secret sharing は通常復号経路ではなく、復旧用 unlock 経路として扱う。
 12. 平文鍵、マスターパスワード、Shamir share、復旧コード本体は SQLite に保存しない。
-

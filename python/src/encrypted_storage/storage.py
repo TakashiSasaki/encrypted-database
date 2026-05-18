@@ -18,7 +18,7 @@ class EncryptedStorage:
         self.active_db_kid = None
 
     def _init_db(self):
-        schema_path = Path(__file__).parent.parent.parent.parent / "docs" / "schema.sql"
+        schema_path = Path(__file__).parent.parent.parent.parent / "docs" / "backend" / "sqlite" / "schema.sql"
         with open(schema_path, "r", encoding="utf-8") as f:
             schema_sql = f.read()
         self.conn.executescript(schema_sql)
