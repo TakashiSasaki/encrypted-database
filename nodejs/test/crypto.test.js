@@ -13,8 +13,12 @@ describe('RFC 8785 Canonicalization', () => {
     }
 
     if (testVectors.length === 0) {
-        test('No test vectors found', () => {
-            console.warn('No test vectors found in', INPUT_DIR);
+        test('RFC 8785 test vectors are available', () => {
+            throw new Error(
+                fs.existsSync(INPUT_DIR)
+                    ? `No RFC 8785 test vectors found in ${INPUT_DIR}`
+                    : `Required RFC 8785 test vector directory is missing: ${INPUT_DIR}`
+            );
         });
     }
 
