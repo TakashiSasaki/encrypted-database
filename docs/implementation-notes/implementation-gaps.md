@@ -10,7 +10,7 @@ This document tracks known discrepancies and gaps between the current specificat
 
 *   **Deferred Schema Changes:** The inclusion of `wrap_id` in `wrapped_key_tbl` was deferred in the past, but has now been implemented following the updated ADR-0005.
 *   **JSON Canonicalizers:** Python (`jcs`) and Node.js/Browser (`json-canonicalize`) implementations have been verified against RFC 8785 JSON Canonicalization Scheme (JCS) test vectors.
-*   **UUIDv4 Validation:** The UUIDv4 canonical format specified by ADR-0001 is now enforced by SQLite CHECK constraints across all relevant tables, accepting versions 1-8.
+*   **UUID Validation:** The UUID canonical format specified by ADR-0001 is now enforced by SQLite CHECK constraints across all relevant tables, explicitly accepting versions 1-8.
 
 *   **Legacy Spec Examples:** The legacy integrated draft (`docs/legacy/encrypted_storage_key_management_spec.md`) contains stale prefixed `kid` examples which have been superseded by the UUIDv4 decision (ADR-0001).
 *   **Legacy Spec `cross_platform` Discussion:** The legacy draft discussed `cross_platform`. This is now superseded by ADR-0003 and must not be reintroduced.

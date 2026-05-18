@@ -56,7 +56,7 @@ The documentation has been refactored into focused modules.
 
 ### Architecture Decision Records (ADRs)
 - [`decisions/README.md`](./decisions/README.md): Index of Architecture Decision Records.
-- [`decisions/ADR-0001-use-uuidv4-canonical-kid.md`](./decisions/ADR-0001-use-uuidv4-canonical-kid.md): Stable key identifiers.
+- [`decisions/ADR-0001-use-uuid-canonical-kid.md`](./decisions/ADR-0001-use-uuid-canonical-kid.md): Stable key identifiers.
 - [`decisions/ADR-0002-require-rfc8785-jcs.md`](./decisions/ADR-0002-require-rfc8785-jcs.md): JSON canonicalization.
 - [`decisions/ADR-0003-prohibit-cross-platform-platform.md`](./decisions/ADR-0003-prohibit-cross-platform-platform.md): Concrete platform names.
 - [`decisions/ADR-0004-version-envelopes-from-v1.md`](./decisions/ADR-0004-version-envelopes-from-v1.md): Versioned envelopes from the first schema.
