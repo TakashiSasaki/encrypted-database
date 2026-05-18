@@ -380,6 +380,8 @@ async function resetTest() {
 
 function closeDatabase() {
     const closeDbBtn = document.getElementById('closeDbBtn');
+    const nextStepBtn = document.getElementById('nextStepBtn');
+    const resetTestBtn = document.getElementById('resetTestBtn');
 
     if (currentStorage) {
         try {
@@ -387,6 +389,10 @@ function closeDatabase() {
             logOutput("データベースを手動で閉じました。（テーブルの表示はそのまま残しています）");
             currentStorage = null;
             if (closeDbBtn) closeDbBtn.disabled = true;
+
+            // Disable next step button as the database is closed
+            if (nextStepBtn) nextStepBtn.disabled = true;
+            if (resetTestBtn) resetTestBtn.style.display = 'inline-block';
         } catch (e) {
             console.error("Failed to close storage", e);
             logOutput("データベースを閉じる際にエラーが発生しました。");
