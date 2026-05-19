@@ -10,7 +10,7 @@ class EncryptedStorage {
         this.db = null;
         this.activeDbKek = null;
         this.activeDbKid = null;
-        this._isClosed = true; // closed before init
+        this._isClosed = false; // fresh instances are uninitialized, not closed
         this._isInit = false;
     }
 
