@@ -1,36 +1,104 @@
 # Implementation Gaps
 
-This document tracks known discrepancies and gaps between the current specifications/decisions and the existing codebase or integrated draft specification. This is part of the Phase 1 documentation refactor.
+This document tracks known discrepancies and gaps between the current specifications/decisions and the existing codebase.
 
 ## Active Gaps
 
-(None)
+### 1. Public API contract is not yet specified
 
-## Resolved or Historical Gaps
+**Status:** Active
+**Area:** API / cross-language compatibility
+**Current state:** Python and Node.js expose roughly corresponding methods, but there is no canonical `docs/spec/api-contract.md`. Missing or unspecified aspects include lifecycle states, sync/async semantics, return values, error categories, UUID normalization, content type validation, and provider behavior.
+**Expected or intended state:** A formal specification defining the exact inputs, outputs, and side effects of each public method to ensure parity across all language implementations.
+**Why it matters:** Without a canonical API contract, language implementations may diverge, leading to an inconsistent and unpredictable developer experience.
+**Recommended next action:** Create a canonical API specification document and refactor existing implementations to align strictly with it.
 
-*   **Deferred Schema Changes:** The inclusion of `wrap_id` in `wrapped_key_tbl` was deferred in the past, but has now been implemented following the updated ADR-0005.
-*   **JSON Canonicalizers:** Python (`jcs`) and Node.js/Browser (`json-canonicalize`) implementations have been verified against RFC 8785 JSON Canonicalization Scheme (JCS) test vectors.
-*   **UUID Validation:** The UUID canonical format specified by ADR-0001 is now enforced by SQLite CHECK constraints across all relevant tables, explicitly accepting versions 1-8.
+### 2. Error taxonomy is not implemented
 
-*   **Legacy Spec Examples:** The legacy integrated draft (`docs/legacy/encrypted_storage_key_management_spec.md`) contains stale prefixed `kid` examples which have been superseded by the UUIDv4 decision (ADR-0001).
-*   **Legacy Spec `cross_platform` Discussion:** The legacy draft discussed `cross_platform`. This is now superseded by ADR-0003 and must not be reintroduced.
-*   **Legacy Spec SQL Snippets:** SQL snippets within the legacy draft are older and out of sync with the canonical schema defined in `docs/backend/sqlite/schema.sql`.
-*   **Test Initializations:** Tests previously omitted the platform; current tests and CI environments must pass a concrete platform string (e.g., `"linux"`) rather than `cross_platform`.
+**Status:** Active
+**Area:** Error Handling
+**Current state:** Python currently raises generic exceptions (`ValueError`), and Node.js throws generic `Error` objects for public failures. Tests rely on error message string matching.
+**Expected or intended state:** A library-quality API defining stable typed errors or error codes (e.g., `StorageLocked`, `UnlockFailed`, `ObjectNotFound`, `UnsupportedPlatform`).
+**Why it matters:** Consumers of the library cannot easily handle programmatic failures or distinguish between different error conditions without brittle string matching.
+**Recommended next action:** Define a standardized list of error codes in the API contract and implement corresponding custom error classes across Python and Node.js.
 
-## Archived Specification Issues Report
+### 3. Lock/close lifecycle is incomplete
 
-During the implementation of the encrypted database library based on the legacy draft specification (`docs/legacy/encrypted_storage_key_management_spec.md`), the following issues and discrepancies were discovered and resolved. *Note: These are historical notes and some resolutions have since been superseded by ADRs.*
+**Status:** Active
+**Area:** Lifecycle Management
+**Current state:** A `close()` method exists, but a distinct `lock()` operation is not clearly separated from connection closure. There is no explicit `is_unlocked` or `get_database_status` public API.
+**Expected or intended state:** A robust lifecycle management API with clear transitions between locked and unlocked states, along with public status check methods.
+**Why it matters:** Callers cannot easily query the current state of the database, making it difficult to build resilient applications on top of the library.
+**Recommended next action:** Specify the exact behavior of lock, close, and status query operations, and implement them consistently.
 
-### 1. Missing Platform and Policy Configurations in Test Environments (Historical)
-The schema enforces strict foreign key constraints across `unlock_kek_tbl`, `platform_tbl`, and `unlock_provider_platform_tbl`. However, when initializing a database without explicit environment/platform binding (e.g. running in standard headless CI pipelines or language unittests without explicit OS bindings), the initial insert to `unlock_kek_tbl` failed because the dummy platform `cross_platform` wasn't inserted into `platform_tbl` natively, and the explicit mapping for `passphrase_argon2id` and `cross_platform` was not created in `unlock_provider_platform_tbl`.
-**Initial Resolution:** Explicitly added the `cross_platform` entries into the test schema scripts.
-**Current Status:** Superseded by ADR-0003. `cross_platform` is prohibited. Test and CI environments must use a concrete platform string (e.g., `"linux"`).
+### 4. Cross-language cryptographic test vectors are not materially implemented
 
-## 2. AAD Context Generation Policy Versions
-The `wrapped_key_tbl` examples referenced `"aad_policy": "wrap-database-key-v1"`, and the library implicitly creates such schemas. This aligns with the spec, but it should be explicitly highlighted that each time a key-wrapping is executed, a new AAD policy representation needs to match its context exactly. The library canonicalizes JSON with specific rules (`sort_keys`, `no_spaces`) before deriving AAD bytes.
+**Status:** Active
+**Area:** Cryptography / Interoperability
+**Current state:** `docs/spec/test-vectors.md` describes requirements for various test vectors, but there are no actual machine-readable test vectors for AAD, Argon2id, AES-GCM, fixed nonce, and fixed salt operations in a shared test-vector directory. (Note: JCS canonicalization test vectors are implemented and verified).
+**Expected or intended state:** A comprehensive suite of cross-language test vectors ensuring byte-for-byte equivalence for all cryptographic and key-derivation operations.
+**Why it matters:** Without shared test vectors, implementations might subtly diverge in cryptographic implementations, resulting in data that cannot be decrypted across platforms.
+**Recommended next action:** Generate and commit a top-level `test-vectors/` directory containing JSON datasets for KDF, AEAD, key-wrap, and payload encryption operations.
 
-## 3. Strict UUID formats
-UUID v4 generation libraries in different languages (e.g., Python's `uuid.uuid4()` vs Node's `uuidv4()`) can output strings natively, but these strings needed to be consistently formatted. The implementation used standard lowercase hyphen-separated strings. Future revisions of the specification should rigidly clarify the string representation to prevent accidental UUID byte vs string mismatch bugs across libraries.
+### 5. SQLite roundtrip interoperability is not yet demonstrated
 
-## 4. SQLite Syntax Considerations
-In Node.js, `better-sqlite3` uses PRAGMA constraints. To avoid silent failures on updates and deletes, `PRAGMA foreign_keys = ON;` must be strictly enforced upon the connection opening. This library enforces it immediately in the connection constructors.
+**Status:** Active
+**Area:** Cross-language portability
+**Current state:** Python and Node.js can each store and retrieve payloads independently, but there are no tests demonstrating that a database created in Python can be successfully read by Node.js, and vice versa.
+**Expected or intended state:** Automated tests validating cross-language compatibility of the resulting SQLite database files.
+**Why it matters:** The primary goal of a shared SQLite backend is portability. Without roundtrip tests, subtle differences in how platforms interact with SQLite may cause data corruption or read failures.
+**Recommended next action:** Implement cross-language end-to-end tests that generate a database in one language and verify it in the others.
+
+### 6. JWE/JOSE compatibility is not implemented
+
+**Status:** Active
+**Area:** Standards Compatibility
+**Current state:** The envelope format defined in `docs/spec/envelope-format.md` is custom and AEAD-oriented. It resembles JOSE/JWE concepts but is not a valid JWE serialization.
+**Expected or intended state:** Documented clarity that JWE compatibility is not natively supported, but potentially provided via an export/adapter pattern.
+**Why it matters:** Developers might incorrectly assume the library produces standard JWE tokens, leading to integration issues with external systems.
+**Recommended next action:** Update documentation to clarify the non-JWE nature of the envelopes, and treat standard JWE export as a future enhancement rather than a current feature.
+
+### 7. Key rotation and lifecycle operations are not implemented
+
+**Status:** Active
+**Area:** Key Management
+**Current state:** The schema supports `status`, activation/deactivation timestamps, and key classes, but public operations for key rotation, decrypt-only migration, destruction semantics, and rewrapping are not implemented.
+**Expected or intended state:** Public APIs allowing consumers to securely rotate keys, rewrap data, and manage key lifecycles according to the schema capabilities.
+**Why it matters:** Lack of key rotation makes the library unsuitable for long-term production use where cryptographic hygiene and rotation are mandated.
+**Recommended next action:** Specify and implement key rotation, migration, and key destruction procedures.
+
+### 8. Additional unlock providers are schema/planned only
+
+**Status:** Active
+**Area:** Features
+**Current state:** The schema lists multiple unlock methods and provider concepts, but only the passphrase (Argon2id) provider is currently implemented.
+**Expected or intended state:** Implementation of, or clear documentation that other providers (OS secret store, hardware token, remote KMS, Shamir/threshold recovery) are strictly planned future features.
+**Why it matters:** Users may be confused by schema references to features that are entirely non-functional in the library.
+**Recommended next action:** Clearly document these as planned features or stub them out in the API contract.
+
+### 9. Blind index implementation is not complete
+
+**Status:** Active
+**Area:** Features
+**Current state:** `docs/spec/blind-index.md` outlines HMAC-based blind indexes, but no corresponding API, tables, or tests exist in the current implementations.
+**Expected or intended state:** A functional blind index API allowing searchable encrypted data.
+**Why it matters:** Without blind indexes, the database cannot easily be queried based on payload contents, severely limiting its utility as a database.
+**Recommended next action:** Implement the schema tables and API methods for blind indexes according to the specification.
+
+### 10. Input validation and canonicalization boundaries need hardening
+
+**Status:** Active
+**Area:** Security / Input Validation
+**Current state:** UUID formats are enforced via SQLite `CHECK` constraints, but public APIs do not consistently normalize or reject invalid UUIDs before database operations. `content_type` validation is minimal.
+**Expected or intended state:** Strict input validation and normalization at the public API boundary before interacting with the database.
+**Why it matters:** Relying solely on database constraints can lead to unhandled database errors bubbling up instead of providing clear, early validation errors to the caller.
+**Recommended next action:** Add rigorous input validation and normalization steps to all public API endpoints.
+
+### 11. Packaging and distribution maturity is incomplete
+
+**Status:** Active
+**Area:** Deployment
+**Current state:** Python and Node.js packaging metadata, exports, versioning, and setup scripts are present but lack the polish required for production publishing (e.g., missing comprehensive exports, mismatched versions, and incomplete README examples).
+**Expected or intended state:** Production-ready packages that can be seamlessly published to PyPI and npm with correct dependencies, exports, and documentation.
+**Why it matters:** Incomplete packaging hinders adoption and makes it difficult for other projects to cleanly depend on the library.
+**Recommended next action:** Refine `setup.py`, `package.json`, and related metadata to align with standard publishing best practices for each ecosystem.
