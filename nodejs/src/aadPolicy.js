@@ -34,9 +34,9 @@ function recordPayloadV1Context(args) {
     return {
         v: 1,
         aad_policy: RECORD_PAYLOAD_V1,
-        object_uuid: args.object_uuid || args.objectUuid,
-        schema_uuid: args.schema_uuid || args.schemaUuid,
-        content_type: args.content_type || args.contentType,
+        object_uuid: args.object_uuid ?? args.objectUuid,
+        schema_uuid: args.schema_uuid ?? args.schemaUuid,
+        content_type: args.content_type ?? args.contentType,
         kid: args.kid,
         alg: args.alg
     };
@@ -46,8 +46,8 @@ function wrapDatabaseKeyV1Context(args) {
     return {
         v: 1,
         aad_policy: WRAP_DATABASE_KEY_V1,
-        wrapped_kid: args.wrapped_kid || args.wrappedKid,
-        wrapping_kid: args.wrapping_kid || args.wrappingKid
+        wrapped_kid: args.wrapped_kid ?? args.wrappedKid,
+        wrapping_kid: args.wrapping_kid ?? args.wrappingKid
     };
 }
 
@@ -55,8 +55,8 @@ function wrapRecordKeyV1Context(args) {
     return {
         v: 1,
         aad_policy: WRAP_RECORD_KEY_V1,
-        wrapped_kid: args.wrapped_kid || args.wrappedKid,
-        wrapping_kid: args.wrapping_kid || args.wrappingKid
+        wrapped_kid: args.wrapped_kid ?? args.wrappedKid,
+        wrapping_kid: args.wrapping_kid ?? args.wrappingKid
     };
 }
 
