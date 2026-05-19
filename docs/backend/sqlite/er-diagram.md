@@ -25,7 +25,7 @@ erDiagram
     }
 
     key_profile_tbl {
-        TEXT key_class PK, FK
+        TEXT key_class PK, FK "References key_class_tbl"
         TEXT purpose PK
         TEXT alg PK
         TEXT description
@@ -33,9 +33,9 @@ erDiagram
 
     key_tbl {
         TEXT kid PK
-        TEXT key_class FK
-        TEXT purpose FK
-        TEXT alg FK
+        TEXT key_class FK "composite FK part"
+        TEXT purpose FK "composite FK part"
+        TEXT alg FK "composite FK part"
         TEXT status
         INTEGER created_at_ms
         INTEGER activated_at_ms
