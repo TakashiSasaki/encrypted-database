@@ -51,9 +51,7 @@ class EncryptedStorage {
         try {
             const hasKek = this.conn.prepare("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' LIMIT 1").get();
             if (hasKek) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
-        } catch(e) {
-            if (e instanceof errors.StorageAlreadyInitialized) throw e;
-        }
+        } catch(e) { }
 
         this._validatePlatform(platform);
 

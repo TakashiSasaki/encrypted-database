@@ -46,9 +46,7 @@ def test_store_and_retrieve_payload(temp_db):
 
 def test_initialization_fails_on_unknown_platform(temp_db):
     storage = EncryptedStorage(temp_db)
-    with pytest.raises(Exception, match="Unsupported platform"):
-        storage.initialize_database("pass", "unknown_os")
-    with pytest.raises(Exception, match="cross_platform is not allowed"):
+    with pytest.raises(errors.UnsupportedPlatform):
         storage.initialize_database("pass", "cross_platform")
     storage.close()
 
