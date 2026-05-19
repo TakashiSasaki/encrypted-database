@@ -37,3 +37,41 @@ describe('RFC 8785 Canonicalization', () => {
         });
     });
 });
+
+const { generateRandomBytes, generateNonce, deriveKekArgon2id, encryptAead, decryptAead } = require('../src/crypto');
+
+describe('Crypto functions', () => {
+    test('generateRandomBytes', () => {
+        const bytes = generateRandomBytes(32);
+        expect(bytes.length).toBe(32);
+        // Test default length
+        expect(generateRandomBytes().length).toBe(32);
+    });
+
+    test('generateNonce', () => {
+        const nonce = generateNonce();
+        expect(nonce.length).toBe(12);
+    });
+
+    test('deriveKekArgon2id', async () => {
+        const password = 'my_secure_password';
+        const salt = generateRandomBytes(16);
+        const derivedKey = await deriveKekArgon2id(password, salt, 32, 2, 1024, 1);
+        expect(derivedKey.length).toBe(32);
+
+        // test defaults
+        const d2 = await deriveKekArgon2id(password, salt);
+        expect(d2.length).toBe(32);
+    });
+
+    test('encrypt and decrypt', () => {
+        const key = generateRandomBytes(32);
+        const plaintext = Buffer.from('hello world');
+        const associatedData = Buffer.from('metadata');
+
+        const { nonce, ciphertext } = encryptAead(key, plaintext, associatedData);
+
+        const decrypted = decryptAead(key, nonce, ciphertext, associatedData);
+        expect(decrypted).toEqual(plaintext);
+    });
+});

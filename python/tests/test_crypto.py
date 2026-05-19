@@ -37,3 +37,20 @@ def test_rfc8785_canonicalization(filename):
     canonicalized = canonicalize_json(data)
 
     assert canonicalized == expected_output, f"Failed canonicalization for {filename}"
+from encrypted_storage.crypto import generate_random_bytes, generate_nonce, encrypt_aead, decrypt_aead
+
+def test_generate_random_bytes():
+    assert len(generate_random_bytes(32)) == 32
+    assert len(generate_random_bytes()) == 32
+
+def test_generate_nonce():
+    assert len(generate_nonce()) == 12
+
+def test_encrypt_decrypt_aead():
+    key = generate_random_bytes(32)
+    plaintext = b"hello world"
+    associated_data = b"metadata"
+
+    nonce, ciphertext = encrypt_aead(key, plaintext, associated_data)
+    decrypted = decrypt_aead(key, nonce, ciphertext, associated_data)
+    assert decrypted == plaintext
