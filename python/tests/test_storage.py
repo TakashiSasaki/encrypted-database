@@ -58,8 +58,16 @@ def test_store_fails_when_locked(temp_db):
 
 def test_retrieve_fails_when_locked(temp_db):
     storage = EncryptedStorage(temp_db)
-    with pytest.raises(ValueError, match="Database is locked"):
-        storage.retrieve_payload("id")
+    try:
+        with pytest.raises(ValueError, match="Database is locked"):
+            storage.retrieve_payload("id")
+    finally:
+        storage.close()
+    try:
+        with pytest.raises(ValueError, match="Database is locked"):
+            storage.store_payload("id", "type", {})
+    finally:
+        storage.close()
 
 def test_retrieve_fails_if_not_found(temp_db):
     storage = EncryptedStorage(temp_db)
@@ -99,9 +107,11 @@ def test_unlock_ignores_no_provider(temp_db):
 
 def test_unlock_fails_if_no_db_kek(temp_db):
     storage = EncryptedStorage(temp_db)
-    with pytest.raises(ValueError, match="No active database KEK found"):
-        storage.unlock_database("pass")
-    storage.close()
+    try:
+        with pytest.raises(ValueError, match="No active database KEK found"):
+            storage.unlock_database("pass")
+    finally:
+        storage.close()
 
 def test_initialize_database_rollback(temp_db):
     storage = EncryptedStorage(temp_db)
