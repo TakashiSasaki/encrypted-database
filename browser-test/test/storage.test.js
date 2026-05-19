@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const EncryptedStorage = require('../src/storage');
+const errors = require('../src/errors');
 const initSqlJs = require('sql.js/dist/sql-wasm.js');
 const aadPolicy = require('../src/aadPolicy');
 
@@ -9,6 +10,7 @@ describe('EncryptedStorage', () => {
 
     test('initialization and unlock', async () => {
         const storage = new EncryptedStorage();
+        await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
 
         // Export DB data to pass it to the next instance
@@ -20,7 +22,7 @@ describe('EncryptedStorage', () => {
         const SQL = await require('sql.js/dist/sql-wasm.js')();
         storage2.db = new SQL.Database(dbData); // Overwrite with saved data
 
-        await expect(storage2.unlockDatabase('wrong_password')).rejects.toThrow('Failed to unlock database');
+        await expect(storage2.unlockDatabase('wrong_password')).rejects.toThrow(errors.UnlockFailed);
 
         await storage2.unlockDatabase('my_secure_password');
         expect(storage2.activeDbKek).not.toBeNull();
@@ -29,6 +31,7 @@ describe('EncryptedStorage', () => {
 
     test('store and retrieve payload', async () => {
         const storage = new EncryptedStorage();
+        await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
 
         const payload = { secret: 'data', value: 42 };
@@ -49,34 +52,37 @@ describe('EncryptedStorage', () => {
 
     test('retrievePayload handles not found object', async () => {
         const storage = new EncryptedStorage();
+        await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
-        expect(() => storage.retrievePayload('not-found-uuid')).toThrow('Object not found');
+        expect(() => storage.retrievePayload('not-found-uuid')).toThrow(errors.ObjectNotFound);
         storage.close();
     });
 
     test('unlockDatabase fails with no database init', async () => {
         const storage = new EncryptedStorage();
-        await expect(storage.unlockDatabase('pass')).rejects.toThrow('Database not initialized');
+        await expect(storage.unlockDatabase('pass')).rejects.toThrow('Storage is closed');
     });
 
     test('unlockDatabase fails if no db kek', async () => {
         const storage = new EncryptedStorage();
         await storage.init();
-        await expect(storage.unlockDatabase('pass')).rejects.toThrow('No active database KEK found');
+        await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.StorageNotInitialized);
     });
 
     test('unlockDatabase ignores unknown aad policy', async () => {
         const storage = new EncryptedStorage();
+        await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
 
         storage.db.exec(`UPDATE wrapped_key_tbl SET aad_policy = 'unknown'`);
 
-        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow('Failed to unlock database');
+        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow(errors.UnlockFailed);
         storage.close();
     });
 
     test('retrievePayload fails on bad wrap info', async () => {
         const storage = new EncryptedStorage();
+        await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
 
         const payload = { secret: 'data', value: 42 };
@@ -88,18 +94,19 @@ describe('EncryptedStorage', () => {
         storage.db.exec(`UPDATE wrapped_key_tbl SET wrapped_kid = '00000000-0000-4000-8000-000000000000'`);
         storage.db.exec(`PRAGMA foreign_keys = ON;`);
 
-        expect(() => storage.retrievePayload(objectUuid)).toThrow('Record DEK wrap info not found');
+        expect(() => storage.retrievePayload(objectUuid)).toThrow(errors.IntegrityCheckFailed);
 
         storage.close();
     });
 
     test('unlockDatabase continues loop if no unlock provider', async () => {
         const storage = new EncryptedStorage();
+        await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
 
         storage.db.exec(`DELETE FROM unlock_kek_tbl`);
 
-        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow('Failed to unlock database');
+        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow(errors.UnlockFailed);
         storage.close();
     });
 
@@ -112,6 +119,7 @@ describe('EncryptedStorage', () => {
 
     test('storePayload rollback on error', async () => {
         const storage = new EncryptedStorage();
+        await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
 
         // Mock to throw an error on the last insert inside transaction
@@ -130,17 +138,19 @@ describe('EncryptedStorage', () => {
 
     test('unlockDatabase ignores unknown providers but throws on others', async () => {
         const storage = new EncryptedStorage();
+        await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
 
         storage.db.exec(`PRAGMA foreign_keys = OFF;`);
         storage.db.exec("UPDATE unlock_kek_tbl SET unlock_provider = 'unknown_provider'");
         storage.db.exec(`PRAGMA foreign_keys = ON;`);
 
-        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow('Failed to unlock database');
+        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow(errors.UnlockFailed);
     });
 
     test('unlockDatabase throws actual error from getPolicy', async () => {
         const storage = new EncryptedStorage();
+        await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
 
         const originalGetPolicy = aadPolicy.getPolicy;
@@ -179,15 +189,16 @@ describe('EncryptedStorage', () => {
 
     test('unlockDatabase fails with no wrap info', async () => {
         const storage = new EncryptedStorage();
+        await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
         storage.db.exec("DELETE FROM wrapped_key_tbl");
-        await expect(storage.unlockDatabase('pass')).rejects.toThrow('No wrap info found');
+        await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.UnlockFailed);
         storage.close();
     });
 
     test('close and lock handle nulls', () => {
         const storage = new EncryptedStorage();
         storage.close(); // db is null
-        storage.lock();  // activeDbKek is null
+        expect(() => storage.lock()).toThrow('Storage is closed');
         expect(storage.db).toBeNull();
     });

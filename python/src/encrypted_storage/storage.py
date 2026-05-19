@@ -5,8 +5,7 @@ import json
 import base64
 from pathlib import Path
 
-from . import aad_policy
-from . import crypto
+from . import aad_policy, crypto, errors
 
 class EncryptedStorage:
     def __init__(self, db_path: str):
@@ -16,6 +15,7 @@ class EncryptedStorage:
         self._init_db()
         self.active_db_kek = None
         self.active_db_kid = None
+        self._is_closed = False
 
     def _init_db(self):
         schema_path = Path(__file__).parent.parent.parent.parent / "docs" / "backend" / "sqlite" / "schema.sql"
@@ -38,8 +38,10 @@ class EncryptedStorage:
         return base64.urlsafe_b64decode(s.encode('utf-8') + pad)
 
     def _validate_platform(self, platform: str):
+        if self._is_closed:
+            raise errors.StorageClosed("Storage is closed")
         if not platform or platform == "cross_platform":
-            raise ValueError("A concrete platform name is required; cross_platform is not allowed")
+            raise errors.UnsupportedPlatform("A concrete platform name is required; cross_platform is not allowed")
         cur = self.conn.cursor()
         cur.execute("SELECT 1 FROM platform_tbl WHERE platform = ?", (platform,))
         if not cur.fetchone():
@@ -47,6 +49,17 @@ class EncryptedStorage:
 
     def initialize_database(self, passphrase: str, platform: str):
         """Initializes a new database with a new database_kek wrapped by a new unlock_kek."""
+        if self._is_closed:
+            raise errors.StorageClosed("Storage is closed")
+        if self.is_unlocked():
+            raise errors.StorageAlreadyInitialized("Storage is already initialized")
+        try:
+            cur = self.conn.cursor()
+            cur.execute("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' LIMIT 1")
+            if cur.fetchone():
+                raise errors.StorageAlreadyInitialized("Storage is already initialized")
+        except sqlite3.OperationalError:
+            pass
         self._validate_platform(platform)
 
         db_kek_bytes = crypto.generate_random_bytes(32)
@@ -115,13 +128,17 @@ class EncryptedStorage:
 
     def unlock_database(self, passphrase: str):
         """Unlocks the database by retrieving and unwrapping the database_kek."""
+        if self._is_closed:
+            raise errors.StorageClosed("Storage is closed")
+        if not self.conn:
+            raise errors.StorageNotInitialized("Database not initialized")
         cur = self.conn.cursor()
 
         # Find active database KEK
         cur.execute("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' AND status = 'active' LIMIT 1")
         row = cur.fetchone()
         if not row:
-            raise ValueError("No active database KEK found")
+            raise errors.StorageNotInitialized("No active database KEK found")
         db_kid = row[0]
 
         # Get wrap info
@@ -155,12 +172,14 @@ class EncryptedStorage:
                     continue
 
         if not unwrapped:
-            raise ValueError("Failed to unlock database")
+            raise errors.UnlockFailed("Failed to unlock database")
 
     def store_payload(self, schema_uuid: str, content_type: str, payload: dict) -> str:
         """Encrypts and stores a JSON payload."""
+        if self._is_closed:
+            raise errors.StorageClosed("Storage is closed")
         if not self.active_db_kek:
-            raise ValueError("Database is locked")
+            raise errors.StorageLocked("Database is locked")
 
         object_uuid = self._generate_kid()
 
@@ -221,14 +240,16 @@ class EncryptedStorage:
 
     def retrieve_payload(self, object_uuid: str) -> dict:
         """Retrieves and decrypts a payload."""
+        if self._is_closed:
+            raise errors.StorageClosed("Storage is closed")
         if not self.active_db_kek:
-            raise ValueError("Database is locked")
+            raise errors.StorageLocked("Database is locked")
 
         cur = self.conn.cursor()
         cur.execute("SELECT schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy FROM encrypted_object_tbl WHERE object_uuid = ?", (object_uuid,))
         row = cur.fetchone()
         if not row:
-            raise ValueError("Object not found")
+            raise errors.ObjectNotFound("Object not found")
 
         schema_uuid, content_type, alg, record_kid, nonce_payload, ciphertext, payload_aad_policy = row
         aad_policy.get_policy(payload_aad_policy)
@@ -237,7 +258,7 @@ class EncryptedStorage:
         cur.execute("SELECT nonce, wrapped_key, aad_policy, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?", (record_kid, self.active_db_kid))
         wrap_row = cur.fetchone()
         if not wrap_row:
-            raise ValueError("Record DEK wrap info not found")
+            raise errors.IntegrityCheckFailed("Record DEK wrap info not found")
 
         nonce_wrap, wrapped_record_dek, wrap_aad_policy, aad_context_json_wrap = wrap_row
         aad_policy.get_policy(wrap_aad_policy)
@@ -258,7 +279,47 @@ class EncryptedStorage:
         payload_bytes = crypto.decrypt_aead(record_dek_bytes, nonce_payload, ciphertext, payload_aad_bytes)
         return json.loads(payload_bytes.decode('utf-8'))
 
+
+    def is_closed(self) -> bool:
+        return self._is_closed
+
+    def is_unlocked(self) -> bool:
+        if self._is_closed:
+            return False
+        return self.active_db_kek is not None
+
+    def get_status(self) -> str:
+        if self._is_closed:
+            return "closed"
+        if self.active_db_kek is not None:
+            return "open_unlocked"
+        if not self.conn:
+            return "closed"
+        try:
+            cur = self.conn.cursor()
+            cur.execute("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' AND status = 'active' LIMIT 1")
+            res = cur.fetchone()
+            if not res:
+                return "uninitialized"
+        except sqlite3.OperationalError:
+            return "uninitialized"
+        except sqlite3.ProgrammingError:
+            return "closed"
+        return "open_locked"
+
+    def lock(self):
+        if self._is_closed:
+            raise errors.StorageClosed("Storage is closed")
+        if self.active_db_kek is not None:
+            self.active_db_kek = None
+        self.active_db_kid = None
+
     def close(self):
-        self.conn.close()
+        if self._is_closed:
+            return
+        if self.conn:
+            self.conn.close()
+            self.conn = None
         self.active_db_kek = None
         self.active_db_kid = None
+        self._is_closed = True

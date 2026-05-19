@@ -2,6 +2,7 @@ import pytest
 import tempfile
 import os
 from encrypted_storage.storage import EncryptedStorage
+from encrypted_storage import errors
 
 @pytest.fixture
 def temp_db():
@@ -16,7 +17,7 @@ def test_initialization_and_unlock(temp_db):
     storage.close()
 
     storage2 = EncryptedStorage(temp_db)
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.UnlockFailed):
         storage2.unlock_database("wrong_password")
 
     storage2.unlock_database("my_secure_password")
@@ -45,34 +46,29 @@ def test_store_and_retrieve_payload(temp_db):
 
 def test_initialization_fails_on_unknown_platform(temp_db):
     storage = EncryptedStorage(temp_db)
-    with pytest.raises(ValueError, match="Unsupported platform"):
+    with pytest.raises(Exception, match="Unsupported platform"):
         storage.initialize_database("pass", "unknown_os")
-    with pytest.raises(ValueError, match="cross_platform is not allowed"):
+    with pytest.raises(Exception, match="cross_platform is not allowed"):
         storage.initialize_database("pass", "cross_platform")
     storage.close()
 
 def test_store_fails_when_locked(temp_db):
     storage = EncryptedStorage(temp_db)
-    with pytest.raises(ValueError, match="Database is locked"):
+    with pytest.raises(errors.StorageLocked):
         storage.store_payload("id", "type", {})
 
 def test_retrieve_fails_when_locked(temp_db):
     storage = EncryptedStorage(temp_db)
-    try:
-        with pytest.raises(ValueError, match="Database is locked"):
-            storage.retrieve_payload("id")
-    finally:
-        storage.close()
-    try:
-        with pytest.raises(ValueError, match="Database is locked"):
-            storage.store_payload("id", "type", {})
-    finally:
-        storage.close()
+    with pytest.raises(errors.StorageLocked):
+        storage.retrieve_payload("id")
+    with pytest.raises(errors.StorageLocked):
+        storage.store_payload("id", "type", {})
+    storage.close()
 
 def test_retrieve_fails_if_not_found(temp_db):
     storage = EncryptedStorage(temp_db)
     storage.initialize_database("pass", "linux")
-    with pytest.raises(ValueError, match="Object not found"):
+    with pytest.raises(errors.ObjectNotFound):
         storage.retrieve_payload("00000000-0000-0000-0000-000000000000")
     storage.close()
 
@@ -83,7 +79,7 @@ def test_retrieve_fails_if_wrap_not_found(temp_db):
     storage.conn.execute("PRAGMA foreign_keys = OFF")
     storage.conn.execute("UPDATE wrapped_key_tbl SET wrapped_kid = '00000000-0000-4000-8000-000000000000'")
     storage.conn.commit()
-    with pytest.raises(ValueError, match="Record DEK wrap info not found"):
+    with pytest.raises(errors.IntegrityCheckFailed):
         storage.retrieve_payload(oid)
     storage.close()
 
@@ -92,7 +88,7 @@ def test_unlock_ignores_unknown_aad_policy(temp_db):
     storage.initialize_database("pass", "linux")
     storage.conn.execute("UPDATE wrapped_key_tbl SET aad_policy = 'unknown'")
     storage.conn.commit()
-    with pytest.raises(ValueError, match="Failed to unlock database"):
+    with pytest.raises(errors.UnlockFailed):
         storage.unlock_database("pass")
     storage.close()
 
@@ -101,14 +97,14 @@ def test_unlock_ignores_no_provider(temp_db):
     storage.initialize_database("pass", "linux")
     storage.conn.execute("DELETE FROM unlock_kek_tbl")
     storage.conn.commit()
-    with pytest.raises(ValueError, match="Failed to unlock database"):
+    with pytest.raises(errors.UnlockFailed):
         storage.unlock_database("pass")
     storage.close()
 
 def test_unlock_fails_if_no_db_kek(temp_db):
     storage = EncryptedStorage(temp_db)
     try:
-        with pytest.raises(ValueError, match="No active database KEK found"):
+        with pytest.raises(errors.StorageNotInitialized):
             storage.unlock_database("pass")
     finally:
         storage.close()
