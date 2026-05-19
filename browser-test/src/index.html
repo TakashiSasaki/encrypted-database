@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Encrypted Storage Browser Test</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="icon.svg" type="image/svg+xml">
     <style>
         body { font-family: sans-serif; padding: 20px; }
         #output { margin-top: 20px; padding: 10px; background: #f0f0f0; border: 1px solid #ccc; font-family: monospace; white-space: pre-wrap; min-height: 200px; max-height: 300px; overflow-y: auto; }
@@ -68,12 +66,5 @@
     </div>
 
     <script src="bundle.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js');
-            });
-        }
-    </script>
 </body>
 </html>

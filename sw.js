@@ -1,8 +1,10 @@
 // Service Worker for Vault PWA
 // The scope is set by the location of this file, which is at the root.
 
-// We don't pre-cache assets yet, but this fetch listener provides an
-// offline fallback from any previously cached GET requests.
+const CACHE_NAME = 'vault-cache-v1';
+
+// We don't necessarily need to cache everything right away for a basic installable PWA,
+// but providing a fetch listener is required by some browsers to show the install prompt.
 self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
@@ -12,19 +14,10 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    if (event.request.method !== 'GET') {
-        return;
-    }
-
-    event.respondWith((async () => {
-        try {
-            return await fetch(event.request);
-        } catch (error) {
-            const cachedResponse = await caches.match(event.request);
-            return cachedResponse || new Response('Offline', {
-                status: 503,
-                statusText: 'Service Unavailable'
-            });
-        }
-    })());
+    // Basic network-first strategy or fallback
+    event.respondWith(
+        fetch(event.request).catch(() => {
+            return caches.match(event.request);
+        })
+    );
 });

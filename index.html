@@ -93,10 +93,53 @@
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     const text = await response.text();
+
+                    // Configure marked to handle mermaid code blocks
+                    const renderer = new marked.Renderer();
+                    const originalCodeRenderer = renderer.code.bind(renderer);
+
+                    // Helper function to escape HTML special characters
+                    const escapeHtml = (unsafe) => {
+                        return unsafe
+                             .replace(/&/g, "&amp;")
+                             .replace(/</g, "&lt;")
+                             .replace(/>/g, "&gt;")
+                             .replace(/"/g, "&quot;")
+                             .replace(/'/g, "&#039;");
+                    };
+
+                    renderer.code = function({ text, lang, escaped }) {
+                        if (lang === 'mermaid') {
+                            return `<div class="mermaid">${escapeHtml(text)}</div>`;
+                        }
+                        return originalCodeRenderer({ text, lang, escaped });
+                    };
+
+                    marked.use({ renderer });
+
                     // Parse markdown to HTML, then sanitize it to prevent DOM XSS
                     const rawHtml = marked.parse(text);
-                    const cleanHtml = DOMPurify.sanitize(rawHtml);
+                    // Allow class="mermaid" in DOMPurify
+                    const cleanHtml = DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['class'] });
                     contentDiv.innerHTML = cleanHtml;
+
+                    // Initialize and render Mermaid diagrams if any exist
+                    if (contentDiv.querySelector('.mermaid')) {
+                        // Dynamically inject Mermaid script only when needed
+                        if (!window.mermaid) {
+                            await new Promise((resolve, reject) => {
+                                const script = document.createElement('script');
+                                script.src = 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js';
+                                script.onload = resolve;
+                                script.onerror = reject;
+                                document.head.appendChild(script);
+                            });
+                        }
+                        mermaid.initialize({ startOnLoad: false, securityLevel: 'strict' });
+                        await mermaid.run({
+                            querySelector: '#content .mermaid'
+                        }).catch(e => console.error('Mermaid rendering failed', e));
+                    }
 
                     // Fix relative image paths
                     const images = contentDiv.querySelectorAll('img');
