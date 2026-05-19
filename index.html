@@ -121,9 +121,9 @@
                                 document.head.appendChild(script);
                             });
                         }
-                        mermaid.initialize({ startOnLoad: false });
+                        mermaid.initialize({ startOnLoad: false, securityLevel: 'strict' });
                         await mermaid.run({
-                            querySelector: '.mermaid'
+                            querySelector: '#content .mermaid'
                         }).catch(e => console.error('Mermaid rendering failed', e));
                     }
 
