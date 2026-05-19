@@ -50,3 +50,33 @@ def test_lifecycle(tmp_path):
 
     with pytest.raises(errors.StorageClosed):
         storage.unlock_database("pass")
+
+    with pytest.raises(errors.StorageClosed):
+        storage.store_payload("schema", "type", {})
+
+    with pytest.raises(errors.StorageClosed):
+        storage.retrieve_payload("some-uuid")
+
+def test_unlock_failure_clears_keys(tmp_path):
+    db_path = tmp_path / "test2.db"
+    storage = EncryptedStorage(str(db_path))
+    storage.initialize_database("correct_pass", "linux")
+    assert storage.is_unlocked()
+
+    with pytest.raises(errors.UnlockFailed):
+        storage.unlock_database("wrong_pass")
+
+    assert not storage.is_unlocked()
+    assert storage.get_status() == "open_locked"
+
+def test_duplicate_initialize(tmp_path):
+    db_path = tmp_path / "test3.db"
+    storage = EncryptedStorage(str(db_path))
+    storage.initialize_database("pass", "linux")
+
+    with pytest.raises(errors.StorageAlreadyInitialized):
+        storage.initialize_database("pass", "linux")
+
+    storage.lock()
+    with pytest.raises(errors.StorageAlreadyInitialized):
+        storage.initialize_database("pass", "linux")

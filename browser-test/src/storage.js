@@ -10,7 +10,7 @@ class EncryptedStorage {
         this.db = null;
         this.activeDbKek = null;
         this.activeDbKid = null;
-        this._isClosed = true; // closed before init
+        this._isClosed = false;
         this._isInit = false;
     }
 
@@ -47,15 +47,37 @@ class EncryptedStorage {
         return Buffer.from(b64, 'base64');
     }
 
+    _validatePlatform(platform) {
+        if (!platform || platform === 'cross_platform') {
+            throw new errors.UnsupportedPlatform('A concrete platform name is required; cross_platform is not allowed');
+        }
+        const stmt = this.db.prepare('SELECT 1 FROM platform_tbl WHERE platform = ?');
+        stmt.bind([platform]);
+        const hasRow = stmt.step();
+        stmt.free();
+        if (!hasRow) {
+            throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
+        }
+    }
+
     async initializeDatabase(passphrase, platform = "web") {
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
         if (this.isUnlocked()) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
+        if (!this.db) await this.init();
+
         try {
             const hasKek = this.db.exec("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' LIMIT 1");
             if (hasKek && hasKek.length > 0) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
-        } catch(e) { }
+        } catch (e) {
+            if (e instanceof errors.StorageAlreadyInitialized) {
+                throw e;
+            }
+            if (!e.message.includes("no such table")) {
+                throw new errors.DatabaseBackendError(`Database error during initialization check: ${e.message}`);
+            }
+        }
 
-        if (!this.db) await this.init();
+        this._validatePlatform(platform);
 
         const dbKekBytes = cryptoUtils.generateRandomBytes(32);
         const dbKid = uuidv4();
@@ -172,7 +194,10 @@ class EncryptedStorage {
             }
         }
 
-        if (!unwrapped) throw new errors.UnlockFailed("Failed to unlock database");
+        if (!unwrapped) {
+            this.lock();
+            throw new errors.UnlockFailed("Failed to unlock database");
+        }
     }
 
     storePayload(schemaUuid, contentType, payload) {

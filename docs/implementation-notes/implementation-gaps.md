@@ -8,28 +8,28 @@ This document tracks known discrepancies and gaps between the current specificat
 
 **Status:** Partially Resolved
 **Area:** API / cross-language compatibility
-**Current state:** A canonical `docs/spec/api-contract.md` exists, detailing lifecycle states, lock/close behavior, status queries, and error categories. Sync/async semantics and provider behaviors might still need further elaboration in the spec.
+**Current state:** A canonical `docs/spec/api-contract.md` exists, detailing lifecycle states, lock/close behavior, status queries, and error categories. Sync/async semantics and provider behaviors might still need further elaboration in the spec. The contract correctly enforces strict `instanceof` checks over generic `.code` properties.
 **Expected or intended state:** A formal specification defining the exact inputs, outputs, and side effects of each public method to ensure parity across all language implementations.
 **Why it matters:** Without a canonical API contract, language implementations may diverge, leading to an inconsistent and unpredictable developer experience.
 **Recommended next action:** Expand the API contract to document provider behavior, sync/async nuances across environments, and UUID normalization rules.
 
 ### 2. Error taxonomy is not implemented
 
-**Status:** Active
+**Status:** Partially Resolved
 **Area:** Error Handling
-**Current state:** Python currently raises generic exceptions (`ValueError`), and Node.js throws generic `Error` objects for public failures. Tests rely on error message string matching.
-**Expected or intended state:** A library-quality API defining stable typed errors or error codes (e.g., `StorageLocked`, `UnlockFailed`, `ObjectNotFound`, `UnsupportedPlatform`).
-**Why it matters:** Consumers of the library cannot easily handle programmatic failures or distinguish between different error conditions without brittle string matching.
-**Recommended next action:** Define a standardized list of error codes in the API contract and implement corresponding custom error classes across Python and Node.js.
+**Current state:** Custom error classes (e.g., `StorageLocked`, `UnlockFailed`, `UnsupportedPlatform`) have been implemented and uniformly enforced across Python, Node.js, and Browser implementations. Brittle error message string matching has been largely removed from tests. Some generic backend exceptions may still surface.
+**Expected or intended state:** A library-quality API relying strictly on stable typed error classes.
+**Why it matters:** Consumers of the library cannot easily handle programmatic failures or distinguish between different error conditions without deterministic class checks.
+**Recommended next action:** Audit deep backend database errors to ensure they are properly wrapped and raised as `DatabaseBackendError`.
 
 ### 3. Lock/close lifecycle is incomplete
 
-**Status:** Resolved
+**Status:** Partially Resolved
 **Area:** Lifecycle Management
-**Current state:** A clear lifecycle has been implemented across Python, Node.js, and Browser implementations. The API correctly transitions between `uninitialized`, `open_locked`, `open_unlocked`, and `closed`. `lock()`, `close()`, `is_unlocked()`, `is_closed()`, and `get_status()` operations exist and behave identically.
-**Expected or intended state:** A robust lifecycle management API with clear transitions between locked and unlocked states, along with public status check methods.
-**Why it matters:** Callers cannot easily query the current state of the database, making it difficult to build resilient applications on top of the library.
-**Recommended next action:** Keep monitoring browser-specific backend initialization lifecycle edges if browser adapter support evolves.
+**Current state:** A clear lifecycle has been implemented across Python, Node.js, and Browser implementations. Initial browser state (`uninitialized`), unlock failure cleanups, and duplicate initialization defenses have been properly enforced and tested. The API correctly transitions between `uninitialized`, `open_locked`, `open_unlocked`, and `closed`.
+**Expected or intended state:** A robust lifecycle management API with strictly identical guarantees and transitions across all platforms.
+**Why it matters:** Callers cannot easily rely on consistent database operations if subtle lifecycle discrepancies exist between environments.
+**Recommended next action:** Implement browser persistent storage adapters to fully exercise standard real-world usage beyond the initial memory/testing harnesses.
 
 ### 4. Cross-language cryptographic test vectors are not materially implemented
 

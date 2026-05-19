@@ -1,4 +1,7 @@
 const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const { v4: uuidv4 } = require('uuid');
 const EncryptedStorage = require('../src/storage');
 const errors = require('../src/errors');
 
@@ -54,5 +57,30 @@ describe('Storage Lifecycle', () => {
         expect(() => storage.lock()).toThrow(errors.StorageClosed);
         await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.StorageClosed);
         await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.StorageClosed);
+        expect(() => storage.storePayload('schema', 'type', {})).toThrow(errors.StorageClosed);
+        expect(() => storage.retrievePayload('some-id')).toThrow(errors.StorageClosed);
+    });
+
+    test('unlock failure clears keys', async () => {
+        const tempDbPath = path.join(os.tmpdir(), `test_lifecycle_fail_${uuidv4()}.db`);
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('correct_pass', 'linux');
+        expect(storage.isUnlocked()).toBe(true);
+
+        await expect(storage.unlockDatabase('wrong_pass')).rejects.toThrow(errors.UnlockFailed);
+
+        expect(storage.isUnlocked()).toBe(false);
+        expect(storage.getStatus()).toBe('open_locked');
+    });
+
+    test('duplicate initialize fails', async () => {
+        const tempDbPath = path.join(os.tmpdir(), `test_lifecycle_dup_${uuidv4()}.db`);
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('pass', 'linux');
+
+        await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.StorageAlreadyInitialized);
+
+        storage.lock();
+        await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.StorageAlreadyInitialized);
     });
 });

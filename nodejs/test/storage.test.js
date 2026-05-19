@@ -54,7 +54,7 @@ describe('EncryptedStorage', () => {
 
     test('unlockDatabase fails on unsupported platform', async () => {
         const storage = new EncryptedStorage(tempDbPath);
-        await expect(storage.initializeDatabase('pass', 'cross_platform')).rejects.toThrow('A concrete platform name is required');
+        await expect(storage.initializeDatabase('pass', 'cross_platform')).rejects.toThrow(errors.UnsupportedPlatform);
     });
 
     test('unlockDatabase continues loop if aad policy error', async () => {
@@ -83,17 +83,17 @@ describe('EncryptedStorage', () => {
 
     test('initializeDatabase fails on unknown platform', async () => {
         const storage = new EncryptedStorage(tempDbPath);
-        await expect(storage.initializeDatabase('pass', 'unknown_os')).rejects.toThrow('Unsupported platform');
+        await expect(storage.initializeDatabase('pass', 'unknown_os')).rejects.toThrow(errors.UnsupportedPlatform);
     });
 
     test('storePayload fails when database is locked', () => {
         const storage = new EncryptedStorage(tempDbPath);
-        expect(() => storage.storePayload('id', 'type', {})).toThrow('Database is locked');
+        expect(() => storage.storePayload('id', 'type', {})).toThrow(errors.StorageLocked);
     });
 
     test('retrievePayload fails when database is locked', () => {
         const storage = new EncryptedStorage(tempDbPath);
-        expect(() => storage.retrievePayload('id')).toThrow('Database is locked');
+        expect(() => storage.retrievePayload('id')).toThrow(errors.StorageLocked);
     });
 
     test('retrievePayload fails if object not found', async () => {

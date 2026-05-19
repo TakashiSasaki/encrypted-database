@@ -37,11 +37,11 @@ class EncryptedStorage {
 
     _validatePlatform(platform) {
         if (!platform || platform === 'cross_platform') {
-            throw new Error('A concrete platform name is required; cross_platform is not allowed');
+            throw new errors.UnsupportedPlatform('A concrete platform name is required; cross_platform is not allowed');
         }
         const row = this.conn.prepare('SELECT 1 FROM platform_tbl WHERE platform = ?').get(platform);
         if (!row) {
-            throw new Error(`Unsupported platform: ${platform}`);
+            throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
         }
     }
 
@@ -51,7 +51,14 @@ class EncryptedStorage {
         try {
             const hasKek = this.conn.prepare("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' LIMIT 1").get();
             if (hasKek) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
-        } catch(e) { }
+        } catch (e) {
+            if (e instanceof errors.StorageAlreadyInitialized) {
+                throw e;
+            }
+            if (!e.message.includes("no such table")) {
+                throw new errors.DatabaseBackendError(`Database error during initialization check: ${e.message}`);
+            }
+        }
 
         this._validatePlatform(platform);
 
@@ -146,7 +153,10 @@ class EncryptedStorage {
             }
         }
 
-        if (!unwrapped) throw new errors.UnlockFailed("Failed to unlock database");
+        if (!unwrapped) {
+            this.lock();
+            throw new errors.UnlockFailed("Failed to unlock database");
+        }
     }
 
     storePayload(schemaUuid, contentType, payload) {
