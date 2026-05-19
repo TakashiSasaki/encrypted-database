@@ -52,7 +52,7 @@ describe('EncryptedStorage', () => {
         storage2.close();
     });
 
-    test('unlockDatabase fails on unsupported platform', async () => {
+    test('initializeDatabase fails on unsupported platform', async () => {
         const storage = new EncryptedStorage(tempDbPath);
         await expect(storage.initializeDatabase('pass', 'cross_platform')).rejects.toThrow(errors.UnsupportedPlatform);
     });
