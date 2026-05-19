@@ -33,12 +33,12 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ### 4. Cross-language cryptographic test vectors are not materially implemented
 
-**Status:** Active
+**Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** `docs/spec/test-vectors.md` describes requirements for various test vectors, but there are no actual machine-readable test vectors for AAD, Argon2id, AES-GCM, fixed nonce, and fixed salt operations in a shared test-vector directory. (Note: JCS canonicalization test vectors are implemented and verified).
+**Current state:** JCS canonicalization and AAD vectors are fully implemented and verified via shared cross-language test suites in `test-vectors/jcs` and `test-vectors/aad`. However, there are no machine-readable test vectors for Argon2id, AES-GCM, fixed nonce, and fixed salt operations.
 **Expected or intended state:** A comprehensive suite of cross-language test vectors ensuring byte-for-byte equivalence for all cryptographic and key-derivation operations.
 **Why it matters:** Without shared test vectors, implementations might subtly diverge in cryptographic implementations, resulting in data that cannot be decrypted across platforms.
-**Recommended next action:** Generate and commit a top-level `test-vectors/` directory containing JSON datasets for KDF, AEAD, key-wrap, and payload encryption operations.
+**Recommended next action:** Generate and commit additional JSON datasets for KDF, AEAD, key-wrap, and payload encryption operations.
 
 ### 5. SQLite roundtrip interoperability is not yet demonstrated
 

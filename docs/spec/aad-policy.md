@@ -6,7 +6,7 @@ The actual AAD byte sequence is generated deterministically within the library a
 
 ## Generating AAD
 
-The input dictionary is constructed based on the policy, and then serialized to JSON using the RFC 8785 JSON Canonicalization Scheme (JCS). The bytes of the resulting JSON string are passed as the AAD to the AEAD algorithm.
+The input dictionary is constructed based on the policy, and then serialized to JSON using the RFC 8785 JSON Canonicalization Scheme (JCS). The bytes of the resulting JSON string are passed as the AAD to the AEAD algorithm. Implementations must strictly use JCS canonicalization, as native JSON serialization functions might inconsistently reorder keys or alter whitespace, breaking cryptographic byte equivalence.
 
 ## Cross-language AAD byte equivalence
 

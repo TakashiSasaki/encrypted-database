@@ -4,7 +4,7 @@ To guarantee interoperability between different language implementations (e.g., 
 
 ## JSON Canonicalization (JCS) Vectors
 
-Implementations must ensure their JSON serialization exactly matches the bytes produced by an RFC 8785 compliant parser. Note that current prototype canonicalization in Python and Node.js might fail edge-case RFC 8785 tests.
+Implementations must ensure their JSON serialization exactly matches the bytes produced by an RFC 8785 compliant parser. The canonicalization boundaries in both Python and Node.js implementations are backed by RFC 8785 JCS compliant libraries and verified against shared cross-language test vectors.
 
 Any JSON values whose bytes are authenticated, hashed, MACed, signed, indexed, or used as UUID/hash input, or compared across test suites, must be strictly canonicalized.
 
