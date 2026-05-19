@@ -14,10 +14,28 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    // Basic network-first strategy or fallback
+    // Only use cache fallback for GET requests; other methods should go directly to the network.
+    if (event.request.method !== 'GET') {
+        event.respondWith(fetch(event.request));
+        return;
+    }
+
+    // Basic network-first strategy with an explicit offline fallback response.
     event.respondWith(
         fetch(event.request).catch(() => {
-            return caches.match(event.request);
+            return caches.match(event.request).then((cachedResponse) => {
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+
+                return new Response('Offline and no cached version is available.', {
+                    status: 503,
+                    statusText: 'Service Unavailable',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
+                });
+            });
         })
     );
 });
