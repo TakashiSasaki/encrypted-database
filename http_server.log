@@ -1,14 +1,6 @@
-127.0.0.1 - - [18/May/2026 13:12:37] "GET /index.html HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:12:37] "GET /bundle.js HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:12:39] "GET /sql-wasm.wasm HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:12:40] "GET /argon2.wasm HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:12:40] "GET /_722e-_bcb2.bundle.js HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:12:40] "GET /vendors-node_modules_argon2-browser_dist_argon2_js.bundle.js HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:13:30] "GET /index.html HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:13:30] "GET /bundle.js HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:13:31] "GET /sql-wasm.wasm HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:13:32] "GET /argon2.wasm HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:13:32] "GET /_722e-_bcb2.bundle.js HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:13:32] "GET /vendors-node_modules_argon2-browser_dist_argon2_js.bundle.js HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:30:39] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [18/May/2026 13:30:39] "GET /bundle.js HTTP/1.1" 200 -
+127.0.0.1 - - [19/May/2026 00:36:25] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [19/May/2026 00:36:26] "GET /README.md HTTP/1.1" 200 -
+127.0.0.1 - - [19/May/2026 00:36:26] "GET /sw.js HTTP/1.1" 200 -
+127.0.0.1 - - [19/May/2026 00:36:30] code 404, message File not found
+127.0.0.1 - - [19/May/2026 00:36:30] "GET /demo/manifest.json HTTP/1.1" 404 -
+127.0.0.1 - - [19/May/2026 00:36:32] "GET /sw.js HTTP/1.1" 304 -

@@ -44,6 +44,8 @@ module.exports = {
         new CopyWebpackPlugin({
             patterns: [
                 { from: 'src/index.html', to: 'index.html' },
+                { from: 'src/manifest.json', to: 'manifest.json' },
+                { from: 'src/icon.svg', to: 'icon.svg' },
                 { from: 'node_modules/sql.js/dist/sql-wasm.wasm', to: 'sql-wasm.wasm' },
                 { from: 'node_modules/argon2-browser/dist/argon2.wasm', to: 'argon2.wasm' }
             ],
