@@ -1,0 +1,92 @@
+[
+  {
+    "name": "empty-object",
+    "description": "Empty object",
+    "input": {},
+    "expected_string": "{}",
+    "expected_hex": "7b7d"
+  },
+  {
+    "name": "empty-array",
+    "description": "Empty array",
+    "input": [],
+    "expected_string": "[]",
+    "expected_hex": "5b5d"
+  },
+  {
+    "name": "object-key-ordering",
+    "description": "Object key ordering",
+    "input": {
+      "b": 2,
+      "a": 1,
+      "c": 3
+    },
+    "expected_string": "{\"a\":1,\"b\":2,\"c\":3}",
+    "expected_hex": "7b2261223a312c2262223a322c2263223a337d"
+  },
+  {
+    "name": "nested-objects",
+    "description": "Nested objects and arrays",
+    "input": {
+      "b": {
+        "d": 4,
+        "c": 3
+      },
+      "a": 1
+    },
+    "expected_string": "{\"a\":1,\"b\":{\"c\":3,\"d\":4}}",
+    "expected_hex": "7b2261223a312c2262223a7b2263223a332c2264223a347d7d"
+  },
+  {
+    "name": "strings",
+    "description": "Basic string",
+    "input": {
+      "string": "hello world"
+    },
+    "expected_string": "{\"string\":\"hello world\"}",
+    "expected_hex": "7b22737472696e67223a2268656c6c6f20776f726c64227d"
+  },
+  {
+    "name": "unicode-strings",
+    "description": "Unicode strings",
+    "input": {
+      "unicode": "こんにちは世界"
+    },
+    "expected_string": "{\"unicode\":\"こんにちは世界\"}",
+    "expected_hex": "7b22756e69636f6465223a22e38193e38293e381abe381a1e381afe4b896e7958c227d"
+  },
+  {
+    "name": "escaping",
+    "description": "String escaping",
+    "input": {
+      "escape": "\"\\\b\f\n\r\t"
+    },
+    "expected_string": "{\"escape\":\"\\\"\\\\\\b\\f\\n\\r\\t\"}",
+    "expected_hex": "7b22657363617065223a225c225c5c5c625c665c6e5c725c74227d"
+  },
+  {
+    "name": "integers",
+    "description": "Integer values",
+    "input": {
+      "int": 42,
+      "zero": 0,
+      "neg": -100
+    },
+    "expected_string": "{\"int\":42,\"neg\":-100,\"zero\":0}",
+    "expected_hex": "7b22696e74223a34322c226e6567223a2d3130302c227a65726f223a307d"
+  },
+  {
+    "name": "arrays",
+    "description": "Arrays",
+    "input": [
+      3,
+      1,
+      {
+        "b": 2,
+        "a": 1
+      }
+    ],
+    "expected_string": "[3,1,{\"a\":1,\"b\":2}]",
+    "expected_hex": "5b332c312c7b2261223a312c2262223a327d5d"
+  }
+]
