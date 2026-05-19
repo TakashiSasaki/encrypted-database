@@ -49,6 +49,7 @@ The documentation has been refactored into focused modules.
 ### Backend & Storage
 - [`backend/sqlite/schema.sql`](./backend/sqlite/schema.sql): The canonical, concrete SQLite schema.
 - [`backend/sqlite/schema.md`](./backend/sqlite/schema.md): Conceptual overview of the SQLite schema.
+- [`backend/sqlite/er-diagram.md`](./backend/sqlite/er-diagram.md): Graphical ER diagram of the SQLite schema.
 - [`backend/sqlite/constraints.md`](./backend/sqlite/constraints.md): Details on foreign keys, PRAGMAs, and strict version constraints.
 
 ### Providers
