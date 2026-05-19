@@ -64,23 +64,33 @@ describe('Storage Lifecycle', () => {
     test('unlock failure clears keys', async () => {
         const tempDbPath = path.join(os.tmpdir(), `test_lifecycle_fail_${uuidv4()}.db`);
         const storage = new EncryptedStorage(tempDbPath);
-        await storage.initializeDatabase('correct_pass', 'linux');
-        expect(storage.isUnlocked()).toBe(true);
+        try {
+            await storage.initializeDatabase('correct_pass', 'linux');
+            expect(storage.isUnlocked()).toBe(true);
 
-        await expect(storage.unlockDatabase('wrong_pass')).rejects.toThrow(errors.UnlockFailed);
+            await expect(storage.unlockDatabase('wrong_pass')).rejects.toThrow(errors.UnlockFailed);
 
-        expect(storage.isUnlocked()).toBe(false);
-        expect(storage.getStatus()).toBe('open_locked');
+            expect(storage.isUnlocked()).toBe(false);
+            expect(storage.getStatus()).toBe('open_locked');
+        } finally {
+            storage.close();
+            try { fs.unlinkSync(tempDbPath); } catch (e) {}
+        }
     });
 
     test('duplicate initialize fails', async () => {
         const tempDbPath = path.join(os.tmpdir(), `test_lifecycle_dup_${uuidv4()}.db`);
         const storage = new EncryptedStorage(tempDbPath);
-        await storage.initializeDatabase('pass', 'linux');
+        try {
+            await storage.initializeDatabase('pass', 'linux');
 
-        await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.StorageAlreadyInitialized);
+            await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.StorageAlreadyInitialized);
 
-        storage.lock();
-        await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.StorageAlreadyInitialized);
+            storage.lock();
+            await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.StorageAlreadyInitialized);
+        } finally {
+            storage.close();
+            try { fs.unlinkSync(tempDbPath); } catch (e) {}
+        }
     });
 });
