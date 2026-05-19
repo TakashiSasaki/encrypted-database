@@ -24,8 +24,6 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- DOMPurify for sanitization -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-    <!-- Mermaid.js -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 </head>
 <body class="markdown-body">
     <nav style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eaecef;">
@@ -85,9 +83,20 @@
                     // Configure marked to handle mermaid code blocks
                     const renderer = new marked.Renderer();
                     const originalCodeRenderer = renderer.code.bind(renderer);
+
+                    // Helper function to escape HTML special characters
+                    const escapeHtml = (unsafe) => {
+                        return unsafe
+                             .replace(/&/g, "&amp;")
+                             .replace(/</g, "&lt;")
+                             .replace(/>/g, "&gt;")
+                             .replace(/"/g, "&quot;")
+                             .replace(/'/g, "&#039;");
+                    };
+
                     renderer.code = function({ text, lang, escaped }) {
                         if (lang === 'mermaid') {
-                            return `<div class="mermaid">${text}</div>`;
+                            return `<div class="mermaid">${escapeHtml(text)}</div>`;
                         }
                         return originalCodeRenderer({ text, lang, escaped });
                     };
@@ -100,11 +109,23 @@
                     const cleanHtml = DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['class'] });
                     contentDiv.innerHTML = cleanHtml;
 
-                    // Initialize and render Mermaid diagrams
-                    mermaid.initialize({ startOnLoad: false });
-                    await mermaid.run({
-                        querySelector: '.mermaid'
-                    }).catch(e => console.error('Mermaid rendering failed', e));
+                    // Initialize and render Mermaid diagrams if any exist
+                    if (contentDiv.querySelector('.mermaid')) {
+                        // Dynamically inject Mermaid script only when needed
+                        if (!window.mermaid) {
+                            await new Promise((resolve, reject) => {
+                                const script = document.createElement('script');
+                                script.src = 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js';
+                                script.onload = resolve;
+                                script.onerror = reject;
+                                document.head.appendChild(script);
+                            });
+                        }
+                        mermaid.initialize({ startOnLoad: false });
+                        await mermaid.run({
+                            querySelector: '.mermaid'
+                        }).catch(e => console.error('Mermaid rendering failed', e));
+                    }
 
                     // Fix relative image paths
                     const images = contentDiv.querySelectorAll('img');
