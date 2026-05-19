@@ -31,32 +31,47 @@ const WRAP_DATABASE_KEY_V1 = 'wrap-database-key-v1';
 const WRAP_RECORD_KEY_V1 = 'wrap-record-key-v1';
 
 function recordPayloadV1Context(args) {
+    const { object_uuid, schema_uuid, content_type, kid, alg } = args;
+    if (!object_uuid) throw new AadPolicyError('Missing required field: object_uuid');
+    if (!schema_uuid) throw new AadPolicyError('Missing required field: schema_uuid');
+    if (!content_type) throw new AadPolicyError('Missing required field: content_type');
+    if (!kid) throw new AadPolicyError('Missing required field: kid');
+    if (!alg) throw new AadPolicyError('Missing required field: alg');
+
     return {
         v: 1,
         aad_policy: RECORD_PAYLOAD_V1,
-        object_uuid: args.object_uuid ?? args.objectUuid,
-        schema_uuid: args.schema_uuid ?? args.schemaUuid,
-        content_type: args.content_type ?? args.contentType,
-        kid: args.kid,
-        alg: args.alg
+        object_uuid,
+        schema_uuid,
+        content_type,
+        kid,
+        alg
     };
 }
 
 function wrapDatabaseKeyV1Context(args) {
+    const { wrapped_kid, wrapping_kid } = args;
+    if (!wrapped_kid) throw new AadPolicyError('Missing required field: wrapped_kid');
+    if (!wrapping_kid) throw new AadPolicyError('Missing required field: wrapping_kid');
+
     return {
         v: 1,
         aad_policy: WRAP_DATABASE_KEY_V1,
-        wrapped_kid: args.wrapped_kid ?? args.wrappedKid,
-        wrapping_kid: args.wrapping_kid ?? args.wrappingKid
+        wrapped_kid,
+        wrapping_kid
     };
 }
 
 function wrapRecordKeyV1Context(args) {
+    const { wrapped_kid, wrapping_kid } = args;
+    if (!wrapped_kid) throw new AadPolicyError('Missing required field: wrapped_kid');
+    if (!wrapping_kid) throw new AadPolicyError('Missing required field: wrapping_kid');
+
     return {
         v: 1,
         aad_policy: WRAP_RECORD_KEY_V1,
-        wrapped_kid: args.wrapped_kid ?? args.wrappedKid,
-        wrapping_kid: args.wrapping_kid ?? args.wrappingKid
+        wrapped_kid,
+        wrapping_kid
     };
 }
 

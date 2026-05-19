@@ -68,12 +68,12 @@ class EncryptedStorage {
         const wrapAlg = 'A256GCM';
         const aadPolicyName = aadPolicy.selectKeyWrapPolicy({ wrappedKeyClass: 'database_kek', alg: wrapAlg });
         const aadContext = aadPolicy.buildAadContext(aadPolicyName, {
-            wrappedKid: dbKid,
-            wrappingKid: unlockKid
+            wrapped_kid: dbKid,
+            wrapping_kid: unlockKid
         });
         const aadBytes = aadPolicy.buildAadBytes(aadPolicyName, {
-            wrappedKid: dbKid,
-            wrappingKid: unlockKid
+            wrapped_kid: dbKid,
+            wrapping_kid: unlockKid
         });
         const { nonce, ciphertext: wrappedDbKek } = cryptoUtils.encryptAead(unlockKekBytes, dbKekBytes, aadBytes);
 
@@ -85,7 +85,7 @@ class EncryptedStorage {
             this.db.run("INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)", [unlockKid, 'passphrase_argon2id', JSON.stringify(providerConfig), platform]);
 
             const wrapId = uuidv4();
-            this.db.run("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [wrapId, dbKid, unlockKid, 1, 'key_wrap', wrapAlg, nonce, wrappedDbKek, aadPolicyName, cryptoUtils.canonicalizeJson(aadContext).toString('utf8'), this._currentMs()]);
+            this.db.run("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [wrapId, dbKid, unlockKid, 1, 'key_wrap', wrapAlg, nonce, wrappedDbKek, aadPolicyName, this._currentMs()]);
             this.db.exec("COMMIT;");
         } catch (err) {
             this.db.exec("ROLLBACK;");
@@ -103,7 +103,7 @@ class EncryptedStorage {
         if (resDbKek.length === 0) throw new Error("No active database KEK found");
         const dbKid = resDbKek[0].values[0][0];
 
-        const stmtWrap = this.db.prepare(`SELECT wrapping_kid, nonce, wrapped_key, aad_policy, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ?`);
+        const stmtWrap = this.db.prepare(`SELECT wrapping_kid, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ?`);
         stmtWrap.bind([dbKid]);
         const wrapRows = [];
         while (stmtWrap.step()) {
@@ -119,7 +119,6 @@ class EncryptedStorage {
             const nonce = row[1];
             const wrapped_key = row[2];
             const aad_policy_name = row[3];
-            const aad_context_json = row[4];
 
             try {
                 aadPolicy.getPolicy(aad_policy_name);
@@ -144,7 +143,11 @@ class EncryptedStorage {
                     const salt = this._b64d(config.salt);
                     try {
                         const unlockKekBytes = await cryptoUtils.deriveKekArgon2id(passphrase, salt, 32, config.iterations, config.memory_kib, config.parallelism);
-                        const dbKekBytes = cryptoUtils.decryptAead(unlockKekBytes, nonce, wrapped_key, Buffer.from(aad_context_json, 'utf8'));
+                        const wrapAadBytes = aadPolicy.buildAadBytes(aad_policy_name, {
+                            wrapped_kid: dbKid,
+                            wrapping_kid: wrapping_kid
+                        });
+                        const dbKekBytes = cryptoUtils.decryptAead(unlockKekBytes, nonce, wrapped_key, wrapAadBytes);
                         this.activeDbKek = dbKekBytes;
                         this.activeDbKid = dbKid;
                         unwrapped = true;
@@ -171,21 +174,21 @@ class EncryptedStorage {
 
         const wrapAadPolicy = aadPolicy.selectKeyWrapPolicy({ wrappedKeyClass: 'record_dek', alg });
         const wrapAad = aadPolicy.buildAadContext(wrapAadPolicy, {
-            wrappedKid: recordKid,
-            wrappingKid: this.activeDbKid
+            wrapped_kid: recordKid,
+            wrapping_kid: this.activeDbKid
         });
         const wrapAadBytes = aadPolicy.buildAadBytes(wrapAadPolicy, {
-            wrappedKid: recordKid,
-            wrappingKid: this.activeDbKid
+            wrapped_kid: recordKid,
+            wrapping_kid: this.activeDbKid
         });
         const { nonce: nonceWrap, ciphertext: wrappedRecordDek } = cryptoUtils.encryptAead(this.activeDbKek, recordDekBytes, wrapAadBytes);
 
         const payloadBytes = cryptoUtils.canonicalizeJson(payload);
         const payloadAadPolicy = aadPolicy.selectPayloadPolicy({ alg });
         const payloadAadBytes = aadPolicy.buildAadBytes(payloadAadPolicy, {
-            objectUuid,
-            schemaUuid,
-            contentType,
+            object_uuid: objectUuid,
+            schema_uuid: schemaUuid,
+            content_type: contentType,
             kid: recordKid,
             alg
         });
@@ -196,7 +199,7 @@ class EncryptedStorage {
             this.db.run("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)", [recordKid, 'record_dek', 'encrypt_payload', alg, 'active', this._currentMs()]);
 
             const wrapId = uuidv4();
-            this.db.run("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [wrapId, recordKid, this.activeDbKid, 1, 'key_wrap', alg, nonceWrap, wrappedRecordDek, wrapAadPolicy, cryptoUtils.canonicalizeJson(wrapAad).toString('utf8'), this._currentMs()]);
+            this.db.run("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [wrapId, recordKid, this.activeDbKid, 1, 'key_wrap', alg, nonceWrap, wrappedRecordDek, wrapAadPolicy, this._currentMs()]);
 
             this.db.run("INSERT INTO encrypted_object_tbl (object_uuid, envelope_v, envelope_type, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [objectUuid, 1, 'aead', schemaUuid, contentType, alg, recordKid, noncePayload, ciphertext, payloadAadPolicy, this._currentMs(), this._currentMs()]);
             this.db.exec("COMMIT;");
@@ -230,7 +233,7 @@ class EncryptedStorage {
 
         aadPolicy.getPolicy(payload_aad_policy_name);
 
-        const stmtWrap = this.db.prepare(`SELECT nonce, wrapped_key, aad_policy, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?`);
+        const stmtWrap = this.db.prepare(`SELECT nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?`);
         stmtWrap.bind([kid, this.activeDbKid]);
         const hasWrap = stmtWrap.step();
         if (!hasWrap) {
@@ -242,16 +245,20 @@ class EncryptedStorage {
         const wrap_nonce = wrapRow[0];
         const wrapped_key = wrapRow[1];
         const wrap_aad_policy_name = wrapRow[2];
-        const aad_context_json = wrapRow[3];
 
         aadPolicy.getPolicy(wrap_aad_policy_name);
 
-        const recordDekBytes = cryptoUtils.decryptAead(this.activeDbKek, wrap_nonce, wrapped_key, Buffer.from(aad_context_json, 'utf8'));
+        const wrapAadBytes = aadPolicy.buildAadBytes(wrap_aad_policy_name, {
+            wrapped_kid: kid,
+            wrapping_kid: this.activeDbKid
+        });
+
+        const recordDekBytes = cryptoUtils.decryptAead(this.activeDbKek, wrap_nonce, wrapped_key, wrapAadBytes);
 
         const payloadAadBytes = aadPolicy.buildAadBytes(payload_aad_policy_name, {
-            objectUuid,
-            schemaUuid: schema_uuid,
-            contentType: content_type,
+            object_uuid: objectUuid,
+            schema_uuid: schema_uuid,
+            content_type: content_type,
             kid: kid,
             alg: alg
         });

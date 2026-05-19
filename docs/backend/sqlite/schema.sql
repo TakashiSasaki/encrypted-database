@@ -55,7 +55,6 @@ CREATE TABLE IF NOT EXISTS wrapped_key_tbl (
     nonce BLOB NOT NULL,
     wrapped_key BLOB NOT NULL,
     aad_policy TEXT NOT NULL,
-    aad_context_json TEXT NOT NULL CHECK (json_valid(aad_context_json)),
     created_at_ms INTEGER NOT NULL,
     FOREIGN KEY (wrapped_kid) REFERENCES key_tbl(kid),
     FOREIGN KEY (wrapping_kid) REFERENCES key_tbl(kid)

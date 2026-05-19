@@ -191,3 +191,27 @@ describe('EncryptedStorage', () => {
         storage.lock();  // activeDbKek is null
         expect(storage.db).toBeNull();
     });
+
+    test('AAD mutation causes decryption failure', async () => {
+        const storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase('secure-password', 'linux');
+        await storage.unlockDatabase('secure-password');
+
+        const objectUuid = await storage.storePayload(
+            '11111111-1111-4111-8111-111111111111',
+            'application/json',
+            { secret: "data" }
+        );
+
+        const decrypted = storage.retrievePayload(objectUuid);
+        expect(decrypted).toEqual({ secret: "data" });
+
+        // Mutate AAD bound column
+        storage.db.exec(`UPDATE encrypted_object_tbl SET content_type = 'text/plain' WHERE object_uuid = '${objectUuid}'`);
+
+        // Attempt retrieve should fail due to tag mismatch
+        expect(() => {
+            storage.retrievePayload(objectUuid);
+        }).toThrow();
+    });

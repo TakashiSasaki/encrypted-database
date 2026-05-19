@@ -102,8 +102,8 @@ class EncryptedStorage:
             )
             wrap_id = self._generate_kid()
             cur.execute(
-                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (wrap_id, db_kid, unlock_kid, 1, 'key_wrap', wrap_alg, nonce, wrapped_db_kek, aad_policy_name, crypto.canonicalize_json(aad_context).decode('utf-8'), self._current_ms())
+                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (wrap_id, db_kid, unlock_kid, 1, 'key_wrap', wrap_alg, nonce, wrapped_db_kek, aad_policy_name, self._current_ms())
             )
             self.conn.commit()
         except Exception as e:
@@ -125,11 +125,11 @@ class EncryptedStorage:
         db_kid = row[0]
 
         # Get wrap info
-        cur.execute("SELECT wrapping_kid, nonce, wrapped_key, aad_policy, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ?", (db_kid,))
+        cur.execute("SELECT wrapping_kid, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ?", (db_kid,))
         wrap_rows = cur.fetchall()
 
         unwrapped = False
-        for wrapping_kid, nonce, wrapped_key, aad_policy_name, aad_context_json in wrap_rows:
+        for wrapping_kid, nonce, wrapped_key, aad_policy_name in wrap_rows:
             try:
                 aad_policy.get_policy(aad_policy_name)
             except aad_policy.AadPolicyError:
@@ -144,7 +144,14 @@ class EncryptedStorage:
                     unlock_kek_bytes = crypto.derive_kek_argon2id(
                         passphrase, salt, 32, config['iterations'], config['memory_kib'], config['parallelism']
                     )
-                    db_kek_bytes = crypto.decrypt_aead(unlock_kek_bytes, nonce, wrapped_key, aad_context_json.encode('utf-8'))
+
+                    wrap_aad = aad_policy.build_aad_bytes(
+                        aad_policy_name,
+                        wrapped_kid=db_kid,
+                        wrapping_kid=wrapping_kid
+                    )
+
+                    db_kek_bytes = crypto.decrypt_aead(unlock_kek_bytes, nonce, wrapped_key, wrap_aad)
                     self.active_db_kek = db_kek_bytes
                     self.active_db_kid = db_kid
                     unwrapped = True
@@ -205,8 +212,8 @@ class EncryptedStorage:
             )
             wrap_id = self._generate_kid()
             cur.execute(
-                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (wrap_id, record_kid, self.active_db_kid, 1, 'key_wrap', alg, nonce_wrap, wrapped_record_dek, wrap_aad_policy, crypto.canonicalize_json(wrap_aad).decode('utf-8'), self._current_ms())
+                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (wrap_id, record_kid, self.active_db_kid, 1, 'key_wrap', alg, nonce_wrap, wrapped_record_dek, wrap_aad_policy, self._current_ms())
             )
             cur.execute(
                 "INSERT INTO encrypted_object_tbl (object_uuid, envelope_v, envelope_type, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -234,16 +241,22 @@ class EncryptedStorage:
         aad_policy.get_policy(payload_aad_policy)
 
         # Get wrapped record DEK
-        cur.execute("SELECT nonce, wrapped_key, aad_policy, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?", (record_kid, self.active_db_kid))
+        cur.execute("SELECT nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?", (record_kid, self.active_db_kid))
         wrap_row = cur.fetchone()
         if not wrap_row:
             raise ValueError("Record DEK wrap info not found")
 
-        nonce_wrap, wrapped_record_dek, wrap_aad_policy, aad_context_json_wrap = wrap_row
+        nonce_wrap, wrapped_record_dek, wrap_aad_policy = wrap_row
         aad_policy.get_policy(wrap_aad_policy)
 
+        wrap_aad_bytes = aad_policy.build_aad_bytes(
+            wrap_aad_policy,
+            wrapped_kid=record_kid,
+            wrapping_kid=self.active_db_kid
+        )
+
         # Unwrap record DEK
-        record_dek_bytes = crypto.decrypt_aead(self.active_db_kek, nonce_wrap, wrapped_record_dek, aad_context_json_wrap.encode('utf-8'))
+        record_dek_bytes = crypto.decrypt_aead(self.active_db_kek, nonce_wrap, wrapped_record_dek, wrap_aad_bytes)
 
         # Decrypt payload using the registered policy saved with the object.
         payload_aad_bytes = aad_policy.build_aad_bytes(
