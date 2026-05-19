@@ -26,8 +26,8 @@ The following operations are defined conceptually and must be implemented with i
 ### `unlock_database` / `unlockDatabase(passphrase)`
 - **Precondition**: State must not be `closed`.
 - **Action**: Verifies the passphrase, derives the unlock KEK, unwraps the database KEK, and stores it in memory. If verification fails, any existing active key material is explicitly cleared from memory.
-- **Postcondition**: Transitions to `open_unlocked` on success. Transitions to `open_locked` on failure.
-- **Errors**: `StorageClosed`, `UnlockFailed`.
+- **Postcondition**: Transitions to `open_unlocked` on success. Transitions to `open_locked` on failure. Remains `uninitialized` if called before the backend is initialized or before any active database KEK metadata exists.
+- **Errors**: `StorageClosed`, `StorageNotInitialized`, `UnlockFailed`.
 
 ### `store_payload` / `storePayload(schemaUuid, contentType, payload)`
 - **Precondition**: State must be `open_unlocked`.
