@@ -10,8 +10,8 @@ The following state diagram maps out the core lifecycle states (`uninitialized`,
 stateDiagram-v2
     [*] --> uninitialized
 
-    uninitialized --> open_unlocked: initialize_database(passphrase, platform)\n[Success]
-    uninitialized --> open_locked: (Implicit / Backend Initialized)\nIf database exists but is locked
+    uninitialized --> open_unlocked: initialize_database(passphrase, platform)\n[Success: Initial keys generated]
+    uninitialized --> open_locked: Open existing initialized backend\n(constructor/open/init, platform-specific)
 
     open_locked --> open_unlocked: unlock_database(passphrase)\n[Success]
     open_locked --> open_locked: unlock_database(passphrase)\n[Failure: UnlockFailed]
@@ -46,3 +46,5 @@ stateDiagram-v2
         Terminal state.
     end note
 ```
+
+`uninitialized -> open_locked` is platform-specific backend opening behavior: Node.js/Python typically open during constructor/setup, while browser implementations use `init()`. If the opened backend already has persisted KEK metadata, state is `open_locked`.
