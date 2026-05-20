@@ -45,9 +45,12 @@ class EncryptedStorage:
         cur = self.conn.cursor()
         try:
             cur.execute("SELECT 1 FROM platform_tbl WHERE platform = ?", (platform,))
-            if not cur.fetchone():
+        except sqlite3.Error as e:
+            if "no such table" in str(e):
                 raise errors.UnsupportedPlatform(f"Unsupported platform: {platform}")
-        except Exception:
+            raise errors.DatabaseBackendError(f"Database error during platform validation: {e}") from e
+
+        if not cur.fetchone():
             raise errors.UnsupportedPlatform(f"Unsupported platform: {platform}")
 
     def initialize_database(self, passphrase: str, platform: str):

@@ -43,7 +43,10 @@ class EncryptedStorage {
         try {
             row = this.conn.prepare('SELECT 1 FROM platform_tbl WHERE platform = ?').get(platform);
         } catch (e) {
-            throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
+            if (e.message.includes("no such table")) {
+                throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
+            }
+            throw new errors.DatabaseBackendError(`Database error during platform validation: ${e.message}`);
         }
         if (!row) {
             throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);

@@ -58,7 +58,10 @@ class EncryptedStorage {
             hasRow = stmt.step();
             stmt.free();
         } catch (e) {
-            throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
+            if (e.message.includes("no such table")) {
+                throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
+            }
+            throw new errors.DatabaseBackendError(`Database error during platform validation: ${e.message}`);
         }
         if (!hasRow) {
             throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
