@@ -44,8 +44,8 @@ describe('EncryptedStorage', () => {
 
         // Test retrieving after locking
         storage.lock();
-        expect(() => storage.retrievePayload(objectUuid)).toThrow('Database is locked');
-        expect(() => storage.storePayload(schemaUuid, 'application/json', payload)).toThrow('Database is locked');
+        expect(() => storage.retrievePayload(objectUuid)).toThrow(errors.StorageLocked);
+        expect(() => storage.storePayload(schemaUuid, 'application/json', payload)).toThrow(errors.StorageLocked);
 
         storage.close();
     });
@@ -60,7 +60,7 @@ describe('EncryptedStorage', () => {
 
     test('unlockDatabase fails with no database init', async () => {
         const storage = new EncryptedStorage();
-        await expect(storage.unlockDatabase('pass')).rejects.toThrow('Storage is closed');
+        await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.StorageNotInitialized);
     });
 
     test('unlockDatabase fails if no db kek', async () => {
@@ -199,6 +199,6 @@ describe('EncryptedStorage', () => {
     test('close and lock handle nulls', () => {
         const storage = new EncryptedStorage();
         storage.close(); // db is null
-        expect(() => storage.lock()).toThrow('Storage is closed');
+        expect(() => storage.lock()).toThrow(errors.StorageClosed);
         expect(storage.db).toBeNull();
     });

@@ -45,7 +45,7 @@ class EncryptedStorage:
         cur = self.conn.cursor()
         cur.execute("SELECT 1 FROM platform_tbl WHERE platform = ?", (platform,))
         if not cur.fetchone():
-            raise ValueError(f"Unsupported platform: {platform}")
+            raise errors.UnsupportedPlatform(f"Unsupported platform: {platform}")
 
     def initialize_database(self, passphrase: str, platform: str):
         """Initializes a new database with a new database_kek wrapped by a new unlock_kek."""
@@ -172,6 +172,7 @@ class EncryptedStorage:
                     continue
 
         if not unwrapped:
+            self.lock()
             raise errors.UnlockFailed("Failed to unlock database")
 
     def store_payload(self, schema_uuid: str, content_type: str, payload: dict) -> str:

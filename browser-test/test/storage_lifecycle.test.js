@@ -6,9 +6,9 @@ describe('Storage Lifecycle Browser', () => {
     test('lifecycle states track properly', async () => {
         const storage = new EncryptedStorage();
 
-        // 1. closed before init
-        expect(storage.getStatus()).toBe('closed');
-        expect(storage.isClosed()).toBe(true);
+        // 1. uninitialized before init
+        expect(storage.getStatus()).toBe('uninitialized');
+        expect(storage.isClosed()).toBe(false);
         expect(storage.isUnlocked()).toBe(false);
 
         await storage.init();
@@ -51,5 +51,28 @@ describe('Storage Lifecycle Browser', () => {
         expect(() => storage.lock()).toThrow(errors.StorageClosed);
         await expect(storage.initializeDatabase('pass', 'web')).rejects.toThrow(errors.StorageClosed);
         await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.StorageClosed);
+    });
+
+    test('unlock failure clears keys', async () => {
+        const storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase('correct_pass', 'web');
+        expect(storage.isUnlocked()).toBe(true);
+
+        await expect(storage.unlockDatabase('wrong_pass')).rejects.toThrow(errors.UnlockFailed);
+
+        expect(storage.isUnlocked()).toBe(false);
+        expect(storage.getStatus()).toBe('open_locked');
+    });
+
+    test('duplicate initialize fails', async () => {
+        const storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase('pass', 'web');
+
+        await expect(storage.initializeDatabase('pass', 'web')).rejects.toThrow(errors.StorageAlreadyInitialized);
+
+        storage.lock();
+        await expect(storage.initializeDatabase('pass', 'web')).rejects.toThrow(errors.StorageAlreadyInitialized);
     });
 });

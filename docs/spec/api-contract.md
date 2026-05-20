@@ -25,9 +25,9 @@ The following operations are defined conceptually and must be implemented with i
 
 ### `unlock_database` / `unlockDatabase(passphrase)`
 - **Precondition**: State must not be `closed`.
-- **Action**: Verifies the passphrase, derives the unlock KEK, unwraps the database KEK, and stores it in memory.
-- **Postcondition**: Transitions to `open_unlocked`.
-- **Errors**: `StorageClosed`, `UnlockFailed`.
+- **Action**: Verifies the passphrase, derives the unlock KEK, unwraps the database KEK, and stores it in memory. If verification fails, any existing active key material is explicitly cleared from memory.
+- **Postcondition**: Transitions to `open_unlocked` on success. Transitions to `open_locked` on failure. Remains `uninitialized` if called before the backend is initialized or before any active database KEK metadata exists.
+- **Errors**: `StorageClosed`, `StorageNotInitialized`, `UnlockFailed`.
 
 ### `store_payload` / `storePayload(schemaUuid, contentType, payload)`
 - **Precondition**: State must be `open_unlocked`.
@@ -78,5 +78,5 @@ Implementations must expose specific error types to provide programmatic error h
 - `AadPolicyError`: The specified AAD policy is unknown or mismatched.
 
 ### Language-Specific Error Handling
-- **Python**: Expose custom exception classes inheriting from `StorageError` or standard exceptions where appropriate (e.g., `ValueError` for generic validation).
-- **Node.js/Browser**: Export custom classes extending `Error`, each with a `.code` property that matches the error name (e.g., `err.code === 'StorageLocked'`).
+- **Python**: Expose custom exception classes inheriting from `StorageError`.
+- **Node.js/Browser**: Export custom classes extending `Error`. Error handling should rely strictly on custom class instances (`instanceof`) rather than a `.code` property.

@@ -2,7 +2,6 @@ class StorageError extends Error {
     constructor(message) {
         super(message);
         this.name = this.constructor.name;
-        this.code = this.constructor.name;
         Error.captureStackTrace(this, this.constructor);
     }
 }
