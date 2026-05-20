@@ -75,4 +75,20 @@ describe('Storage Lifecycle Browser', () => {
         storage.lock();
         await expect(storage.initializeDatabase('pass', 'web')).rejects.toThrow(errors.StorageAlreadyInitialized);
     });
+
+    test('missing object raises ObjectNotFound', async () => {
+        const storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase('pass', 'web');
+        expect(() => storage.retrievePayload('00000000-0000-0000-0000-000000000000')).toThrow(errors.ObjectNotFound);
+        storage.close();
+    });
+
+    test('unsupported platform raises UnsupportedPlatform', async () => {
+        const storage = new EncryptedStorage();
+        await storage.init();
+        await expect(storage.initializeDatabase('pass', 'unknown_os')).rejects.toThrow(errors.UnsupportedPlatform);
+        await expect(storage.initializeDatabase('pass', 'cross_platform')).rejects.toThrow(errors.UnsupportedPlatform);
+        storage.close();
+    });
 });

@@ -76,7 +76,7 @@ describe('Storage Lifecycle', () => {
             storage.close();
             try { fs.unlinkSync(tempDbPath); } catch (e) {}
         }
-    });
+        });
 
     test('duplicate initialize fails', async () => {
         const tempDbPath = path.join(os.tmpdir(), `test_lifecycle_dup_${uuidv4()}.db`);
@@ -88,6 +88,30 @@ describe('Storage Lifecycle', () => {
 
             storage.lock();
             await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.StorageAlreadyInitialized);
+        } finally {
+            storage.close();
+            try { fs.unlinkSync(tempDbPath); } catch (e) {}
+        }
+    });
+
+    test('missing object raises ObjectNotFound', async () => {
+        const tempDbPath = path.join(os.tmpdir(), `test_lifecycle_missing_${uuidv4()}.db`);
+        const storage = new EncryptedStorage(tempDbPath);
+        try {
+            await storage.initializeDatabase('pass', 'linux');
+            expect(() => storage.retrievePayload('00000000-0000-0000-0000-000000000000')).toThrow(errors.ObjectNotFound);
+        } finally {
+            storage.close();
+            try { fs.unlinkSync(tempDbPath); } catch (e) {}
+        }
+    });
+
+    test('unsupported platform raises UnsupportedPlatform', async () => {
+        const tempDbPath = path.join(os.tmpdir(), `test_lifecycle_platform_${uuidv4()}.db`);
+        const storage = new EncryptedStorage(tempDbPath);
+        try {
+            await expect(storage.initializeDatabase('pass', 'unknown_os')).rejects.toThrow(errors.UnsupportedPlatform);
+            await expect(storage.initializeDatabase('pass', 'cross_platform')).rejects.toThrow(errors.UnsupportedPlatform);
         } finally {
             storage.close();
             try { fs.unlinkSync(tempDbPath); } catch (e) {}

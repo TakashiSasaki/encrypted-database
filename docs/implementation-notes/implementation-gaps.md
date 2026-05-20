@@ -17,7 +17,7 @@ This document tracks known discrepancies and gaps between the current specificat
 
 **Status:** Partially Resolved
 **Area:** Error Handling
-**Current state:** Custom error classes (e.g., `StorageLocked`, `UnlockFailed`, `UnsupportedPlatform`) have been implemented and uniformly enforced across Python, Node.js, and Browser implementations. Brittle error message string matching has been largely removed from tests. Some generic backend exceptions may still surface.
+**Current state:** Custom error classes (e.g., `StorageLocked`, `UnlockFailed`, `UnsupportedPlatform`) have been implemented and uniformly enforced across Python, Node.js, and Browser implementations. Brittle error message string matching has been removed from tests. Some generic backend exceptions may still surface.
 **Expected or intended state:** A library-quality API relying strictly on stable typed error classes.
 **Why it matters:** Consumers of the library cannot easily handle programmatic failures or distinguish between different error conditions without deterministic class checks.
 **Recommended next action:** Audit deep backend database errors to ensure they are properly wrapped and raised as `DatabaseBackendError`.
@@ -26,7 +26,7 @@ This document tracks known discrepancies and gaps between the current specificat
 
 **Status:** Partially Resolved
 **Area:** Lifecycle Management
-**Current state:** A clear lifecycle has been implemented across Python, Node.js, and Browser implementations. Initial browser state (`uninitialized`), unlock failure cleanups, and duplicate initialization defenses have been properly enforced and tested. The API correctly transitions between `uninitialized`, `open_locked`, `open_unlocked`, and `closed`.
+**Current state:** A clear lifecycle has been implemented and unified across Python, Node.js, and Browser implementations. Initial browser state (`uninitialized`), unlock failure cleanups, and duplicate initialization defenses have been properly enforced and comprehensively tested. The API correctly transitions between `uninitialized`, `open_locked`, `open_unlocked`, and `closed`.
 **Expected or intended state:** A robust lifecycle management API with strictly identical guarantees and transitions across all platforms.
 **Why it matters:** Callers cannot easily rely on consistent database operations if subtle lifecycle discrepancies exist between environments.
 **Recommended next action:** Implement browser persistent storage adapters to fully exercise standard real-world usage beyond the initial memory/testing harnesses.

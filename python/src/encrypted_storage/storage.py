@@ -43,8 +43,11 @@ class EncryptedStorage:
         if not platform or platform == "cross_platform":
             raise errors.UnsupportedPlatform("A concrete platform name is required; cross_platform is not allowed")
         cur = self.conn.cursor()
-        cur.execute("SELECT 1 FROM platform_tbl WHERE platform = ?", (platform,))
-        if not cur.fetchone():
+        try:
+            cur.execute("SELECT 1 FROM platform_tbl WHERE platform = ?", (platform,))
+            if not cur.fetchone():
+                raise errors.UnsupportedPlatform(f"Unsupported platform: {platform}")
+        except Exception:
             raise errors.UnsupportedPlatform(f"Unsupported platform: {platform}")
 
     def initialize_database(self, passphrase: str, platform: str):

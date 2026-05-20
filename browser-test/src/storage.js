@@ -51,10 +51,15 @@ class EncryptedStorage {
         if (!platform || platform === 'cross_platform') {
             throw new errors.UnsupportedPlatform('A concrete platform name is required; cross_platform is not allowed');
         }
-        const stmt = this.db.prepare('SELECT 1 FROM platform_tbl WHERE platform = ?');
-        stmt.bind([platform]);
-        const hasRow = stmt.step();
-        stmt.free();
+        let hasRow = false;
+        try {
+            const stmt = this.db.prepare('SELECT 1 FROM platform_tbl WHERE platform = ?');
+            stmt.bind([platform]);
+            hasRow = stmt.step();
+            stmt.free();
+        } catch (e) {
+            throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
+        }
         if (!hasRow) {
             throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
         }
@@ -65,16 +70,17 @@ class EncryptedStorage {
         if (this.isUnlocked()) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
         if (!this.db) await this.init();
 
+        let hasKek = false;
         try {
-            const hasKek = this.db.exec("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' LIMIT 1");
-            if (hasKek && hasKek.length > 0) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
+            const res = this.db.exec("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' LIMIT 1");
+            if (res && res.length > 0) hasKek = true;
         } catch (e) {
-            if (e instanceof errors.StorageAlreadyInitialized) {
-                throw e;
-            }
             if (!e.message.includes("no such table")) {
                 throw new errors.DatabaseBackendError(`Database error during initialization check: ${e.message}`);
             }
+        }
+        if (hasKek) {
+            throw new errors.StorageAlreadyInitialized("Storage is already initialized");
         }
 
         this._validatePlatform(platform);

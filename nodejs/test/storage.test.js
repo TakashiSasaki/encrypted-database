@@ -76,7 +76,7 @@ describe('EncryptedStorage', () => {
             throw new Error('Other Error');
         });
 
-        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow('Other Error');
+        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow(Error);
 
         aadPolicy.getPolicy = originalGetPolicy;
     });

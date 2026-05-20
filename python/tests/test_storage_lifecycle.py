@@ -80,3 +80,18 @@ def test_duplicate_initialize(tmp_path):
     storage.lock()
     with pytest.raises(errors.StorageAlreadyInitialized):
         storage.initialize_database("pass", "linux")
+
+def test_missing_object_raises_notfound(tmp_path):
+    db_path = tmp_path / "test4.db"
+    storage = EncryptedStorage(str(db_path))
+    storage.initialize_database("pass", "linux")
+    with pytest.raises(errors.ObjectNotFound):
+        storage.retrieve_payload("00000000-0000-0000-0000-000000000000")
+
+def test_unsupported_platform_raises_unsupported(tmp_path):
+    db_path = tmp_path / "test5.db"
+    storage = EncryptedStorage(str(db_path))
+    with pytest.raises(errors.UnsupportedPlatform):
+        storage.initialize_database("pass", "unknown_os")
+    with pytest.raises(errors.UnsupportedPlatform):
+        storage.initialize_database("pass", "cross_platform")
