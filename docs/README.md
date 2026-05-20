@@ -41,6 +41,7 @@ The documentation has been refactored into focused modules.
 - [`spec/aad-policy.md`](./spec/aad-policy.md): Rules for generating and binding Additional Authenticated Data.
 - [`spec/provider-platform-model.md`](./spec/provider-platform-model.md): Abstract vs concrete unlock models and platform binding rules.
 - [`spec/api-contract.md`](./spec/api-contract.md): Cross-language API operations, lifecycle state definitions, and error taxonomies.
+- [`spec/lifecycle.md`](./spec/lifecycle.md): State diagram illustrating the database lifecycle.
 - [`spec/operations.md`](./spec/operations.md): Standard operational flows (e.g., creating DBs, storing payloads).
 - [`spec/blind-index.md`](./spec/blind-index.md): Searchability via HMAC blind indexing.
 - [`spec/security-model.md`](./spec/security-model.md): Threat model, in-scope protections, and material handling policies.
