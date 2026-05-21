@@ -7,7 +7,7 @@ This document tracks unresolved design questions, ongoing considerations, and fu
 *   **`kid` Generation:** With `kid` accepted as UUIDv4 (ADR-0001), it remains to be decided whether the library internally generates the UUIDv4 exclusively, or if the caller is allowed to provide a pre-generated UUIDv4.
 *   **UUIDv4 Validation Location:** While ADR-0001 defines the format, it is an open detail whether to enforce this canonical lowercase hyphen-separated string format strictly via SQLite `CHECK` constraints, or solely via library validation. Additionally, whether 16-byte BLOBs could be used internally within SQLite is still debated.
 *   **JSON Canonicalization Compliance:** RFC 8785 JCS is accepted as the standard (ADR-0002). The remaining work involves fully implementing this standard strictly in all languages and resolving whether any legacy non-strict canonical JSON approaches (like Python's `sort_keys=True`, `separators=(",", ":")`) need backwards compatibility during migration.
-*   **Normalization Timing:** Whether `description_json`, `provider_config_json`, and `aad_context_json` should be fully JCS-normalized *before* saving to the DB, or if they are just validated upon write and normalized upon reading. (Save-time normalization is recommended).
+*   **Normalization Timing:** Whether `description_json`, `provider_config_json` should be fully JCS-normalized *before* saving to the DB, or if they are just validated upon write and normalized upon reading. (Save-time normalization is recommended).
 *   **Provider Config Schema Registry:** Whether the schema registry for `provider_config_json` validation should be stored inside the database, or fixed within the code.
 
 ## 2. Key Wrapping and Schema

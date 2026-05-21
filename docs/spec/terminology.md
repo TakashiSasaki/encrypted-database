@@ -14,7 +14,6 @@ All JSON values that are persisted, authenticated, hashed, MACed, signed, indexe
 
 This includes at least:
 - `description_json`
-- `aad_context_json`
 - `provider_config_json`
 - plaintext JSON payload before encryption
 - blind-index input values represented as JSON
