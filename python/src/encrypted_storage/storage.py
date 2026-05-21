@@ -71,12 +71,6 @@ class EncryptedStorage:
     def _validate_payload(self, value: dict):
         if not isinstance(value, dict):
             raise errors.InvalidPayload("Payload must be a dictionary/JSON object")
-        try:
-            crypto.canonicalize_json(value)
-        except Exception as e:
-            raise errors.InvalidPayload(
-                "Payload must be JSON-serializable as a canonical JSON object"
-            ) from e
 
     def _validate_passphrase(self, value: str):
         if not isinstance(value, str):

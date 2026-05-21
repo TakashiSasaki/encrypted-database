@@ -46,10 +46,10 @@ This document tracks known discrepancies and gaps between the current specificat
 
 **Status:** Partially Resolved
 **Area:** Security / Input Validation
-**Current state:** UUID formats and content types are now validated at the public API boundary in Python, Node.js, and browser-test environments before reaching SQLite constraints. Payload validation has improved, but strict plain-JSON-object enforcement across all implementations is still incomplete (for example, non-plain objects in JS and non-JSON-serializable dict values in Python still need hardening). Stricter MIME type parsing and full JSON Schema semantic validations remain future work.
+**Current state:** UUID formats, content types, and payloads are broadly validated at the public API boundary in Python, Node.js, and browser-test environments before reaching SQLite constraints. However, there are remaining edge cases (e.g., non-plain objects like `Date`/`Map` might slip through JS validation, and non-JSON-serializable Python dicts will crash later during canonicalization). Stricter MIME type parsing, deep payload type checking, and full JSON Schema semantic validations remain future work.
 **Expected or intended state:** Strict input validation and normalization at the public API boundary before interacting with the database.
 **Why it matters:** Relying solely on database constraints can lead to unhandled database errors bubbling up instead of providing clear, early validation errors to the caller.
-**Recommended next action:** Complete strict payload validation hardening across implementations, implement stricter MIME type parsing, and evaluate whether JSON Schema validation is within scope or out of scope.
+**Recommended next action:** Implement stricter MIME type parsing and evaluate whether JSON Schema validation is within scope or out of scope.
 
 ### 6. Packaging and distribution maturity is incomplete
 

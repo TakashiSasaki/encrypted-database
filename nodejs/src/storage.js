@@ -77,22 +77,8 @@ class EncryptedStorage {
         }
     }
 
-    _isPlainJsonObject(value) {
-        if (typeof value !== 'object' || value === null) {
-            return false;
-        }
-        if (Array.isArray(value) || Buffer.isBuffer(value)) {
-            return false;
-        }
-        if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) {
-            return false;
-        }
-        const prototype = Object.getPrototypeOf(value);
-        return prototype === Object.prototype || prototype === null;
-    }
-
     _validatePayload(value) {
-        if (!this._isPlainJsonObject(value)) {
+        if (typeof value !== 'object' || value === null || Array.isArray(value) || Buffer.isBuffer(value)) {
             throw new errors.InvalidPayload("Payload must be a dictionary/JSON object");
         }
     }
