@@ -26,11 +26,14 @@ npm test
 
 ```javascript
 const EncryptedStorage = require('./src/storage');
+const errors = require('./src/errors');
 
 async function run() {
     // Initialize database
     const storage = new EncryptedStorage('my_database.sqlite');
     await storage.initializeDatabase('my_super_secret_password', 'linux');
+
+    console.log(storage.getStatus()); // 'open_unlocked'
 
     // Store payload
     const schemaUuid = '00000000-0000-4000-8000-000000000001';
@@ -40,6 +43,20 @@ async function run() {
     // Retrieve payload
     const retrieved = storage.retrievePayload(objectUuid);
     console.log(retrieved);
+
+    // Lock and Close lifecycle
+    storage.lock();
+    console.log(storage.isUnlocked()); // false
+
+    try {
+        storage.retrievePayload(objectUuid);
+    } catch (e) {
+        if (e instanceof errors.StorageLocked) {
+            console.log("Storage is correctly locked.");
+        }
+    }
+
+    storage.close();
 }
 
 run();

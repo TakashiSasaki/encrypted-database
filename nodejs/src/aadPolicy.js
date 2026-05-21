@@ -1,11 +1,6 @@
 const cryptoUtils = require('./crypto');
 
-class AadPolicyError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'AadPolicyError';
-    }
-}
+const { AadPolicyError } = require("./errors");
 
 class AadPolicy {
     constructor(name, envelopeType, buildContext) {

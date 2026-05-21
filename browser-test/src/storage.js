@@ -2,6 +2,7 @@ const initSqlJs = require('sql.js');
 const { v4: uuidv4 } = require('uuid');
 const aadPolicy = require('./aadPolicy');
 const cryptoUtils = require('./crypto');
+const errors = require('./errors');
 const schemaSql = require('!!raw-loader!../../docs/backend/sqlite/schema.sql').default;
 
 class EncryptedStorage {
@@ -9,6 +10,8 @@ class EncryptedStorage {
         this.db = null;
         this.activeDbKek = null;
         this.activeDbKid = null;
+        this._isClosed = false;
+        this._isInit = false;
     }
 
     async init() {
@@ -22,6 +25,8 @@ class EncryptedStorage {
         this.db = new SQL.Database();
         this.db.exec("PRAGMA foreign_keys = ON;");
         this.db.exec(schemaSql);
+        this._isClosed = false;
+        this._isInit = true;
     }
 
     _currentMs() {
@@ -42,8 +47,46 @@ class EncryptedStorage {
         return Buffer.from(b64, 'base64');
     }
 
+    _validatePlatform(platform) {
+        if (!platform || platform === 'cross_platform') {
+            throw new errors.UnsupportedPlatform('A concrete platform name is required; cross_platform is not allowed');
+        }
+        let hasRow = false;
+        try {
+            const stmt = this.db.prepare('SELECT 1 FROM platform_tbl WHERE platform = ?');
+            stmt.bind([platform]);
+            hasRow = stmt.step();
+            stmt.free();
+        } catch (e) {
+            if (e.message.includes("no such table")) {
+                throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
+            }
+            throw new errors.DatabaseBackendError(`Database error during platform validation: ${e.message}`);
+        }
+        if (!hasRow) {
+            throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
+        }
+    }
+
     async initializeDatabase(passphrase, platform = "web") {
+        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+        if (this.isUnlocked()) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
         if (!this.db) await this.init();
+
+        let hasKek = false;
+        try {
+            const res = this.db.exec("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' LIMIT 1");
+            if (res && res.length > 0) hasKek = true;
+        } catch (e) {
+            if (!e.message.includes("no such table")) {
+                throw new errors.DatabaseBackendError(`Database error during initialization check: ${e.message}`);
+            }
+        }
+        if (hasKek) {
+            throw new errors.StorageAlreadyInitialized("Storage is already initialized");
+        }
+
+        this._validatePlatform(platform);
 
         const dbKekBytes = cryptoUtils.generateRandomBytes(32);
         const dbKid = uuidv4();
@@ -97,10 +140,12 @@ class EncryptedStorage {
     }
 
     async unlockDatabase(passphrase) {
-        if (!this.db) throw new Error("Database not initialized");
+        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+
+        if (!this.db) throw new errors.StorageNotInitialized("Database not initialized");
 
         const resDbKek = this.db.exec("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' AND status = 'active' LIMIT 1");
-        if (resDbKek.length === 0) throw new Error("No active database KEK found");
+        if (resDbKek.length === 0) throw new errors.StorageNotInitialized("No active database KEK found");
         const dbKid = resDbKek[0].values[0][0];
 
         const stmtWrap = this.db.prepare(`SELECT wrapping_kid, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ?`);
@@ -110,7 +155,7 @@ class EncryptedStorage {
             wrapRows.push(stmtWrap.get());
         }
         stmtWrap.free();
-        if (wrapRows.length === 0) throw new Error("No wrap info found");
+        if (wrapRows.length === 0) throw new errors.UnlockFailed("No wrap info found");
 
         let unwrapped = false;
 
@@ -161,11 +206,16 @@ class EncryptedStorage {
             }
         }
 
-        if (!unwrapped) throw new Error("Failed to unlock database");
+        if (!unwrapped) {
+            this.lock();
+            throw new errors.UnlockFailed("Failed to unlock database");
+        }
     }
 
     storePayload(schemaUuid, contentType, payload) {
-        if (!this.activeDbKek) throw new Error("Database is locked");
+        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+        if (!this.activeDbKek) throw new errors.StorageLocked("Database is locked");
+
 
         const objectUuid = uuidv4();
         const recordDekBytes = cryptoUtils.generateRandomBytes(32);
@@ -212,14 +262,16 @@ class EncryptedStorage {
     }
 
     retrievePayload(objectUuid) {
-        if (!this.activeDbKek) throw new Error("Database is locked");
+        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+        if (!this.activeDbKek) throw new errors.StorageLocked("Database is locked");
+
 
         const stmtObj = this.db.prepare(`SELECT schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy FROM encrypted_object_tbl WHERE object_uuid = ?`);
         stmtObj.bind([objectUuid]);
         const hasObj = stmtObj.step();
         if (!hasObj) {
             stmtObj.free();
-            throw new Error("Object not found");
+            throw new errors.ObjectNotFound("Object not found");
         }
         const row = stmtObj.get();
         stmtObj.free();
@@ -238,7 +290,7 @@ class EncryptedStorage {
         const hasWrap = stmtWrap.step();
         if (!hasWrap) {
             stmtWrap.free();
-            throw new Error("Record DEK wrap info not found");
+            throw new errors.IntegrityCheckFailed("Record DEK wrap info not found");
         }
         const wrapRow = stmtWrap.get();
         stmtWrap.free();
@@ -268,7 +320,32 @@ class EncryptedStorage {
     }
 
 
+        isClosed() {
+        return this._isClosed;
+    }
+
+    isUnlocked() {
+        if (this._isClosed || !this._isInit) return false;
+        return this.activeDbKek !== null;
+    }
+
+    getStatus() {
+        if (this._isClosed) return "closed";
+        if (!this._isInit) return "uninitialized";
+        if (this.activeDbKek !== null) return "open_unlocked";
+
+        try {
+            const resDbKek = this.db.exec("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' AND status = 'active' LIMIT 1");
+            if (!resDbKek || resDbKek.length === 0) return "uninitialized";
+        } catch (e) {
+            return "uninitialized";
+        }
+
+        return "open_locked";
+    }
+
     lock() {
+        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
         if (this.activeDbKek) {
             this.activeDbKek.fill(0);
             this.activeDbKek = null;
@@ -277,12 +354,18 @@ class EncryptedStorage {
     }
 
     close() {
+        if (this._isClosed) return;
+        if (this.activeDbKek) {
+            this.activeDbKek.fill(0);
+            this.activeDbKek = null;
+        }
+        this.activeDbKid = null;
         if (this.db) {
             this.db.close();
             this.db = null;
         }
-        this.activeDbKek = null;
-        this.activeDbKid = null;
+        this._isClosed = true;
+        this._isInit = false;
     }
 }
 

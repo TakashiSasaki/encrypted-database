@@ -4,8 +4,8 @@ from typing import Any, Callable, Dict
 from . import crypto
 
 
-class AadPolicyError(ValueError):
-    """Raised when an AAD policy is unknown or receives invalid inputs."""
+from .errors import AadPolicyError
+
 
 
 @dataclass(frozen=True)

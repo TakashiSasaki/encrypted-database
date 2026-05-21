@@ -28,6 +28,32 @@ function initializeTabs() {
     });
 }
 
+function generateDatabaseDownloadFilename() {
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(now.getUTCDate()).padStart(2, '0');
+    const hours = String(now.getUTCHours()).padStart(2, '0');
+    const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+    const milliseconds = String(now.getUTCMilliseconds()).padStart(3, '0');
+
+    return `vault-${year}${month}${day}T${hours}${minutes}${seconds}${milliseconds}Z.sqlite3`;
+}
+
+function downloadDatabaseBytes(bytes, filename) {
+    const blob = new Blob([bytes], { type: 'application/vnd.sqlite3' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 function logOutput(message) {
     console.log(message);
     const outputDiv = document.getElementById('output');
@@ -375,7 +401,9 @@ async function executeNextStep() {
         console.error(err);
         if (nextStepBtn) nextStepBtn.disabled = true;
     } finally {
+        const downloadDbBtn = document.getElementById('downloadDbBtn');
         if (closeDbBtn) closeDbBtn.disabled = !currentStorage;
+        if (downloadDbBtn) downloadDbBtn.disabled = !currentStorage;
     }
 }
 
@@ -383,6 +411,7 @@ async function resetTest() {
     const nextStepBtn = document.getElementById('nextStepBtn');
     const resetTestBtn = document.getElementById('resetTestBtn');
     const closeDbBtn = document.getElementById('closeDbBtn');
+    const downloadDbBtn = document.getElementById('downloadDbBtn');
 
     if (currentStorage) {
         try {
@@ -418,12 +447,31 @@ async function resetTest() {
     }
     if (resetTestBtn) resetTestBtn.style.display = 'none';
     if (closeDbBtn) closeDbBtn.disabled = true;
+    if (downloadDbBtn) downloadDbBtn.disabled = true;
+}
+
+function downloadDatabase() {
+    if (!currentStorage || !currentStorage.db) {
+        logOutput("ダウンロード可能なデータベースが開かれていません。");
+        return;
+    }
+
+    try {
+        const bytes = currentStorage.db.export();
+        const filename = generateDatabaseDownloadFilename();
+        downloadDatabaseBytes(bytes, filename);
+        logOutput(`データベースをダウンロードしました: ${filename}`);
+    } catch (err) {
+        console.error("Failed to download database", err);
+        logOutput(`データベースのダウンロードに失敗しました: ${err.message}`);
+    }
 }
 
 function closeDatabase() {
     const closeDbBtn = document.getElementById('closeDbBtn');
     const nextStepBtn = document.getElementById('nextStepBtn');
     const resetTestBtn = document.getElementById('resetTestBtn');
+    const downloadDbBtn = document.getElementById('downloadDbBtn');
 
     if (currentStorage) {
         try {
@@ -431,6 +479,7 @@ function closeDatabase() {
             logOutput("データベースを手動で閉じました。（テーブルの表示はそのまま残しています）");
             currentStorage = null;
             if (closeDbBtn) closeDbBtn.disabled = true;
+            if (downloadDbBtn) downloadDbBtn.disabled = true;
 
             // Disable next step button as the database is closed
             if (nextStepBtn) nextStepBtn.disabled = true;
@@ -442,6 +491,7 @@ function closeDatabase() {
     } else {
         logOutput("開いているデータベースはありません。");
         if (closeDbBtn) closeDbBtn.disabled = true;
+        if (downloadDbBtn) downloadDbBtn.disabled = true;
     }
 }
 
@@ -459,5 +509,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.getElementById('closeDbBtn');
     if (closeBtn) {
         closeBtn.addEventListener('click', closeDatabase);
+    }
+    const downloadBtn = document.getElementById('downloadDbBtn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', downloadDatabase);
     }
 });

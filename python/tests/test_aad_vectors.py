@@ -4,7 +4,7 @@ import pytest
 from encrypted_storage.aad_policy import build_aad_bytes, build_aad_context, AadPolicyError
 
 def load_aad_vectors():
-    path = os.path.join(os.path.dirname(__file__), '..', '..', 'test-vectors', 'aad', 'aad-basic.json')
+    path = os.path.join(os.path.dirname(__file__), '..', '..', 'test-vectors', 'aad', 'aad-policies-v1.json')
     with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
@@ -16,7 +16,7 @@ def load_negative_aad_vectors():
 @pytest.mark.parametrize("vector", load_aad_vectors(), ids=lambda v: v["name"])
 def test_aad_vectors(vector):
     policy_name = vector["policy"]
-    args = vector["args"]
+    args = vector["input"]
     expected_context = vector["expected_context"]
     expected_string = vector["expected_string"]
     expected_hex = vector["expected_hex"]

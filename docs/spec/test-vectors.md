@@ -10,6 +10,8 @@ Any JSON values whose bytes are authenticated, hashed, MACed, signed, indexed, o
 
 ## AAD Test Vectors
 
+Shared machine-readable test vectors are available in `test-vectors/aad/aad-policies-v1.json`.
+
 Implementations must verify their AAD byte generation logic using provided test vectors. The requirements for AAD test vectors include:
 - AAD policy name.
 - AAD context object.
