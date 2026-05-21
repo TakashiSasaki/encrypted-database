@@ -6,12 +6,12 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ### 1. Cross-language cryptographic test vectors are not materially implemented
 
-**Status:** Resolved
+**Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** A comprehensive suite of machine-readable cross-language test vectors ensuring byte-for-byte equivalence for all cryptographic and key-derivation operations is fully implemented. Vectors for Argon2id KDF, AES-GCM, key-wrap, payload encryption, JCS canonicalization, and AAD contexts are verified symmetrically across Python, Node.js, and browser-test implementations via shared JSON datasets in `test-vectors/`.
+**Current state:** JCS canonicalization and AAD vectors (both positive schema-valid UUIDs and negative validations) are fully implemented and verified via shared cross-language test suites in `test-vectors/jcs` and `test-vectors/aad`. The `aad_context_json` column was also historically removed to resolve redundancy bugs. However, there are no machine-readable test vectors for Argon2id, AES-GCM, fixed nonce, and fixed salt operations.
 **Expected or intended state:** A comprehensive suite of cross-language test vectors ensuring byte-for-byte equivalence for all cryptographic and key-derivation operations.
 **Why it matters:** Without shared test vectors, implementations might subtly diverge in cryptographic implementations, resulting in data that cannot be decrypted across platforms.
-**Recommended next action:** N/A
+**Recommended next action:** Generate and commit additional JSON datasets for KDF, AEAD, key-wrap, and payload encryption operations.
 
 ### 2. JWE/JOSE compatibility is not implemented
 
