@@ -154,11 +154,12 @@ describe('EncryptedStorage', () => {
         await storage.initializeDatabase('my_secure_password', 'web');
 
         const originalGetPolicy = aadPolicy.getPolicy;
+        class TestPolicyError extends Error {}
         aadPolicy.getPolicy = jest.fn().mockImplementation((name) => {
-            throw new Error('Other Error');
+            throw new TestPolicyError('Other Error');
         });
 
-        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow(Error);
+        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow(TestPolicyError);
 
         aadPolicy.getPolicy = originalGetPolicy;
     });
