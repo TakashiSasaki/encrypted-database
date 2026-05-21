@@ -1,8 +1,12 @@
 {
   "name": "roundtrip-tests",
   "version": "1.0.0",
+  "description": "Roundtrip interoperability tests",
   "private": true,
+  "scripts": {
+    "test": "./test_roundtrip.sh"
+  },
   "dependencies": {
-    "better-sqlite3": "^9.6.0"
+    "uuid": "9.0.1"
   }
 }
