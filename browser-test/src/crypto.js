@@ -9,10 +9,19 @@ function generateNonce() {
     return crypto.randomBytes(12);
 }
 
-async function deriveKekArgon2id(password, salt, length = 32, timeCost = 3, memoryCost = 262144, parallelism = 4) {
-    // Note: Since browsers have strict memory limits for WebAssembly,
-    // memoryCost might need to be adjusted for very low-end devices,
-    // but we use the provided arguments for the test as requested.
+const ARGON2ID_PROFILE_V1 = {
+    memoryKib: 65536,
+    iterations: 3,
+    parallelism: 1,
+    saltBytes: 16,
+    outputBytes: 32
+};
+
+async function deriveKekArgon2id(password, salt,
+                                 length = ARGON2ID_PROFILE_V1.outputBytes,
+                                 timeCost = ARGON2ID_PROFILE_V1.iterations,
+                                 memoryCost = ARGON2ID_PROFILE_V1.memoryKib,
+                                 parallelism = ARGON2ID_PROFILE_V1.parallelism) {
     const result = await argon2.hash({
         pass: password,
         salt: salt,
@@ -55,5 +64,6 @@ module.exports = {
     deriveKekArgon2id,
     encryptAead,
     decryptAead,
-    canonicalizeJson
+    canonicalizeJson,
+    ARGON2ID_PROFILE_V1
 };

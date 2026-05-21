@@ -6,8 +6,10 @@ To ensure standard robustness and resistance to various attacks (such as diction
 | Parameter   | Value   | Description |
 | ----------- | ------- | ----------- |
 | Time Cost   | 3       | The number of iterations. Provides a baseline of processing time. |
-| Memory Cost | 262144  | The memory consumption in KiB (256 MB). Defends against hardware-optimized cracking using GPUs/ASICs. |
-| Parallelism | 4       | The number of independent computational threads. Utilizes modern multi-core processors. |
+| Memory Cost | 65536   | The memory consumption in KiB (64 MiB). Provides a practical compromise that works cross-platform including in browser WebAssembly environments. |
+| Parallelism | 1       | The number of independent computational threads. Set to 1 for reliable cross-platform execution (especially WebAssembly). |
 | Salt Length | 16      | The size of the random salt in bytes. Ensures unique hashes per user. |
+| Output Size | 32      | The size of the derived key in bytes. |
 
-These defaults align with OWASP and RFC 9106 recommendations for balanced secure password hashing.
+These parameters (Profile V1) are platform-independent. The library uses the exact same `memory_kib=65536`, `iterations=3`, `parallelism=1`, `salt_bytes=16`, and `output_bytes=32` when initializing new databases across Python, Node.js, and browser environments. We do not introduce adaptive or platform-specific profiles at this time.
+Existing databases will continue to unlock using the provider configuration (salt, memory_kib, iterations, parallelism) saved in their `provider_config_json`, ensuring backward compatibility with previously utilized parameters.

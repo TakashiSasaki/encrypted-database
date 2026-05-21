@@ -9,7 +9,19 @@ function generateNonce() {
     return crypto.randomBytes(12);
 }
 
-async function deriveKekArgon2id(password, salt, length = 32, timeCost = 3, memoryCost = 262144, parallelism = 4) {
+const ARGON2ID_PROFILE_V1 = {
+    memoryKib: 65536,
+    iterations: 3,
+    parallelism: 1,
+    saltBytes: 16,
+    outputBytes: 32
+};
+
+async function deriveKekArgon2id(password, salt,
+                                 length = ARGON2ID_PROFILE_V1.outputBytes,
+                                 timeCost = ARGON2ID_PROFILE_V1.iterations,
+                                 memoryCost = ARGON2ID_PROFILE_V1.memoryKib,
+                                 parallelism = ARGON2ID_PROFILE_V1.parallelism) {
     return argon2.hash(password, {
         type: argon2.argon2id,
         salt: salt,
@@ -51,5 +63,6 @@ module.exports = {
     deriveKekArgon2id,
     encryptAead,
     decryptAead,
-    canonicalizeJson
+    canonicalizeJson,
+    ARGON2ID_PROFILE_V1
 };

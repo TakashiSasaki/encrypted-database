@@ -8,10 +8,10 @@ This document tracks known discrepancies and gaps between the current specificat
 
 **Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** JCS canonicalization and AAD vectors (both positive schema-valid UUIDs and negative validations) are fully implemented and verified via shared cross-language test suites in `test-vectors/jcs` and `test-vectors/aad`. The `aad_context_json` column was also historically removed to resolve redundancy bugs. However, there are no machine-readable test vectors for Argon2id, AES-GCM, fixed nonce, and fixed salt operations.
+**Current state:** JCS canonicalization and AAD vectors (both positive schema-valid UUIDs and negative validations) are fully implemented and verified via shared cross-language test suites in `test-vectors/jcs` and `test-vectors/aad`. The `aad_context_json` column was also historically removed to resolve redundancy bugs. We also have a KDF vector (`test-vectors/kdf/argon2id-v1.json`) for the standardized Argon2id profile. However, there are no machine-readable test vectors for AES-GCM, fixed nonce, and fixed salt operations.
 **Expected or intended state:** A comprehensive suite of cross-language test vectors ensuring byte-for-byte equivalence for all cryptographic and key-derivation operations.
 **Why it matters:** Without shared test vectors, implementations might subtly diverge in cryptographic implementations, resulting in data that cannot be decrypted across platforms.
-**Recommended next action:** Generate and commit additional JSON datasets for KDF, AEAD, key-wrap, and payload encryption operations.
+**Recommended next action:** Generate and commit additional JSON datasets for AEAD, key-wrap, and payload encryption operations.
 
 ### 2. JWE/JOSE compatibility is not implemented
 
@@ -69,6 +69,15 @@ This document tracks known discrepancies and gaps between the current specificat
 
 
 ## Resolved Gaps
+
+### Platform-specific Argon2id Parameters
+
+**Status:** Resolved
+**Area:** Cryptography / Security
+**Current state:** Python, Node.js, and browser environments now universally use the platform-independent `ARGON2ID_PROFILE_V1` parameters (65536 KiB memory, 3 iterations, 1 parallelism, 16 salt bytes, 32 output bytes) when initializing a new database.
+**Expected or intended state:** All platforms use the identical profile, relying on provider configuration records for compatibility, without resorting to platform-specific parameter branching.
+**Why it matters:** Inconsistent parameters across platforms create branching logic and test divergence, breaking unified security expectations.
+**Recommended next action:** None. Resolved via unification.
 
 ### SQLite roundtrip interoperability coverage
 

@@ -30,6 +30,10 @@ The overarching security goal is to minimize the lifetime and exposure of secret
 
 Where the runtime and language permit, implementers MUST strictly zero or overwrite secret buffers (such as intermediate passphrases and unwrapped KEKs/DEKs) immediately after use.
 
+### Unified Key Derivation
+
+To ensure uniform security guarantees and predictable memory footprints, the library employs a single, platform-independent Argon2id Profile V1 (64 MiB memory, 3 iterations, 1 parallelism). No platform-specific KDF parameters are introduced. While this allows robust interoperability between desktop and browser environments, it may impose moderate performance overhead on very low-end mobile devices.
+
 However, in higher-level languages (such as Python and JavaScript), reliable memory zeroing is often constrained by language semantics, such as immutable strings, opaque object memory management, garbage collection, and runtime internal copying.
 
 Regardless of the language capabilities, implementers MUST adopt the following mitigations to minimize exposure:

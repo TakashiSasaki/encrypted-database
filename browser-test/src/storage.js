@@ -91,14 +91,17 @@ class EncryptedStorage {
         const dbKekBytes = cryptoUtils.generateRandomBytes(32);
         const dbKid = uuidv4();
 
-        const salt = cryptoUtils.generateRandomBytes(16);
-        // Using lower parameters for argon2 in browser context to avoid Out-Of-Memory
-        // issues in typical test environments with argon2-browser.
-        const timeCost = 2;
-        const memoryCost = 16384;
-        const parallelism = 1;
+        const salt = cryptoUtils.generateRandomBytes(cryptoUtils.ARGON2ID_PROFILE_V1.saltBytes);
+        // In this library, the Argon2id profile v1 is identical across all platforms.
+        // We use 64 MiB / 3 iterations / p=1 as a practical compromise that works in the browser.
+        // However, this may still be heavy for low-end mobile devices.
+        // We do not currently introduce adaptive or platform-specific profiles.
+        const timeCost = cryptoUtils.ARGON2ID_PROFILE_V1.iterations;
+        const memoryCost = cryptoUtils.ARGON2ID_PROFILE_V1.memoryKib;
+        const parallelism = cryptoUtils.ARGON2ID_PROFILE_V1.parallelism;
+        const outputBytes = cryptoUtils.ARGON2ID_PROFILE_V1.outputBytes;
 
-        const unlockKekBytes = await cryptoUtils.deriveKekArgon2id(passphrase, salt, 32, timeCost, memoryCost, parallelism);
+        const unlockKekBytes = await cryptoUtils.deriveKekArgon2id(passphrase, salt, outputBytes, timeCost, memoryCost, parallelism);
         const unlockKid = uuidv4();
 
         const providerConfig = {

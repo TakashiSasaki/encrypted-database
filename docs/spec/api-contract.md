@@ -19,7 +19,7 @@ The following operations are defined conceptually and must be implemented with i
 
 ### `initialize_database` / `initializeDatabase(passphrase, platform)`
 - **Precondition**: State must be `open_locked` or `open_unlocked` (if allowing re-initialization of an empty db). Must throw `StorageClosed` if `closed`.
-- **Action**: Initializes a new database schema and generates the initial keys using the provided passphrase and platform string.
+- **Action**: Initializes a new database schema and generates the initial keys using the provided passphrase and platform string. Generating the initial KEK from the passphrase must use the platform-independent Argon2id Profile V1 parameters.
 - **Postcondition**: Transitions to `open_unlocked` state. The database is immediately ready for use.
 - **Errors**: `StorageAlreadyInitialized`, `StorageClosed`.
 

@@ -72,12 +72,13 @@ class EncryptedStorage:
         db_kid = self._generate_kid()
 
         # Derive unlock KEK
-        salt = crypto.generate_random_bytes(16)
-        time_cost = 3
-        memory_cost = 262144
-        parallelism = 4
+        salt = crypto.generate_random_bytes(crypto.ARGON2ID_PROFILE_V1_SALT_BYTES)
+        time_cost = crypto.ARGON2ID_PROFILE_V1_ITERATIONS
+        memory_cost = crypto.ARGON2ID_PROFILE_V1_MEMORY_KIB
+        parallelism = crypto.ARGON2ID_PROFILE_V1_PARALLELISM
+        output_bytes = crypto.ARGON2ID_PROFILE_V1_OUTPUT_BYTES
 
-        unlock_kek_bytes = crypto.derive_kek_argon2id(passphrase, salt, 32, time_cost, memory_cost, parallelism)
+        unlock_kek_bytes = crypto.derive_kek_argon2id(passphrase, salt, output_bytes, time_cost, memory_cost, parallelism)
         unlock_kid = self._generate_kid()
 
         provider_config = {

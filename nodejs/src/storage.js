@@ -74,12 +74,13 @@ class EncryptedStorage {
         const dbKekBytes = cryptoUtils.generateRandomBytes(32);
         const dbKid = uuidv4();
 
-        const salt = cryptoUtils.generateRandomBytes(16);
-        const timeCost = 3;
-        const memoryCost = 262144;
-        const parallelism = 4;
+        const salt = cryptoUtils.generateRandomBytes(cryptoUtils.ARGON2ID_PROFILE_V1.saltBytes);
+        const timeCost = cryptoUtils.ARGON2ID_PROFILE_V1.iterations;
+        const memoryCost = cryptoUtils.ARGON2ID_PROFILE_V1.memoryKib;
+        const parallelism = cryptoUtils.ARGON2ID_PROFILE_V1.parallelism;
+        const outputBytes = cryptoUtils.ARGON2ID_PROFILE_V1.outputBytes;
 
-        const unlockKekBytes = await cryptoUtils.deriveKekArgon2id(passphrase, salt, 32, timeCost, memoryCost, parallelism);
+        const unlockKekBytes = await cryptoUtils.deriveKekArgon2id(passphrase, salt, outputBytes, timeCost, memoryCost, parallelism);
         const unlockKid = uuidv4();
 
         const providerConfig = {
