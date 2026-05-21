@@ -9,7 +9,7 @@ from encrypted_storage.storage import EncryptedStorage
 
 def main():
     if len(sys.argv) < 4:
-        print("Usage: read_python.py <db_path> <passphrase> <obj_uuid>")
+        print("Usage: read_python.py <db_path> <passphrase> <obj_uuid>", file=sys.stderr)
         sys.exit(1)
 
     db_path = sys.argv[1]
