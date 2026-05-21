@@ -6,7 +6,7 @@ This document outlines the standard operational flows for interacting with the e
 
 1. Generate a new `database_kek` using a Cryptographically Secure Pseudo-Random Number Generator (CSPRNG).
 2. Register the `database_kek` in the `key_tbl`.
-3. Create at least one `unlock_kek` pathway (e.g., derive from a user password using Argon2id).
+3. Create at least one `unlock_kek` pathway (e.g., derive from a user password using the common Argon2id Profile V1 parameters regardless of the platform).
 4. Register the `unlock_kek` in the `key_tbl` and its provider configuration in `unlock_kek_tbl`.
 5. Wrap the `database_kek` using the `unlock_kek`.
 6. Store the wrapped `database_kek` in `wrapped_key_tbl`.
@@ -16,7 +16,7 @@ This document outlines the standard operational flows for interacting with the e
 
 1. Receive input from the user or OS (e.g., a passphrase).
 2. Look up the corresponding active `unlock_kek` and its configuration.
-3. Derive or retrieve the `unlock_kek` bytes.
+3. Derive or retrieve the `unlock_kek` bytes (using the specific parameters stored in the configuration during initialization).
 4. Retrieve the wrapped `database_kek` from `wrapped_key_tbl`.
 5. Unwrap the `database_kek` using the `unlock_kek` and the appropriate AAD policy context.
 6. Hold the `database_kek` in memory as the active database key.

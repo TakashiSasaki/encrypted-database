@@ -10,8 +10,16 @@ def generate_random_bytes(length: int = 32) -> bytes:
 def generate_nonce() -> bytes:
     return os.urandom(12)
 
-def derive_kek_argon2id(password: str, salt: bytes, length: int = 32,
-                        time_cost: int = 3, memory_cost: int = 262144, parallelism: int = 4) -> bytes:
+ARGON2ID_PROFILE_V1_MEMORY_KIB = 65536
+ARGON2ID_PROFILE_V1_ITERATIONS = 3
+ARGON2ID_PROFILE_V1_PARALLELISM = 1
+ARGON2ID_PROFILE_V1_SALT_BYTES = 16
+ARGON2ID_PROFILE_V1_OUTPUT_BYTES = 32
+
+def derive_kek_argon2id(password: str, salt: bytes, length: int = ARGON2ID_PROFILE_V1_OUTPUT_BYTES,
+                        time_cost: int = ARGON2ID_PROFILE_V1_ITERATIONS,
+                        memory_cost: int = ARGON2ID_PROFILE_V1_MEMORY_KIB,
+                        parallelism: int = ARGON2ID_PROFILE_V1_PARALLELISM) -> bytes:
     argon2id = Argon2id(
         salt=salt,
         length=length,

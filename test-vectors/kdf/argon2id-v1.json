@@ -1,0 +1,18 @@
+[
+  {
+    "profile": "argon2id-profile-v1",
+    "description": "Standard cross-platform Argon2id profile for database unlocking",
+    "parameters": {
+      "memory_kib": 65536,
+      "iterations": 3,
+      "parallelism": 1,
+      "salt_bytes": 16,
+      "output_bytes": 32
+    },
+    "input": {
+      "passphrase": "test-passphrase-123",
+      "salt_hex": "0102030405060708090a0b0c0d0e0f10"
+    },
+    "expected_output_hex": "54a0eec9c90b3d9eb81033d2875f5f36c6a8b8a95646cc8e092e0bbcc98dedfd"
+  }
+]

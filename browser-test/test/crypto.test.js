@@ -78,9 +78,6 @@ describe('Crypto functions', () => {
         const password = 'pass';
         const salt = generateRandomBytes(16);
         // default length is 32.
-        // Note: argon2-browser defaults may take a long time if we use defaults 3, 262144, 4.
-        // But for coverage let's just make sure we call it without arguments?
-        // Actually, timeCost = 3, memoryCost = 262144, parallelism = 4 are default parameters,
         // to get coverage we can call it without specifying them, but we should mock argon2 to be fast.
     });
 
@@ -92,8 +89,8 @@ describe('Crypto functions', () => {
         const origHash = argon2.hash;
         argon2.hash = async (opts) => {
             expect(opts.time).toBe(3); // default
-            expect(opts.mem).toBe(262144); // default
-            expect(opts.parallelism).toBe(4); // default
+            expect(opts.mem).toBe(65536); // default
+            expect(opts.parallelism).toBe(1); // default
             return { hash: new Uint8Array(32) };
         };
 

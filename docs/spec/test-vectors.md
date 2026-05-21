@@ -32,7 +32,13 @@ UUIDv4 generation must output the standard lowercase hyphen-separated format (e.
 
 ## Cryptographic Output
 
-While AES-GCM nonces are randomly generated, deterministic tests should be implemented by allowing test environments to inject fixed nonces and static key derivation salts. This allows cross-language verification that:
+### Key Derivation (KDF) Test Vectors
+
+A cross-language machine-readable test vector for Argon2id is available in `test-vectors/kdf/argon2id-v1.json`. This tests the standard Profile V1 (`memory_kib=65536, iterations=3, parallelism=1, salt_bytes=16, output_bytes=32`) against a fixed passphrase and salt to ensure byte-for-byte equivalence across Python, Node.js, and browser environments.
+
+### AEAD Test Vectors
+
+While AES-GCM nonces are randomly generated, deterministic tests should be implemented by allowing test environments to inject fixed nonces. This allows cross-language verification that:
 1. Argon2id generates identical bytes given the same passphrase, salt, and parameters.
 2. AES-GCM generates the identical ciphertext and tag given the same plaintext, key, nonce, and AAD bytes.
 
