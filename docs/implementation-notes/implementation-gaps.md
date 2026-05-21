@@ -4,16 +4,9 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ## Active Gaps
 
-### 1. Cross-language cryptographic test vectors are not materially implemented
 
-**Status:** Partially Resolved
-**Area:** Cryptography / Interoperability
-**Current state:** JCS canonicalization and AAD vectors (both positive schema-valid UUIDs and negative validations) are fully implemented and verified via shared cross-language test suites in `test-vectors/jcs` and `test-vectors/aad`. The `aad_context_json` column was also historically removed to resolve redundancy bugs. We have a KDF vector (`test-vectors/kdf/argon2id-v1.json`) for the standardized Argon2id profile, which is successfully implemented and verified across Python, Node.js, and browser-test environments. However, there are no machine-readable test vectors for AES-GCM, key-wrap, and payload encryption operations.
-**Expected or intended state:** A comprehensive suite of cross-language test vectors ensuring byte-for-byte equivalence for all cryptographic and key-derivation operations.
-**Why it matters:** Without shared test vectors, implementations might subtly diverge in cryptographic implementations, resulting in data that cannot be decrypted across platforms.
-**Recommended next action:** Generate and commit additional JSON datasets for AES-GCM, key-wrap, and payload encryption operations.
 
-### 2. JWE/JOSE compatibility is not implemented
+### 1. JWE/JOSE compatibility is not implemented
 
 **Status:** Active
 **Area:** Standards Compatibility
@@ -22,7 +15,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Developers might incorrectly assume the library produces standard JWE tokens, leading to integration issues with external systems.
 **Recommended next action:** Update documentation to clarify the non-JWE nature of the envelopes, and treat standard JWE export as a future enhancement rather than a current feature.
 
-### 3. Key rotation and lifecycle operations are not implemented
+### 2. Key rotation and lifecycle operations are not implemented
 
 **Status:** Active
 **Area:** Key Management
@@ -31,7 +24,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Lack of key rotation makes the library unsuitable for long-term production use where cryptographic hygiene and rotation are mandated.
 **Recommended next action:** Specify and implement key rotation, migration, and key destruction procedures.
 
-### 4. Additional unlock providers are schema/planned only
+### 3. Additional unlock providers are schema/planned only
 
 **Status:** Active
 **Area:** Features
@@ -40,7 +33,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Users may be confused by schema references to features that are entirely non-functional in the library.
 **Recommended next action:** Clearly document these as planned features or stub them out in the API contract.
 
-### 5. Blind index implementation is not complete
+### 4. Blind index implementation is not complete
 
 **Status:** Active
 **Area:** Features
@@ -49,7 +42,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Without blind indexes, the database cannot easily be queried based on payload contents, severely limiting its utility as a database.
 **Recommended next action:** Implement the schema tables and API methods for blind indexes according to the specification.
 
-### 6. Input validation and canonicalization boundaries need hardening
+### 5. Input validation and canonicalization boundaries need hardening
 
 **Status:** Active
 **Area:** Security / Input Validation
@@ -58,7 +51,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Relying solely on database constraints can lead to unhandled database errors bubbling up instead of providing clear, early validation errors to the caller.
 **Recommended next action:** Add rigorous input validation and normalization steps to all public API endpoints.
 
-### 7. Packaging and distribution maturity is incomplete
+### 6. Packaging and distribution maturity is incomplete
 
 **Status:** Active
 **Area:** Deployment
@@ -69,6 +62,15 @@ This document tracks known discrepancies and gaps between the current specificat
 
 
 ## Resolved Gaps
+
+### Cross-language cryptographic test vectors are not materially implemented
+
+**Status:** Resolved
+**Area:** Cryptography / Interoperability
+**Current state:** Comprehensive suites of cross-language test vectors have been implemented across Python, Node.js, and browser-test environments. This includes JCS canonicalization (`test-vectors/jcs`), AAD policies (`test-vectors/aad`), Argon2id KDF (`test-vectors/kdf`), AES-256-GCM primitives (`test-vectors/aead`), key-wrapping (`test-vectors/key-wrap`), and payload encryption (`test-vectors/payload`). Byte-for-byte equivalence is actively validated in CI.
+**Expected or intended state:** A comprehensive suite of cross-language test vectors ensuring byte-for-byte equivalence for all cryptographic and key-derivation operations.
+**Why it matters:** Without shared test vectors, implementations might subtly diverge in cryptographic implementations, resulting in data that cannot be decrypted across platforms.
+**Recommended next action:** None. Resolved via addition of machine-readable JSON test vectors and corresponding language test suites.
 
 ### Platform-specific Argon2id Parameters
 

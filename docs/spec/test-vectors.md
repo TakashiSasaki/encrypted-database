@@ -12,19 +12,7 @@ Any JSON values whose bytes are authenticated, hashed, MACed, signed, indexed, o
 
 Shared machine-readable test vectors are available in `test-vectors/aad/aad-policies-v1.json`.
 
-Implementations must verify their AAD byte generation logic using provided test vectors. The requirements for AAD test vectors include:
-- AAD policy name.
-- AAD context object.
-- Expected JCS canonical JSON string.
-- Expected AAD bytes, preferably represented as lowercase hexadecimal.
-- At least one AES-GCM test vector using:
-  - fixed key
-  - fixed nonce
-  - fixed plaintext
-  - fixed AAD bytes
-  - expected ciphertext plus authentication tag
-
-Python and Node.js implementations must verify these vectors in their CI or test suites.
+Implementations must verify their AAD byte generation logic using provided test vectors.
 
 ## UUID Formats
 
@@ -38,9 +26,18 @@ A cross-language machine-readable test vector for Argon2id is available in `test
 
 Note that the KDF test vectors do not replace the SQLite roundtrip interoperability tests. The roundtrip test asserts high-level semantic interoperability between different language implementations, while the KDF test vector is a strict byte-level primitive equivalence test.
 
-### AEAD, Key-Wrap, and Payload Encryption Test Vectors
+### AEAD (AES-256-GCM) Test Vectors
 
-While AES-GCM nonces are randomly generated, deterministic tests should be implemented by allowing test environments to inject fixed nonces. This allows cross-language verification that:
-1. AES-GCM generates identical ciphertext and tag given the same plaintext, key, nonce, and AAD bytes.
+A cross-language machine-readable test vector for AES-256-GCM primitive operations is available in `test-vectors/aead/aes-256-gcm-v1.json`. It tests the base encryption and decryption using fixed keys, nonces, plaintext, and AAD bytes. Implementations must ensure byte-for-byte equivalence for ciphertext and authentication tags, properly handling combined or separated tag formats according to the standard.
 
-These tests should be incorporated into CI pipelines.
+### Key-Wrap Test Vectors
+
+Machine-readable test vectors for the wrapping and unwrapping of database KEKs and record DEKs are available in `test-vectors/key-wrap/key-wrap-v1.json`. Implementations must verify that they can dynamically reconstruct the correct AAD from the policy and IDs, and correctly wrap/unwrap the key materials.
+
+### Payload Encryption Test Vectors
+
+Machine-readable test vectors for payload encryption are available in `test-vectors/payload/payload-encryption-v1.json`. Implementations must ensure they correctly JCS-canonicalize the JSON payload before encryption, reconstruct the required AAD, and successfully encrypt/decrypt the payload. Tests must verify that variations in JSON key order resolve to the identical canonicalized bytes and result in equivalent ciphertext given the same nonce.
+
+### Semantic Interoperability (SQLite Roundtrip)
+
+In addition to primitive test vectors, the high-level semantic interoperability between language implementations is validated using SQLite roundtrip integration tests (`integration-tests/roundtrip/`). These tests assert that higher-level payload operations and unlocking mechanics successfully work across platforms, whereas the JSON test vectors focus on byte-level cryptographic equivalence.

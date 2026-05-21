@@ -1,0 +1,41 @@
+[
+  {
+    "name": "aes-256-gcm-valid",
+    "description": "Standard AES-256-GCM encryption with valid AAD and Tag",
+    "alg": "A256GCM",
+    "key_hex": "0101010101010101010101010101010101010101010101010101010101010101",
+    "nonce_hex": "020202020202020202020202",
+    "aad_hex": "746573742d6161642d6279746573",
+    "plaintext_hex": "746573742d706c61696e746578742d6279746573",
+    "expected_ciphertext_hex": "73b3ba3d6727ad9cbaa2c8ad24d3efd0dbc1b49c",
+    "expected_tag_hex": "68d51fb6b9ff6ec269af5ed89e05fde9",
+    "expected_ciphertext_and_tag_hex": "73b3ba3d6727ad9cbaa2c8ad24d3efd0dbc1b49c68d51fb6b9ff6ec269af5ed89e05fde9",
+    "valid": true
+  },
+  {
+    "name": "aes-256-gcm-invalid-aad",
+    "description": "AES-256-GCM decryption should fail with modified AAD",
+    "alg": "A256GCM",
+    "key_hex": "0101010101010101010101010101010101010101010101010101010101010101",
+    "nonce_hex": "020202020202020202020202",
+    "aad_hex": "696e76616c69642d6161642d6279746573",
+    "plaintext_hex": "746573742d706c61696e746578742d6279746573",
+    "expected_ciphertext_hex": "73b3ba3d6727ad9cbaa2c8ad24d3efd0dbc1b49c",
+    "expected_tag_hex": "68d51fb6b9ff6ec269af5ed89e05fde9",
+    "expected_ciphertext_and_tag_hex": "73b3ba3d6727ad9cbaa2c8ad24d3efd0dbc1b49c68d51fb6b9ff6ec269af5ed89e05fde9",
+    "valid": false
+  },
+  {
+    "name": "aes-256-gcm-invalid-tag",
+    "description": "AES-256-GCM decryption should fail with modified Tag",
+    "alg": "A256GCM",
+    "key_hex": "0101010101010101010101010101010101010101010101010101010101010101",
+    "nonce_hex": "020202020202020202020202",
+    "aad_hex": "746573742d6161642d6279746573",
+    "plaintext_hex": "746573742d706c61696e746578742d6279746573",
+    "expected_ciphertext_hex": "73b3ba3d6727ad9cbaa2c8ad24d3efd0dbc1b49c",
+    "expected_tag_hex": "00000000000000000000000000000000",
+    "expected_ciphertext_and_tag_hex": "73b3ba3d6727ad9cbaa2c8ad24d3efd0dbc1b49c00000000000000000000000000000000",
+    "valid": false
+  }
+]
