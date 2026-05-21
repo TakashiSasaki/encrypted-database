@@ -54,7 +54,6 @@ erDiagram
         BLOB nonce
         BLOB wrapped_key
         TEXT aad_policy
-        TEXT aad_context_json
         INTEGER created_at_ms
     }
 

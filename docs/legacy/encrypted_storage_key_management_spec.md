@@ -40,7 +40,7 @@ Bitwarden のように、機密フィールドを暗号化済み表現として�
 
 UUIDv4 を採用する理由は、`kid` を意味のない安定識別子にし、命名変更や分類変更の影響を避けるためである。UUIDv7 や UUIDv8 は時刻や独自 layout を含められる利点があるが、鍵 ID では時刻情報や意味情報を ID 自体に含める必要性が低く、むしろメタデータ漏洩を避けるため UUIDv4 を標準とする。
 
-本仕様で保存する JSON は常に正規化する。対象には `description_json`, `aad_context_json`, `provider_config_json`, 暗号化前の JSON payload、blind index 入力用の正規化値、将来の署名・MAC・ハッシュ対象 JSON を含む。JSON の意味的同一性と byte sequence の同一性を一致させることで、AAD、HMAC、UUID 生成、差分同期、テスト再現性の不整合を減らす。
+本仕様で保存する JSON は常に正規化する。対象には `description_json`, `provider_config_json`, 暗号化前の JSON payload、blind index 入力用の正規化値、将来の署名・MAC・ハッシュ対象 JSON を含む。JSON の意味的同一性と byte sequence の同一性を一致させることで、AAD、HMAC、UUID 生成、差分同期、テスト再現性の不整合を減らす。
 
 
 
