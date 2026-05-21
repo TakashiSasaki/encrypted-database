@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const cryptoUtils = require('../src/crypto');
+const aadPolicy = require('../src/aadPolicy');
 
 const VECTOR_PATH = path.join(__dirname, '../../test-vectors/payload/payload-encryption-v1.json');
 const vectors = JSON.parse(fs.readFileSync(VECTOR_PATH, 'utf8'));
@@ -19,10 +20,21 @@ describe('Payload Vectors', () => {
             const actualPayloadJcs = cryptoUtils.canonicalizeJson(vector.payload_json);
             expect(actualPayloadJcs.toString('hex')).toBe(expectedPayloadJcs.toString('hex'));
 
+            // Verify AAD reconstruction
+            const actualAad = aadPolicy.buildAadBytes('record-payload-v1', {
+                object_uuid: vector.object_uuid,
+                schema_uuid: vector.schema_uuid,
+                content_type: vector.content_type,
+                kid: vector.kid,
+                alg: vector.alg
+            });
+
             if (vector.valid) {
+                expect(actualAad.toString('hex')).toBe(expectedAad.toString('hex'));
+
                 // Encrypt
                 const cipher = crypto.createCipheriv('aes-256-gcm', recordDek, nonce);
-                cipher.setAAD(expectedAad);
+                cipher.setAAD(actualAad);
                 const ciphertext = Buffer.concat([cipher.update(actualPayloadJcs), cipher.final()]);
                 const tag = cipher.getAuthTag();
                 const ciphertextAndTag = Buffer.concat([ciphertext, tag]);
@@ -31,14 +43,14 @@ describe('Payload Vectors', () => {
 
                 // Decrypt
                 const decipher = crypto.createDecipheriv('aes-256-gcm', recordDek, nonce);
-                decipher.setAAD(expectedAad);
+                decipher.setAAD(actualAad);
                 decipher.setAuthTag(expectedCiphertextAndTag.slice(-16));
                 const decrypted = Buffer.concat([decipher.update(expectedCiphertextAndTag.slice(0, -16)), decipher.final()]);
 
                 expect(decrypted.toString('hex')).toBe(actualPayloadJcs.toString('hex'));
             } else {
                 const decipher = crypto.createDecipheriv('aes-256-gcm', recordDek, nonce);
-                decipher.setAAD(expectedAad);
+                decipher.setAAD(actualAad);
                 decipher.setAuthTag(expectedCiphertextAndTag.slice(-16));
                 expect(() => {
                     Buffer.concat([decipher.update(expectedCiphertextAndTag.slice(0, -16)), decipher.final()]);

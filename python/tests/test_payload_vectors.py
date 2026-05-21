@@ -27,17 +27,29 @@ def test_payload_vector(vector):
     actual_payload_jcs = jcs.canonicalize(vector["payload_json"])
     assert actual_payload_jcs.hex() == expected_payload_jcs.hex(), f"JCS mismatch for {vector['name']}"
 
-    # For AAD generation, only use valid vector data if it's the valid flow,
-    # otherwise we use what's generated. But in test, we just compare to expected.
+    # Verify AAD reconstruction
+    actual_aad = aad_policy.build_aad_bytes(
+        "record-payload-v1",
+        object_uuid=vector["object_uuid"],
+        schema_uuid=vector["schema_uuid"],
+        content_type=vector["content_type"],
+        kid=vector["kid"],
+        alg=vector["alg"]
+    )
 
     aesgcm = AESGCM(record_dek)
 
     if vector["valid"]:
-        actual_ciphertext_and_tag = aesgcm.encrypt(nonce, actual_payload_jcs, expected_aad)
+        assert actual_aad.hex() == expected_aad.hex(), f"AAD mismatch for {vector['name']}"
+        actual_ciphertext_and_tag = aesgcm.encrypt(nonce, actual_payload_jcs, actual_aad)
         assert actual_ciphertext_and_tag.hex() == expected_ciphertext_and_tag.hex(), f"Encryption mismatch for {vector['name']}"
 
-        decrypted = aesgcm.decrypt(nonce, expected_ciphertext_and_tag, expected_aad)
+        decrypted = aesgcm.decrypt(nonce, expected_ciphertext_and_tag, actual_aad)
         assert decrypted == actual_payload_jcs, f"Decryption mismatch for {vector['name']}"
     else:
+        # In negative tests like invalid AAD, the generated expected_aad in the JSON
+        # might be the "wrong" AAD itself, which means actual_aad might match the wrong one
+        # (since we are testing decryption with actual_aad).
+        # We ensure it fails with actual_aad against the original ciphertext.
         with pytest.raises(Exception):
-            aesgcm.decrypt(nonce, expected_ciphertext_and_tag, expected_aad)
+            aesgcm.decrypt(nonce, expected_ciphertext_and_tag, actual_aad)
