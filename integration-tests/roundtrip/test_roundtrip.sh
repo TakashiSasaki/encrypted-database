@@ -3,7 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(dirname "$(dirname "$DIR")")"
 
-PASSPHRASE="supersecretpassphrase"
+PASSPHRASE="roundtrip-passphrase"
 FAILED=0
 
 echo "=== Testing Python to Node.js ==="
@@ -18,7 +18,7 @@ echo "Reading in Node.js..."
 cd "$ROOT_DIR/nodejs" && npm install > /dev/null 2>&1
 PAYLOAD1=$(node "$DIR/read_nodejs.js" "$DB1" "$PASSPHRASE" "$OBJ_UUID1")
 
-if [[ "$PAYLOAD1" == *"from python"* ]]; then
+if [[ "$PAYLOAD1" == *"PAYLOAD_MATCH_SUCCESS"* ]]; then
     echo "Python -> Node.js SUCCESS"
 else
     echo "Python -> Node.js FAILED: $PAYLOAD1"
@@ -36,7 +36,7 @@ OBJ_UUID2=$(node "$DIR/write_nodejs.js" "$DB2" "$PASSPHRASE")
 echo "Reading in Python..."
 PAYLOAD2=$(python3 "$DIR/read_python.py" "$DB2" "$PASSPHRASE" "$OBJ_UUID2")
 
-if [[ "$PAYLOAD2" == *"from nodejs"* ]]; then
+if [[ "$PAYLOAD2" == *"PAYLOAD_MATCH_SUCCESS"* ]]; then
     echo "Node.js -> Python SUCCESS"
 else
     echo "Node.js -> Python FAILED: $PAYLOAD2"

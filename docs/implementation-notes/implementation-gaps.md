@@ -4,7 +4,16 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ## Active Gaps
 
-### 1. Cross-language cryptographic test vectors are not materially implemented
+### 1. SQLite roundtrip interoperability coverage
+
+**Status:** Resolved
+**Area:** Cryptography / Interoperability
+**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and ensure cross-platform database semantic equivalence. Browser DB export/import interoperability remains future work.
+**Expected or intended state:** Automated tests ensuring DB files created in one platform can be successfully read and decrypted in another.
+**Why it matters:** Interoperability is the core value proposition of the library.
+**Recommended next action:** Expand to include browser interoperability tests.
+
+### 2. Cross-language cryptographic test vectors are not materially implemented
 
 **Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
@@ -13,7 +22,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Without shared test vectors, implementations might subtly diverge in cryptographic implementations, resulting in data that cannot be decrypted across platforms.
 **Recommended next action:** Generate and commit additional JSON datasets for KDF, AEAD, key-wrap, and payload encryption operations.
 
-### 2. JWE/JOSE compatibility is not implemented
+### 3. JWE/JOSE compatibility is not implemented
 
 **Status:** Active
 **Area:** Standards Compatibility
@@ -22,7 +31,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Developers might incorrectly assume the library produces standard JWE tokens, leading to integration issues with external systems.
 **Recommended next action:** Update documentation to clarify the non-JWE nature of the envelopes, and treat standard JWE export as a future enhancement rather than a current feature.
 
-### 3. Key rotation and lifecycle operations are not implemented
+### 4. Key rotation and lifecycle operations are not implemented
 
 **Status:** Active
 **Area:** Key Management
@@ -31,7 +40,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Lack of key rotation makes the library unsuitable for long-term production use where cryptographic hygiene and rotation are mandated.
 **Recommended next action:** Specify and implement key rotation, migration, and key destruction procedures.
 
-### 4. Additional unlock providers are schema/planned only
+### 5. Additional unlock providers are schema/planned only
 
 **Status:** Active
 **Area:** Features
@@ -40,7 +49,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Users may be confused by schema references to features that are entirely non-functional in the library.
 **Recommended next action:** Clearly document these as planned features or stub them out in the API contract.
 
-### 5. Blind index implementation is not complete
+### 6. Blind index implementation is not complete
 
 **Status:** Active
 **Area:** Features
@@ -49,7 +58,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Without blind indexes, the database cannot easily be queried based on payload contents, severely limiting its utility as a database.
 **Recommended next action:** Implement the schema tables and API methods for blind indexes according to the specification.
 
-### 6. Input validation and canonicalization boundaries need hardening
+### 7. Input validation and canonicalization boundaries need hardening
 
 **Status:** Active
 **Area:** Security / Input Validation
@@ -58,7 +67,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Relying solely on database constraints can lead to unhandled database errors bubbling up instead of providing clear, early validation errors to the caller.
 **Recommended next action:** Add rigorous input validation and normalization steps to all public API endpoints.
 
-### 7. Packaging and distribution maturity is incomplete
+### 8. Packaging and distribution maturity is incomplete
 
 **Status:** Active
 **Area:** Deployment

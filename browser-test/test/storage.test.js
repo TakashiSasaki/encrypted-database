@@ -136,6 +136,25 @@ describe('EncryptedStorage', () => {
         expect(() => storage.storePayload(schemaUuid, 'application/json', payload)).toThrow(Error);
     });
 
+    test('provider config is stored as canonical json', async () => {
+        const storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase('my_secure_password', 'linux');
+
+        const stmt = storage.db.prepare("SELECT provider_config_json FROM unlock_kek_tbl LIMIT 1");
+        stmt.step();
+        const configJson = stmt.getAsObject().provider_config_json;
+        stmt.free();
+
+        // configJson is stored as a string directly, not base64 encoded
+        // It should match JCS canonical format (no spaces around colons/commas, keys sorted)
+        const parsed = JSON.parse(configJson);
+        const { canonicalize } = require('json-canonicalize');
+        expect(configJson).toEqual(canonicalize(parsed));
+
+        storage.close();
+    });
+
     test('unlockDatabase ignores unknown providers but throws on others', async () => {
         const storage = new EncryptedStorage();
         await storage.init();
