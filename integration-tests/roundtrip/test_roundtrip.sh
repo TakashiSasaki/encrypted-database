@@ -30,6 +30,7 @@ DB2="$DIR/node_to_py.db"
 rm -f "$DB2"
 
 echo "Writing in Node.js..."
+cd "$DIR" && npm install > /dev/null 2>&1
 OBJ_UUID2=$(node "$DIR/write_nodejs.js" "$DB2" "$PASSPHRASE")
 
 echo "Reading in Python..."
