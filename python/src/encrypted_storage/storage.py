@@ -291,7 +291,6 @@ class EncryptedStorage:
             wrap_row = cur.fetchone()
         except sqlite3.Error as e:
             raise errors.DatabaseBackendError(f"Database error during record key retrieval: {e}") from e
-
         if not wrap_row:
             raise errors.IntegrityCheckFailed("Record DEK wrap info not found")
 
