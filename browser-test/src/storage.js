@@ -92,7 +92,11 @@ class EncryptedStorage {
     }
 
     _validatePayload(value) {
-        if (typeof value !== 'object' || value === null || Array.isArray(value) || value instanceof Uint8Array || value instanceof ArrayBuffer) {
+        if (typeof value !== 'object' || value === null || Array.isArray(value) || value instanceof ArrayBuffer || ArrayBuffer.isView(value)) {
+            throw new errors.InvalidPayload("Payload must be a dictionary/JSON object");
+        }
+        const prototype = Object.getPrototypeOf(value);
+        if (prototype !== Object.prototype && prototype !== null) {
             throw new errors.InvalidPayload("Payload must be a dictionary/JSON object");
         }
     }
