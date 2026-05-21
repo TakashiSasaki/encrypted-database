@@ -1,5 +1,4 @@
 import json
-import base64
 from cryptography.hazmat.primitives.kdf.argon2 import Argon2id
 
 passphrase = "test-passphrase-123"
