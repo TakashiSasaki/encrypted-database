@@ -1,6 +1,7 @@
 import json
 import os
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.exceptions import InvalidTag
 import pytest
 import jcs
 
@@ -51,5 +52,5 @@ def test_payload_vector(vector):
         # might be the "wrong" AAD itself, which means actual_aad might match the wrong one
         # (since we are testing decryption with actual_aad).
         # We ensure it fails with actual_aad against the original ciphertext.
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidTag):
             aesgcm.decrypt(nonce, expected_ciphertext_and_tag, actual_aad)

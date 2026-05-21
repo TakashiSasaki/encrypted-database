@@ -1,6 +1,7 @@
 import json
 import os
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.exceptions import InvalidTag
 import pytest
 
 from encrypted_storage import aad_policy
@@ -40,5 +41,5 @@ def test_key_wrap_vector(vector):
         decrypted = aesgcm.decrypt(nonce, expected_ciphertext_and_tag, actual_aad)
         assert decrypted == wrapped_key_plaintext, f"Decryption mismatch for {vector['name']}"
     else:
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidTag):
             aesgcm.decrypt(nonce, expected_ciphertext_and_tag, actual_aad)

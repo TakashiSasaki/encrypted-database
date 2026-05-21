@@ -1,6 +1,7 @@
 import json
 import os
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.exceptions import InvalidTag
 import pytest
 
 VECTOR_PATH = os.path.join(
@@ -40,5 +41,5 @@ def test_aead_vector(vector):
         assert decrypted == plaintext, f"Decryption failed for {vector['name']}"
     else:
         # Negative tests
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidTag):
             aesgcm.decrypt(nonce, expected_ciphertext_and_tag, aad)
