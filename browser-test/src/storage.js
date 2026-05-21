@@ -110,10 +110,6 @@ class EncryptedStorage {
 
         const wrapAlg = 'A256GCM';
         const aadPolicyName = aadPolicy.selectKeyWrapPolicy({ wrappedKeyClass: 'database_kek', alg: wrapAlg });
-        const aadContext = aadPolicy.buildAadContext(aadPolicyName, {
-            wrapped_kid: dbKid,
-            wrapping_kid: unlockKid
-        });
         const aadBytes = aadPolicy.buildAadBytes(aadPolicyName, {
             wrapped_kid: dbKid,
             wrapping_kid: unlockKid
@@ -239,10 +235,6 @@ class EncryptedStorage {
         const alg = 'A256GCM';
 
         const wrapAadPolicy = aadPolicy.selectKeyWrapPolicy({ wrappedKeyClass: 'record_dek', alg });
-        const wrapAad = aadPolicy.buildAadContext(wrapAadPolicy, {
-            wrapped_kid: recordKid,
-            wrapping_kid: this.activeDbKid
-        });
         const wrapAadBytes = aadPolicy.buildAadBytes(wrapAadPolicy, {
             wrapped_kid: recordKid,
             wrapping_kid: this.activeDbKid

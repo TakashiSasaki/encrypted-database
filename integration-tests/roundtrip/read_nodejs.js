@@ -13,22 +13,26 @@ async function main() {
     const objUuid = process.argv[4];
 
     const storage = new EncryptedStorage(dbPath);
-    await storage.unlockDatabase(passphrase);
+    try {
+        await storage.unlockDatabase(passphrase);
 
-    const payload = storage.retrievePayload(objUuid);
+        const payload = storage.retrievePayload(objUuid);
 
-    const expectedPayload = {
-        "secret": "cross-language",
-        "value": 42,
-        "nested": {
-            "ok": true
-        },
-        "items": ["python", "nodejs"]
-    };
+        const expectedPayload = {
+            "secret": "cross-language",
+            "value": 42,
+            "nested": {
+                "ok": true
+            },
+            "items": ["python", "nodejs"]
+        };
 
-    assert.deepStrictEqual(payload, expectedPayload, "Retrieved payload does not match expected payload.");
+        assert.deepStrictEqual(payload, expectedPayload, "Retrieved payload does not match expected payload.");
 
-    console.log("PAYLOAD_MATCH_SUCCESS");
+        console.log("PAYLOAD_MATCH_SUCCESS");
+    } finally {
+        storage.close();
+    }
 }
 
 main().catch(err => {

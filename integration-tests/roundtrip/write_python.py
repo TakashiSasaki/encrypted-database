@@ -16,21 +16,24 @@ def main():
     passphrase = sys.argv[2]
 
     storage = EncryptedStorage(db_path)
-    storage.initialize_database(passphrase, "linux")
+    try:
+        storage.initialize_database(passphrase, "linux")
 
-    schema_uuid = "00000000-0000-4000-8000-000000000001"
-    content_type = "application/json"
-    payload = {
-        "secret": "cross-language",
-        "value": 42,
-        "nested": {
-            "ok": True
-        },
-        "items": ["python", "nodejs"]
-    }
+        schema_uuid = "00000000-0000-4000-8000-000000000001"
+        content_type = "application/json"
+        payload = {
+            "secret": "cross-language",
+            "value": 42,
+            "nested": {
+                "ok": True
+            },
+            "items": ["python", "nodejs"]
+        }
 
-    obj_uuid = storage.store_payload(schema_uuid, content_type, payload)
-    print(obj_uuid)
+        obj_uuid = storage.store_payload(schema_uuid, content_type, payload)
+        print(obj_uuid)
+    finally:
+        storage.close()
 
 if __name__ == "__main__":
     main()
