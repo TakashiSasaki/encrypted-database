@@ -39,7 +39,6 @@ A cross-language machine-readable test vector for Argon2id is available in `test
 ### AEAD Test Vectors
 
 While AES-GCM nonces are randomly generated, deterministic tests should be implemented by allowing test environments to inject fixed nonces. This allows cross-language verification that:
-1. Argon2id generates identical bytes given the same passphrase, salt, and parameters.
-2. AES-GCM generates the identical ciphertext and tag given the same plaintext, key, nonce, and AAD bytes.
+1. AES-GCM generates identical ciphertext and tag given the same plaintext, key, nonce, and AAD bytes.
 
 These tests should be incorporated into CI pipelines.
