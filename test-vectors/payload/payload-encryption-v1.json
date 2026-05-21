@@ -26,8 +26,9 @@
   },
   {
     "name": "payload-encryption-invalid-aad",
-    "description": "Payload decryption should fail with wrong object_uuid in AAD",
+    "description": "Payload decryption should fail when AAD is constructed with a different object_uuid than the record metadata",
     "object_uuid": "4a2e464e-4a8a-449b-a271-3acf36cb8efc",
+    "aad_object_uuid": "6ac44bd0-b34c-452b-ba8c-352b8ae4ae7b",
     "schema_uuid": "04760d40-fde9-479c-8fa1-02e983dcf1c9",
     "content_type": "application/json",
     "kid": "dadcac7f-2299-49c3-be3a-f4ef6c8eea0a",
