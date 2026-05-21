@@ -11,12 +11,10 @@ DB2="$DIR/node_to_py.db"
 # Cleanup on exit (will run on success and failure)
 trap 'rm -f "$DB1" "$DB2"' EXIT
 
-
-
 echo "Installing dependencies..."
 # Fail immediately if installs fail
-(cd "$ROOT_DIR/python" && pip install -e . > /dev/null 2>&1)
-(cd "$ROOT_DIR/nodejs" && npm install > /dev/null 2>&1)
+(cd "$ROOT_DIR/python" && pip install -e . > /dev/null)
+(cd "$ROOT_DIR/nodejs" && npm install > /dev/null)
 
 echo "=== Testing Python to Node.js ==="
 rm -f "$DB1"

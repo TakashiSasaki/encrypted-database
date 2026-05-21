@@ -11,7 +11,7 @@ Note that the underlying SQLite database files are **not expected to be byte-for
 These tests are semantic interoperability tests. They complement, but do not replace, the strict byte-for-byte machine-readable cryptographic test vectors (for KDF, AEAD, key-wrap, and payload encryption) found in `test-vectors/`.
 
 ## How to run
-You must run the roundtrip tests by executing the shell script from the repository root:
+You can run the roundtrip tests by executing the shell script from any directory:
 
 ```bash
 ./integration-tests/roundtrip/test_roundtrip.sh
