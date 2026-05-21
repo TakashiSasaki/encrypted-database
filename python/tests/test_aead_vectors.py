@@ -38,10 +38,10 @@ def test_aead_vectors():
         # Negative tests
         # Corrupt tag (last byte)
         corrupted_ct_tag = ct_tag[:-1] + bytes([ct_tag[-1] ^ 0xFF])
-        with pytest.raises(Exception): # Using cryptography's Exception class, wrapped or direct
+        with pytest.raises(InvalidTag):
             decrypt_aead_fixed_nonce(key, nonce, corrupted_ct_tag, aad)
 
         # Corrupt AAD
         corrupted_aad = aad + b"a"
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidTag):
             decrypt_aead_fixed_nonce(key, nonce, ct_tag, corrupted_aad)
