@@ -15,10 +15,6 @@ npm install
 ./test_roundtrip.sh
 ```
 
-`test_roundtrip.sh` installs required dependencies for:
-- `python/` via `pip install -e .[test]`
-- `nodejs/` via `npm install`
-
 ## What it tests:
 1. Python creates a database file.
 2. Python `initialize_database` writes key materials.

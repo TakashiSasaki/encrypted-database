@@ -2,18 +2,11 @@
 
 Authenticated Encryption with Associated Data (AEAD) allows binding a ciphertext to its storage context using Additional Authenticated Data (AAD). If the context changes (e.g., an encrypted payload is moved to a different record ID or different schema), decryption will fail, preventing accidental or malicious swaps.
 
-The actual AAD byte sequence is generated deterministically within the library according to the `aad_policy`. The database schema strictly relies on regenerating the AAD context object dynamically from existing database columns rather than storing a pre-computed JSON representation. Neither the JSON envelope nor the database stores the full AAD context object or AAD byte string; they only store the policy name (`aad_policy`).
-
-## Terminology
-
-- **AAD Policy Name**: A stable identifier string (e.g., `record-payload-v1`) that defines how the AAD bytes should be constructed. This name is stored in the database alongside ciphertexts or wrapped keys to identify the rule to use during decryption.
-- **AAD Context Object**: A structured JSON object built dynamically from policy-defined arguments (such as UUIDs, content types, and algorithms). This object is constructed purely in memory by the library logic and must not be serialized directly into database columns.
-- **AAD Canonical String**: The string representation resulting from applying the strict RFC 8785 JSON Canonicalization Scheme (JCS) to the AAD Context Object.
-- **AAD Bytes**: The UTF-8 encoded bytes of the AAD Canonical String. These are the final bytes passed to the AEAD algorithm.
+The actual AAD byte sequence is generated deterministically within the library according to the `aad_policy`. Neither the JSON envelope nor the database stores the full AAD string; they only store the policy name.
 
 ## Generating AAD
 
-The AAD Context Object is constructed based on the policy and input values, and then serialized to JSON using the RFC 8785 JSON Canonicalization Scheme (JCS) to produce the AAD Canonical String. The UTF-8 bytes of this resulting string are passed as the AAD Bytes to the AEAD algorithm. Implementations must strictly use JCS canonicalization, as native JSON serialization functions might inconsistently reorder keys or alter whitespace, breaking cryptographic byte equivalence.
+The input dictionary is constructed based on the policy, and then serialized to JSON using the RFC 8785 JSON Canonicalization Scheme (JCS). The bytes of the resulting JSON string are passed as the AAD to the AEAD algorithm. Implementations must strictly use JCS canonicalization, as native JSON serialization functions might inconsistently reorder keys or alter whitespace, breaking cryptographic byte equivalence.
 
 ## Cross-language AAD byte equivalence
 

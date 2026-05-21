@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict
 
 from . import crypto
 
@@ -29,12 +29,7 @@ WRAP_DATABASE_KEY_V1 = "wrap-database-key-v1"
 WRAP_RECORD_KEY_V1 = "wrap-record-key-v1"
 
 
-def _record_payload_v1_context(*, object_uuid: Optional[str] = None, schema_uuid: Optional[str] = None, content_type: Optional[str] = None, kid: Optional[str] = None, alg: Optional[str] = None, **kwargs: Any) -> Dict[str, Any]:
-    if not object_uuid: raise AadPolicyError("Missing required field: object_uuid")
-    if not schema_uuid: raise AadPolicyError("Missing required field: schema_uuid")
-    if not content_type: raise AadPolicyError("Missing required field: content_type")
-    if not kid: raise AadPolicyError("Missing required field: kid")
-    if not alg: raise AadPolicyError("Missing required field: alg")
+def _record_payload_v1_context(*, object_uuid: str, schema_uuid: str, content_type: str, kid: str, alg: str) -> Dict[str, Any]:
     return {
         "v": 1,
         "aad_policy": RECORD_PAYLOAD_V1,
@@ -46,9 +41,7 @@ def _record_payload_v1_context(*, object_uuid: Optional[str] = None, schema_uuid
     }
 
 
-def _wrap_database_key_v1_context(*, wrapped_kid: Optional[str] = None, wrapping_kid: Optional[str] = None, **kwargs: Any) -> Dict[str, Any]:
-    if not wrapped_kid: raise AadPolicyError("Missing required field: wrapped_kid")
-    if not wrapping_kid: raise AadPolicyError("Missing required field: wrapping_kid")
+def _wrap_database_key_v1_context(*, wrapped_kid: str, wrapping_kid: str) -> Dict[str, Any]:
     return {
         "v": 1,
         "aad_policy": WRAP_DATABASE_KEY_V1,
@@ -57,9 +50,7 @@ def _wrap_database_key_v1_context(*, wrapped_kid: Optional[str] = None, wrapping
     }
 
 
-def _wrap_record_key_v1_context(*, wrapped_kid: Optional[str] = None, wrapping_kid: Optional[str] = None, **kwargs: Any) -> Dict[str, Any]:
-    if not wrapped_kid: raise AadPolicyError("Missing required field: wrapped_kid")
-    if not wrapping_kid: raise AadPolicyError("Missing required field: wrapping_kid")
+def _wrap_record_key_v1_context(*, wrapped_kid: str, wrapping_kid: str) -> Dict[str, Any]:
     return {
         "v": 1,
         "aad_policy": WRAP_RECORD_KEY_V1,

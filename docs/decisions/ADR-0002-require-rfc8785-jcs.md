@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-Various parts of the system handle JSON data that is persisted, authenticated, hashed, MACed, signed, indexed, or used as UUID/hash input. This includes `description_json`, `provider_config_json`, plaintext JSON payloads, blind-index inputs, and cross-language test vectors.
+Various parts of the system handle JSON data that is persisted, authenticated, hashed, MACed, signed, indexed, or used as UUID/hash input. This includes `description_json`, `aad_context_json`, `provider_config_json`, plaintext JSON payloads, blind-index inputs, and cross-language test vectors.
 
 Different JSON serializers across platforms and languages (like Python's `json.dumps` vs Node.js's `JSON.stringify()`) handle Unicode escaping, number serialization, and key ordering differently. These differences lead to mismatched byte sequences even when the JSON is semantically equivalent, causing failures in HMAC, AAD validation, and cross-language interoperability.
 

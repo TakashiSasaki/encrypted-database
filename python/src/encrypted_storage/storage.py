@@ -121,16 +121,16 @@ class EncryptedStorage:
             )
             wrap_id = self._generate_kid()
             cur.execute(
-                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (wrap_id, db_kid, unlock_kid, 1, 'key_wrap', wrap_alg, nonce, wrapped_db_kek, aad_policy_name, self._current_ms())
+                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (wrap_id, db_kid, unlock_kid, 1, 'key_wrap', wrap_alg, nonce, wrapped_db_kek, aad_policy_name, crypto.canonicalize_json(aad_context).decode('utf-8'), self._current_ms())
             )
             self.conn.commit()
         except sqlite3.Error as e:
             self.conn.rollback()
             raise errors.DatabaseBackendError(f"Database error during initialization: {e}") from e
-        except Exception:
+        except Exception as e:
             self.conn.rollback()
-            raise
+            raise e
 
         self.active_db_kek = db_kek_bytes
         self.active_db_kid = db_kid
@@ -152,13 +152,13 @@ class EncryptedStorage:
             db_kid = row[0]
 
             # Get wrap info
-            cur.execute("SELECT wrapping_kid, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ?", (db_kid,))
+            cur.execute("SELECT wrapping_kid, nonce, wrapped_key, aad_policy, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ?", (db_kid,))
             wrap_rows = cur.fetchall()
         except sqlite3.Error as e:
             raise errors.DatabaseBackendError(f"Database error during unlock: {e}") from e
 
         unwrapped = False
-        for wrapping_kid, nonce, wrapped_key, aad_policy_name in wrap_rows:
+        for wrapping_kid, nonce, wrapped_key, aad_policy_name, aad_context_json in wrap_rows:
             try:
                 aad_policy.get_policy(aad_policy_name)
             except aad_policy.AadPolicyError:
@@ -177,14 +177,7 @@ class EncryptedStorage:
                     unlock_kek_bytes = crypto.derive_kek_argon2id(
                         passphrase, salt, 32, config['iterations'], config['memory_kib'], config['parallelism']
                     )
-
-                    wrap_aad = aad_policy.build_aad_bytes(
-                        aad_policy_name,
-                        wrapped_kid=db_kid,
-                        wrapping_kid=wrapping_kid
-                    )
-
-                    db_kek_bytes = crypto.decrypt_aead(unlock_kek_bytes, nonce, wrapped_key, wrap_aad)
+                    db_kek_bytes = crypto.decrypt_aead(unlock_kek_bytes, nonce, wrapped_key, aad_context_json.encode('utf-8'))
                     self.active_db_kek = db_kek_bytes
                     self.active_db_kid = db_kid
                     unwrapped = True
@@ -248,8 +241,8 @@ class EncryptedStorage:
             )
             wrap_id = self._generate_kid()
             cur.execute(
-                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (wrap_id, record_kid, self.active_db_kid, 1, 'key_wrap', alg, nonce_wrap, wrapped_record_dek, wrap_aad_policy, self._current_ms())
+                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, aad_context_json, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (wrap_id, record_kid, self.active_db_kid, 1, 'key_wrap', alg, nonce_wrap, wrapped_record_dek, wrap_aad_policy, crypto.canonicalize_json(wrap_aad).decode('utf-8'), self._current_ms())
             )
             cur.execute(
                 "INSERT INTO encrypted_object_tbl (object_uuid, envelope_v, envelope_type, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -259,9 +252,9 @@ class EncryptedStorage:
         except sqlite3.Error as e:
             self.conn.rollback()
             raise errors.DatabaseBackendError(f"Database error during store: {e}") from e
-        except Exception:
+        except Exception as e:
             self.conn.rollback()
-            raise
+            raise e
 
         return object_uuid
 
@@ -287,24 +280,19 @@ class EncryptedStorage:
 
         # Get wrapped record DEK
         try:
-            cur.execute("SELECT nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?", (record_kid, self.active_db_kid))
+            cur.execute("SELECT nonce, wrapped_key, aad_policy, aad_context_json FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?", (record_kid, self.active_db_kid))
             wrap_row = cur.fetchone()
         except sqlite3.Error as e:
             raise errors.DatabaseBackendError(f"Database error during record key retrieval: {e}") from e
+
         if not wrap_row:
             raise errors.IntegrityCheckFailed("Record DEK wrap info not found")
 
-        nonce_wrap, wrapped_record_dek, wrap_aad_policy = wrap_row
+        nonce_wrap, wrapped_record_dek, wrap_aad_policy, aad_context_json_wrap = wrap_row
         aad_policy.get_policy(wrap_aad_policy)
 
-        wrap_aad_bytes = aad_policy.build_aad_bytes(
-            wrap_aad_policy,
-            wrapped_kid=record_kid,
-            wrapping_kid=self.active_db_kid
-        )
-
         # Unwrap record DEK
-        record_dek_bytes = crypto.decrypt_aead(self.active_db_kek, nonce_wrap, wrapped_record_dek, wrap_aad_bytes)
+        record_dek_bytes = crypto.decrypt_aead(self.active_db_kek, nonce_wrap, wrapped_record_dek, aad_context_json_wrap.encode('utf-8'))
 
         # Decrypt payload using the registered policy saved with the object.
         payload_aad_bytes = aad_policy.build_aad_bytes(

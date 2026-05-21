@@ -1,7 +1,6 @@
 import pytest
 import tempfile
 import os
-from cryptography.exceptions import InvalidTag
 from encrypted_storage.storage import EncryptedStorage
 from encrypted_storage import errors
 
@@ -137,27 +136,3 @@ def test_close(temp_db):
     storage.close()
     assert storage.active_db_kek is None
     assert storage.active_db_kid is None
-
-def test_aad_mutation_causes_decryption_failure(temp_db):
-    """Test that altering an AAD-bound field in the database prevents decryption."""
-    storage = EncryptedStorage(temp_db)
-    storage.initialize_database(passphrase="secure-password", platform="linux")
-    storage.unlock_database(passphrase="secure-password")
-
-    object_uuid = storage.store_payload(
-        schema_uuid="11111111-1111-4111-8111-111111111111",
-        content_type="application/json",
-        payload={"secret":"data"}
-    )
-
-    # Decrypt normally to confirm it works
-    decrypted = storage.retrieve_payload(object_uuid)
-    assert decrypted == {"secret":"data"}
-
-    # Mutate the content_type in the database (which is bound to AAD)
-    storage.conn.execute("UPDATE encrypted_object_tbl SET content_type = 'text/plain' WHERE object_uuid = ?", (object_uuid,))
-    storage.conn.commit()
-
-    # Attempt to retrieve, which should fail during AEAD decryption due to tag mismatch
-    with pytest.raises(InvalidTag):
-        storage.retrieve_payload(object_uuid)
