@@ -132,7 +132,7 @@ class EncryptedStorage {
             this.db.exec("COMMIT;");
         } catch (err) {
             this.db.exec("ROLLBACK;");
-            throw err;
+            throw new errors.DatabaseBackendError(`Database error during initialization: ${err.message}`);
         }
 
         this.activeDbKek = dbKekBytes;
@@ -264,7 +264,7 @@ class EncryptedStorage {
             this.db.exec("COMMIT;");
         } catch (err) {
             this.db.exec("ROLLBACK;");
-            throw err;
+            throw new errors.DatabaseBackendError(`Database error during store: ${err.message}`);
         }
 
         return objectUuid;

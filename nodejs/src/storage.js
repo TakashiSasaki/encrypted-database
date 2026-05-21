@@ -233,9 +233,6 @@ class EncryptedStorage {
         try {
             runTransaction();
         } catch (e) {
-            if (e.message.includes("UNIQUE constraint failed") || e.message.includes("CHECK constraint failed")) {
-                throw e;
-            }
             throw new errors.DatabaseBackendError(`Database error during store: ${e.message}`);
         }
 
