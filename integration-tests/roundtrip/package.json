@@ -1,0 +1,12 @@
+{
+  "name": "roundtrip",
+  "version": "1.0.0",
+  "description": "Roundtrip interoperability tests",
+  "private": true,
+  "scripts": {
+    "test": "./test_roundtrip.sh"
+  },
+  "dependencies": {
+    "uuid": "9.0.1"
+  }
+}
