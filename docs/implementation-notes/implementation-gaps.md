@@ -4,32 +4,32 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ## Active Gaps
 
-### 1. Public API contract is not yet specified
+### 1. Public API contract needs further elaboration
 
 **Status:** Partially Resolved
 **Area:** API / cross-language compatibility
-**Current state:** A canonical `docs/spec/api-contract.md` exists, detailing lifecycle states, lock/close behavior, status queries, and error categories. Sync/async semantics and provider behaviors might still need further elaboration in the spec. The contract correctly enforces strict `instanceof` checks over generic `.code` properties.
-**Expected or intended state:** A formal specification defining the exact inputs, outputs, and side effects of each public method to ensure parity across all language implementations.
+**Current state:** A canonical `docs/spec/api-contract.md` exists, detailing lifecycle states, lock/close behavior, status queries, and error categories. The contract correctly enforces strict `instanceof` checks over generic `.code` properties. However, sync/async semantics and specific provider behaviors might still need further elaboration in the spec.
+**Expected or intended state:** A formal specification defining the exact inputs, outputs, and side effects of each public method to ensure absolute parity across all language implementations.
 **Why it matters:** Without a canonical API contract, language implementations may diverge, leading to an inconsistent and unpredictable developer experience.
 **Recommended next action:** Expand the API contract to document provider behavior, sync/async nuances across environments, and UUID normalization rules.
 
-### 2. Error taxonomy is not implemented
+### 2. Error taxonomy needs backend wrapping audit
 
 **Status:** Partially Resolved
 **Area:** Error Handling
-**Current state:** Custom error classes (e.g., `StorageLocked`, `UnlockFailed`, `UnsupportedPlatform`) have been implemented and uniformly enforced across Python, Node.js, and Browser implementations. Brittle error message string matching has been removed from tests. Some generic backend exceptions may still surface.
-**Expected or intended state:** A library-quality API relying strictly on stable typed error classes.
+**Current state:** Custom error classes (e.g., `StorageLocked`, `UnlockFailed`, `UnsupportedPlatform`) have been implemented and uniformly enforced across Python, Node.js, and Browser implementations. Generic backend exceptions across initialization, unlock, store, and retrieve boundaries have been wrapped and raised as `DatabaseBackendError`.
+**Expected or intended state:** A library-quality API relying strictly on stable typed error classes, where no internal backend errors ever leak to callers without being wrapped.
 **Why it matters:** Consumers of the library cannot easily handle programmatic failures or distinguish between different error conditions without deterministic class checks.
-**Recommended next action:** Audit deep backend database errors to ensure they are properly wrapped and raised as `DatabaseBackendError`.
+**Recommended next action:** Perform a final exhaustive audit of all edge case exceptions (e.g., cryptographic failures, deep SQLite constraint errors not related to primary keys) to ensure complete taxonomy coverage.
 
-### 3. Lock/close lifecycle is incomplete
+### 3. Lifecycle API is implemented; persistence-backed browser scenarios remain
 
 **Status:** Partially Resolved
 **Area:** Lifecycle Management
 **Current state:** A clear lifecycle has been implemented and unified across Python, Node.js, and Browser implementations. Initial browser state (`uninitialized`), unlock failure cleanups, and duplicate initialization defenses have been properly enforced and comprehensively tested. The API correctly transitions between `uninitialized`, `open_locked`, `open_unlocked`, and `closed`.
-**Expected or intended state:** A robust lifecycle management API with strictly identical guarantees and transitions across all platforms.
-**Why it matters:** Callers cannot easily rely on consistent database operations if subtle lifecycle discrepancies exist between environments.
-**Recommended next action:** Implement browser persistent storage adapters to fully exercise standard real-world usage beyond the initial memory/testing harnesses.
+**Expected or intended state:** A robust lifecycle management API with strictly identical guarantees and transitions across all platforms, including persistent storage in the browser.
+**Why it matters:** Callers cannot easily rely on consistent database operations if subtle lifecycle discrepancies exist between environments or if state isn't preserved across browser sessions.
+**Recommended next action:** Implement browser persistent storage adapters (e.g., OPFS or IndexedDB backing for sql.js) to fully exercise standard real-world usage beyond the initial memory/testing harnesses.
 
 ### 4. Cross-language cryptographic test vectors are not materially implemented
 
@@ -40,14 +40,14 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Without shared test vectors, implementations might subtly diverge in cryptographic implementations, resulting in data that cannot be decrypted across platforms.
 **Recommended next action:** Generate and commit additional JSON datasets for KDF, AEAD, key-wrap, and payload encryption operations.
 
-### 5. SQLite roundtrip interoperability is not yet demonstrated
+### 5. SQLite roundtrip interoperability needs test runner integration
 
-**Status:** Active
+**Status:** Partially Resolved
 **Area:** Cross-language portability
-**Current state:** Python and Node.js can each store and retrieve payloads independently, but there are no tests demonstrating that a database created in Python can be successfully read by Node.js, and vice versa.
-**Expected or intended state:** Automated tests validating cross-language compatibility of the resulting SQLite database files.
-**Why it matters:** The primary goal of a shared SQLite backend is portability. Without roundtrip tests, subtle differences in how platforms interact with SQLite may cause data corruption or read failures.
-**Recommended next action:** Implement cross-language end-to-end tests that generate a database in one language and verify it in the others.
+**Current state:** Python and Node.js have integration scripts (`integration-tests/roundtrip/`) that successfully demonstrate a database created in Python can be read by Node.js, and vice versa. However, these tests rely on bash scripts rather than native integration in the Jest/pytest test suites.
+**Expected or intended state:** Automated tests natively validating cross-language compatibility of the resulting SQLite database files within the standard CI workflows.
+**Why it matters:** The primary goal of a shared SQLite backend is portability. Without deeply integrated roundtrip tests, subtle regressions in cross-platform interoperability could be missed during routine PR checks.
+**Recommended next action:** Wrap the existing roundtrip integration scripts directly into the Python or Node.js test runners, or integrate the bash script explicitly into the CI pipelines.
 
 ### 6. JWE/JOSE compatibility is not implemented
 
