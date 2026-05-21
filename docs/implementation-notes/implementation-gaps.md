@@ -4,52 +4,16 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ## Active Gaps
 
-### 1. Public API contract needs further elaboration
-
-**Status:** Partially Resolved
-**Area:** API / cross-language compatibility
-**Current state:** A canonical `docs/spec/api-contract.md` exists, detailing lifecycle states, lock/close behavior, status queries, and error categories. The contract correctly enforces strict `instanceof` checks over generic `.code` properties. However, sync/async semantics and specific provider behaviors might still need further elaboration in the spec.
-**Expected or intended state:** A formal specification defining the exact inputs, outputs, and side effects of each public method to ensure absolute parity across all language implementations.
-**Why it matters:** Without a canonical API contract, language implementations may diverge, leading to an inconsistent and unpredictable developer experience.
-**Recommended next action:** Expand the API contract to document provider behavior, sync/async nuances across environments, and UUID normalization rules.
-
-### 2. Error taxonomy needs backend wrapping audit
-
-**Status:** Partially Resolved
-**Area:** Error Handling
-**Current state:** Custom error classes (e.g., `StorageLocked`, `UnlockFailed`, `UnsupportedPlatform`) have been implemented and uniformly enforced across Python, Node.js, and Browser implementations. Generic backend exceptions across initialization, unlock, store, and retrieve boundaries have been wrapped and raised as `DatabaseBackendError`.
-**Expected or intended state:** A library-quality API relying strictly on stable typed error classes, where no internal backend errors ever leak to callers without being wrapped.
-**Why it matters:** Consumers of the library cannot easily handle programmatic failures or distinguish between different error conditions without deterministic class checks.
-**Recommended next action:** Perform a final exhaustive audit of all edge case exceptions (e.g., cryptographic failures, deep SQLite constraint errors not related to primary keys) to ensure complete taxonomy coverage.
-
-### 3. Lifecycle API is implemented; persistence-backed browser scenarios remain
-
-**Status:** Partially Resolved
-**Area:** Lifecycle Management
-**Current state:** A clear lifecycle has been implemented and unified across Python, Node.js, and Browser implementations. Initial browser state (`uninitialized`), unlock failure cleanups, and duplicate initialization defenses have been properly enforced and comprehensively tested. The API correctly transitions between `uninitialized`, `open_locked`, `open_unlocked`, and `closed`.
-**Expected or intended state:** A robust lifecycle management API with strictly identical guarantees and transitions across all platforms, including persistent storage in the browser.
-**Why it matters:** Callers cannot easily rely on consistent database operations if subtle lifecycle discrepancies exist between environments or if state isn't preserved across browser sessions.
-**Recommended next action:** Implement browser persistent storage adapters (e.g., OPFS or IndexedDB backing for sql.js) to fully exercise standard real-world usage beyond the initial memory/testing harnesses.
-
-### 4. Cross-language cryptographic test vectors are not materially implemented
+### 1. Cross-language cryptographic test vectors are not materially implemented
 
 **Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** JCS canonicalization and AAD vectors are fully implemented and verified via shared cross-language test suites in `test-vectors/jcs` and `test-vectors/aad`. However, there are no machine-readable test vectors for Argon2id, AES-GCM, fixed nonce, and fixed salt operations.
+**Current state:** JCS canonicalization and AAD vectors (both positive schema-valid UUIDs and negative validations) are fully implemented and verified via shared cross-language test suites in `test-vectors/jcs` and `test-vectors/aad`. The `aad_context_json` column was also historically removed to resolve redundancy bugs. However, there are no machine-readable test vectors for Argon2id, AES-GCM, fixed nonce, and fixed salt operations.
 **Expected or intended state:** A comprehensive suite of cross-language test vectors ensuring byte-for-byte equivalence for all cryptographic and key-derivation operations.
 **Why it matters:** Without shared test vectors, implementations might subtly diverge in cryptographic implementations, resulting in data that cannot be decrypted across platforms.
 **Recommended next action:** Generate and commit additional JSON datasets for KDF, AEAD, key-wrap, and payload encryption operations.
 
-### 5. SQLite roundtrip interoperability needs test runner integration
-
-**Status:** Partially Resolved
-**Area:** Cross-language portability
-**Current state:** Python and Node.js have integration scripts (`integration-tests/roundtrip/`) that successfully demonstrate a database created in Python can be read by Node.js, and vice versa. However, these tests rely on bash scripts rather than native integration in the Jest/pytest test suites.
-**Expected or intended state:** Automated tests natively validating cross-language compatibility of the resulting SQLite database files within the standard CI workflows.
-**Why it matters:** The primary goal of a shared SQLite backend is portability. Without deeply integrated roundtrip tests, subtle regressions in cross-platform interoperability could be missed during routine PR checks.
-**Recommended next action:** Wrap the existing roundtrip integration scripts directly into the Python or Node.js test runners, or integrate the bash script explicitly into the CI pipelines.
-
-### 6. JWE/JOSE compatibility is not implemented
+### 3. JWE/JOSE compatibility is not implemented
 
 **Status:** Active
 **Area:** Standards Compatibility
@@ -58,7 +22,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Developers might incorrectly assume the library produces standard JWE tokens, leading to integration issues with external systems.
 **Recommended next action:** Update documentation to clarify the non-JWE nature of the envelopes, and treat standard JWE export as a future enhancement rather than a current feature.
 
-### 7. Key rotation and lifecycle operations are not implemented
+### 4. Key rotation and lifecycle operations are not implemented
 
 **Status:** Active
 **Area:** Key Management
@@ -67,7 +31,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Lack of key rotation makes the library unsuitable for long-term production use where cryptographic hygiene and rotation are mandated.
 **Recommended next action:** Specify and implement key rotation, migration, and key destruction procedures.
 
-### 8. Additional unlock providers are schema/planned only
+### 5. Additional unlock providers are schema/planned only
 
 **Status:** Active
 **Area:** Features
@@ -76,7 +40,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Users may be confused by schema references to features that are entirely non-functional in the library.
 **Recommended next action:** Clearly document these as planned features or stub them out in the API contract.
 
-### 9. Blind index implementation is not complete
+### 6. Blind index implementation is not complete
 
 **Status:** Active
 **Area:** Features
@@ -85,7 +49,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Without blind indexes, the database cannot easily be queried based on payload contents, severely limiting its utility as a database.
 **Recommended next action:** Implement the schema tables and API methods for blind indexes according to the specification.
 
-### 10. Input validation and canonicalization boundaries need hardening
+### 7. Input validation and canonicalization boundaries need hardening
 
 **Status:** Active
 **Area:** Security / Input Validation
@@ -94,7 +58,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Relying solely on database constraints can lead to unhandled database errors bubbling up instead of providing clear, early validation errors to the caller.
 **Recommended next action:** Add rigorous input validation and normalization steps to all public API endpoints.
 
-### 11. Packaging and distribution maturity is incomplete
+### 8. Packaging and distribution maturity is incomplete
 
 **Status:** Active
 **Area:** Deployment
@@ -102,3 +66,15 @@ This document tracks known discrepancies and gaps between the current specificat
 **Expected or intended state:** Production-ready packages that can be seamlessly published to PyPI and npm with correct dependencies, exports, and documentation.
 **Why it matters:** Incomplete packaging hinders adoption and makes it difficult for other projects to cleanly depend on the library.
 **Recommended next action:** Refine `setup.py`, `package.json`, and related metadata to align with standard publishing best practices for each ecosystem.
+
+
+## Resolved Gaps
+
+### SQLite roundtrip interoperability coverage
+
+**Status:** Resolved
+**Area:** Cryptography / Interoperability
+**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and ensure cross-platform database semantic equivalence. Browser DB export/import interoperability remains future work.
+**Expected or intended state:** Automated tests ensuring DB files created in one platform can be successfully read and decrypted in another.
+**Why it matters:** Interoperability is the core value proposition of the library.
+**Recommended next action:** Expand to include browser interoperability tests.
