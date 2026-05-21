@@ -89,18 +89,18 @@ describe('EncryptedStorage', () => {
 
     test('storePayload fails when database is locked', () => {
         const storage = new EncryptedStorage(tempDbPath);
-        expect(() => storage.storePayload('id', 'type', {})).toThrow(errors.StorageLocked);
+        expect(() => storage.storePayload('11111111-1111-4111-8111-111111111111', 'application/json', {})).toThrow(errors.StorageLocked);
     });
 
     test('retrievePayload fails when database is locked', () => {
         const storage = new EncryptedStorage(tempDbPath);
-        expect(() => storage.retrievePayload('id')).toThrow(errors.StorageLocked);
+        expect(() => storage.retrievePayload('11111111-1111-4111-8111-111111111111')).toThrow(errors.StorageLocked);
     });
 
     test('retrievePayload fails if object not found', async () => {
         const storage = new EncryptedStorage(tempDbPath);
         await storage.initializeDatabase('pass', 'linux');
-        expect(() => storage.retrievePayload('00000000-0000-0000-0000-000000000000')).toThrow(errors.ObjectNotFound);
+        expect(() => storage.retrievePayload('00000000-0000-4000-8000-000000000000')).toThrow(errors.ObjectNotFound);
     });
 
     test('retrievePayload fails if wrap info not found', async () => {

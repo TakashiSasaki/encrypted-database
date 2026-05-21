@@ -54,7 +54,7 @@ describe('EncryptedStorage', () => {
         const storage = new EncryptedStorage();
         await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
-        expect(() => storage.retrievePayload('not-found-uuid')).toThrow(errors.ObjectNotFound);
+        expect(() => storage.retrievePayload('00000000-0000-4000-8000-000000000000')).toThrow(errors.ObjectNotFound);
         storage.close();
     });
 

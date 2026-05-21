@@ -16,7 +16,7 @@ def test_lifecycle(tmp_path):
 
     # 3. Store should fail
     with pytest.raises(errors.StorageLocked):
-        storage.store_payload("schema", "type", {})
+        storage.store_payload("11111111-1111-4111-8111-111111111111", "application/json", {})
 
     # 4. Initialize
     storage.initialize_database("pass", "linux")
@@ -52,10 +52,10 @@ def test_lifecycle(tmp_path):
         storage.unlock_database("pass")
 
     with pytest.raises(errors.StorageClosed):
-        storage.store_payload("schema", "type", {})
+        storage.store_payload("11111111-1111-4111-8111-111111111111", "application/json", {})
 
     with pytest.raises(errors.StorageClosed):
-        storage.retrieve_payload("some-uuid")
+        storage.retrieve_payload("11111111-1111-4111-8111-111111111111")
 
 def test_unlock_failure_clears_keys(tmp_path):
     db_path = tmp_path / "test2.db"
@@ -86,7 +86,7 @@ def test_missing_object_raises_notfound(tmp_path):
     storage = EncryptedStorage(str(db_path))
     storage.initialize_database("pass", "linux")
     with pytest.raises(errors.ObjectNotFound):
-        storage.retrieve_payload("00000000-0000-0000-0000-000000000000")
+        storage.retrieve_payload("00000000-0000-4000-8000-000000000000")
 
 def test_unsupported_platform_raises_unsupported(tmp_path):
     db_path = tmp_path / "test5.db"

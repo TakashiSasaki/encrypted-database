@@ -54,21 +54,21 @@ def test_initialization_fails_on_unknown_platform(temp_db):
 def test_store_fails_when_locked(temp_db):
     storage = EncryptedStorage(temp_db)
     with pytest.raises(errors.StorageLocked):
-        storage.store_payload("id", "type", {})
+        storage.store_payload("11111111-1111-4111-8111-111111111111", "application/json", {})
 
 def test_retrieve_fails_when_locked(temp_db):
     storage = EncryptedStorage(temp_db)
     with pytest.raises(errors.StorageLocked):
-        storage.retrieve_payload("id")
+        storage.retrieve_payload("11111111-1111-4111-8111-111111111111")
     with pytest.raises(errors.StorageLocked):
-        storage.store_payload("id", "type", {})
+        storage.store_payload("11111111-1111-4111-8111-111111111111", "application/json", {})
     storage.close()
 
 def test_retrieve_fails_if_not_found(temp_db):
     storage = EncryptedStorage(temp_db)
     storage.initialize_database("pass", "linux")
     with pytest.raises(errors.ObjectNotFound):
-        storage.retrieve_payload("00000000-0000-0000-0000-000000000000")
+        storage.retrieve_payload("00000000-0000-4000-8000-000000000000")
     storage.close()
 
 def test_retrieve_fails_if_wrap_not_found(temp_db):

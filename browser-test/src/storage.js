@@ -6,6 +6,8 @@ const errors = require('./errors');
 const schemaSql = require('!!raw-loader!../../docs/backend/sqlite/schema.sql').default;
 
 class EncryptedStorage {
+    static _UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
     constructor() {
         this.db = null;
         this.activeDbKek = null;
@@ -68,7 +70,44 @@ class EncryptedStorage {
         }
     }
 
+    _validateUuid(value, fieldName) {
+        if (typeof value !== 'string' || !EncryptedStorage._UUID_PATTERN.test(value)) {
+            throw new errors.InvalidUuid(`Invalid ${fieldName}: must be a canonical lowercase hyphenated UUID`);
+        }
+    }
+
+    _validateContentType(value) {
+        if (typeof value !== 'string' || value.trim() === '') {
+            throw new errors.InvalidContentType("Content type must be a non-empty string");
+        }
+        for (let i = 0; i < value.length; i++) {
+            const code = value.charCodeAt(i);
+            if (code < 32 || code === 127) {
+                throw new errors.InvalidContentType("Content type must not contain control characters");
+            }
+        }
+        if (!value.includes('/')) {
+            throw new errors.InvalidContentType("Content type must be a basic type/subtype format");
+        }
+    }
+
+    _validatePayload(value) {
+        if (typeof value !== 'object' || value === null || Array.isArray(value) || value instanceof Uint8Array || value instanceof ArrayBuffer) {
+            throw new errors.InvalidPayload("Payload must be a dictionary/JSON object");
+        }
+    }
+
+    _validatePassphrase(value) {
+        if (typeof value !== 'string') {
+            throw new errors.UnlockFailed("Passphrase must be a string");
+        }
+    }
+
     async initializeDatabase(passphrase, platform = "web") {
+        this._validatePassphrase(passphrase);
+        if (typeof platform !== 'string') {
+            throw new errors.UnsupportedPlatform("Platform must be a string");
+        }
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
         if (this.isUnlocked()) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
         if (!this.db) await this.init();
@@ -139,6 +178,7 @@ class EncryptedStorage {
     }
 
     async unlockDatabase(passphrase) {
+        this._validatePassphrase(passphrase);
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
 
         if (!this.db) throw new errors.StorageNotInitialized("Database not initialized");
@@ -228,6 +268,10 @@ class EncryptedStorage {
     }
 
     storePayload(schemaUuid, contentType, payload) {
+        this._validateUuid(schemaUuid, "schemaUuid");
+        this._validateContentType(contentType);
+        this._validatePayload(payload);
+
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
         if (!this.activeDbKek) throw new errors.StorageLocked("Database is locked");
 
@@ -273,6 +317,8 @@ class EncryptedStorage {
     }
 
     retrievePayload(objectUuid) {
+        this._validateUuid(objectUuid, "objectUuid");
+
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
         if (!this.activeDbKek) throw new errors.StorageLocked("Database is locked");
 

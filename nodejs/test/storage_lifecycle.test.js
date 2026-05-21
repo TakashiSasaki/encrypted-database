@@ -28,7 +28,7 @@ describe('Storage Lifecycle', () => {
         storage.lock();
 
         // 3. Store should fail
-        expect(() => storage.storePayload('schema', 'type', {})).toThrow(errors.StorageLocked);
+        expect(() => storage.storePayload('11111111-1111-4111-8111-111111111111', 'application/json', {})).toThrow(errors.StorageLocked);
 
         // 4. Initialize
         await storage.initializeDatabase('pass', 'linux');
@@ -57,8 +57,8 @@ describe('Storage Lifecycle', () => {
         expect(() => storage.lock()).toThrow(errors.StorageClosed);
         await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.StorageClosed);
         await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.StorageClosed);
-        expect(() => storage.storePayload('schema', 'type', {})).toThrow(errors.StorageClosed);
-        expect(() => storage.retrievePayload('some-id')).toThrow(errors.StorageClosed);
+        expect(() => storage.storePayload('11111111-1111-4111-8111-111111111111', 'application/json', {})).toThrow(errors.StorageClosed);
+        expect(() => storage.retrievePayload('11111111-1111-4111-8111-111111111111')).toThrow(errors.StorageClosed);
     });
 
     test('unlock failure clears keys', async () => {
@@ -99,7 +99,7 @@ describe('Storage Lifecycle', () => {
         const storage = new EncryptedStorage(tempDbPath);
         try {
             await storage.initializeDatabase('pass', 'linux');
-            expect(() => storage.retrievePayload('00000000-0000-0000-0000-000000000000')).toThrow(errors.ObjectNotFound);
+            expect(() => storage.retrievePayload('00000000-0000-4000-8000-000000000000')).toThrow(errors.ObjectNotFound);
         } finally {
             storage.close();
             try { fs.unlinkSync(tempDbPath); } catch (e) {}

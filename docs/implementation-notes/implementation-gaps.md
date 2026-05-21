@@ -44,12 +44,12 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ### 5. Input validation and canonicalization boundaries need hardening
 
-**Status:** Active
+**Status:** Partially Resolved
 **Area:** Security / Input Validation
-**Current state:** UUID formats are enforced via SQLite `CHECK` constraints, but public APIs do not consistently normalize or reject invalid UUIDs before database operations. `content_type` validation is minimal.
+**Current state:** UUID formats, content types, and payloads are now strictly validated at the public API boundary in Python, Node.js, and browser-test environments before reaching SQLite constraints. Stricter MIME type parsing and full JSON Schema semantic validations remain future work.
 **Expected or intended state:** Strict input validation and normalization at the public API boundary before interacting with the database.
 **Why it matters:** Relying solely on database constraints can lead to unhandled database errors bubbling up instead of providing clear, early validation errors to the caller.
-**Recommended next action:** Add rigorous input validation and normalization steps to all public API endpoints.
+**Recommended next action:** Implement stricter MIME type parsing and evaluate whether JSON Schema validation is within scope or out of scope.
 
 ### 6. Packaging and distribution maturity is incomplete
 
@@ -67,7 +67,7 @@ This document tracks known discrepancies and gaps between the current specificat
 
 **Status:** Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** Comprehensive suites of cross-language test vectors have been implemented across Python, Node.js, and browser-test environments. This includes JCS canonicalization (`test-vectors/jcs`), AAD policies (`test-vectors/aad`), Argon2id KDF (`test-vectors/kdf`), AES-256-GCM primitives (`test-vectors/aead`), key-wrapping (`test-vectors/key-wrap`), and payload encryption (`test-vectors/payload`). Byte-for-byte equivalence is actively validated in CI.
+**Current state:** Comprehensive suites of cross-language test vectors have been implemented across Python, Node.js, and browser-test environments. This includes JCS canonicalization (`test-vectors/jcs`), AAD policies (`test-vectors/aad`), Argon2id KDF (`test-vectors/kdf`), AES-256-GCM primitives (`test-vectors/aead`), key-wrapping (`test-vectors/key-wrap`), and payload encryption (`test-vectors/payload`). Byte-for-byte equivalence is validated by automated test suites. Browser-test environments utilize Jest tests using the same shared vectors, testing the browser bundle crypto path logic, rather than fully verifying a real browser WebCrypto runtime path.
 **Expected or intended state:** A comprehensive suite of cross-language test vectors ensuring byte-for-byte equivalence for all cryptographic and key-derivation operations.
 **Why it matters:** Without shared test vectors, implementations might subtly diverge in cryptographic implementations, resulting in data that cannot be decrypted across platforms.
 **Recommended next action:** None. Resolved via addition of machine-readable JSON test vectors and corresponding language test suites.
@@ -83,9 +83,9 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ### SQLite roundtrip interoperability coverage
 
-**Status:** Resolved
+**Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and ensure cross-platform database semantic equivalence. Browser DB export/import interoperability remains future work.
+**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and ensure cross-platform database semantic equivalence. Note that these tests are not yet fully integrated into the standard CI workflows. Browser DB export/import interoperability remains future work.
 **Expected or intended state:** Automated tests ensuring DB files created in one platform can be successfully read and decrypted in another.
 **Why it matters:** Interoperability is the core value proposition of the library.
 **Recommended next action:** Expand to include browser interoperability tests.
