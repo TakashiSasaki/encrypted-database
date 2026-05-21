@@ -11,7 +11,7 @@ stateDiagram-v2
     [*] --> uninitialized
 
     uninitialized --> open_unlocked: initialize_database(passphrase, platform)\n[Success]
-    uninitialized --> open_locked: (Implicit / Backend Initialized)\nIf database exists but is locked
+    uninitialized --> open_locked: Open existing initialized backend\n(active database_kek metadata present)
 
     open_locked --> open_unlocked: unlock_database(passphrase)\n[Success]
     open_locked --> open_locked: unlock_database(passphrase)\n[Failure: UnlockFailed]
