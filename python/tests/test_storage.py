@@ -1,6 +1,7 @@
 import pytest
 import tempfile
 import os
+from cryptography.exceptions import InvalidTag
 from encrypted_storage.storage import EncryptedStorage
 from encrypted_storage import errors
 
@@ -158,5 +159,5 @@ def test_aad_mutation_causes_decryption_failure(temp_db):
     storage.conn.commit()
 
     # Attempt to retrieve, which should fail during AEAD decryption due to tag mismatch
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidTag):
         storage.retrieve_payload(object_uuid)
