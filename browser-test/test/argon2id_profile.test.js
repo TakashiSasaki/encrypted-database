@@ -1,15 +1,13 @@
 const fs = require('fs');
 const path = require('path');
-const initSqlJs = require('sql.js');
 const EncryptedStorage = require('../src/storage');
 const cryptoUtils = require('../src/crypto');
 
 describe('Argon2id Profile V1', () => {
 
     test('initialization saves correct profile in provider_config_json', async () => {
-        const SQL = await initSqlJs({ locateFile: () => path.join(__dirname, '..', 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm') });
         const storage = new EncryptedStorage();
-        await storage.init(SQL);
+        await storage.init();
         await storage.initializeDatabase('my_secure_password', 'linux');
 
         const stmt = storage.db.prepare('SELECT provider_config_json FROM unlock_kek_tbl LIMIT 1');
