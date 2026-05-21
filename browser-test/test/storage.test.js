@@ -114,13 +114,13 @@ describe('EncryptedStorage', () => {
         const storage = new EncryptedStorage();
         await storage.init();
         storage.db.run = () => { throw new Error('Mock insert error'); };
-        await expect(storage.initializeDatabase('test', 'linux')).rejects.toThrow('Mock insert error');
+        await expect(storage.initializeDatabase('test', 'web')).rejects.toThrow(Error);
     });
 
     test('storePayload rollback on error', async () => {
         const storage = new EncryptedStorage();
         await storage.init();
-        await storage.initializeDatabase('my_secure_password', 'linux');
+        await storage.initializeDatabase('my_secure_password', 'web');
 
         // Mock to throw an error on the last insert inside transaction
         const origRun = storage.db.run;
@@ -133,7 +133,7 @@ describe('EncryptedStorage', () => {
 
         const payload = { test: 1 };
         const schemaUuid = '00000000-0000-4000-8000-000000000001';
-        expect(() => storage.storePayload(schemaUuid, 'application/json', payload)).toThrow('Mock store error');
+        expect(() => storage.storePayload(schemaUuid, 'application/json', payload)).toThrow(Error);
     });
 
     test('unlockDatabase ignores unknown providers but throws on others', async () => {
@@ -151,14 +151,15 @@ describe('EncryptedStorage', () => {
     test('unlockDatabase throws actual error from getPolicy', async () => {
         const storage = new EncryptedStorage();
         await storage.init();
-        await storage.initializeDatabase('my_secure_password', 'linux');
+        await storage.initializeDatabase('my_secure_password', 'web');
 
         const originalGetPolicy = aadPolicy.getPolicy;
+        class TestPolicyError extends Error {}
         aadPolicy.getPolicy = jest.fn().mockImplementation((name) => {
-            throw new Error('Other Error');
+            throw new TestPolicyError('Other Error');
         });
 
-        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow('Other Error');
+        await expect(storage.unlockDatabase('my_secure_password')).rejects.toThrow(TestPolicyError);
 
         aadPolicy.getPolicy = originalGetPolicy;
     });

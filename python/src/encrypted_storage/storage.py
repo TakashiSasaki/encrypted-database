@@ -43,7 +43,13 @@ class EncryptedStorage:
         if not platform or platform == "cross_platform":
             raise errors.UnsupportedPlatform("A concrete platform name is required; cross_platform is not allowed")
         cur = self.conn.cursor()
-        cur.execute("SELECT 1 FROM platform_tbl WHERE platform = ?", (platform,))
+        try:
+            cur.execute("SELECT 1 FROM platform_tbl WHERE platform = ?", (platform,))
+        except sqlite3.Error as e:
+            if "no such table" in str(e):
+                raise errors.UnsupportedPlatform(f"Unsupported platform: {platform}")
+            raise errors.DatabaseBackendError(f"Database error during platform validation: {e}") from e
+
         if not cur.fetchone():
             raise errors.UnsupportedPlatform(f"Unsupported platform: {platform}")
 

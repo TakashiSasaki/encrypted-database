@@ -39,7 +39,15 @@ class EncryptedStorage {
         if (!platform || platform === 'cross_platform') {
             throw new errors.UnsupportedPlatform('A concrete platform name is required; cross_platform is not allowed');
         }
-        const row = this.conn.prepare('SELECT 1 FROM platform_tbl WHERE platform = ?').get(platform);
+        let row;
+        try {
+            row = this.conn.prepare('SELECT 1 FROM platform_tbl WHERE platform = ?').get(platform);
+        } catch (e) {
+            if (e.message.includes("no such table")) {
+                throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
+            }
+            throw new errors.DatabaseBackendError(`Database error during platform validation: ${e.message}`);
+        }
         if (!row) {
             throw new errors.UnsupportedPlatform(`Unsupported platform: ${platform}`);
         }
@@ -48,16 +56,17 @@ class EncryptedStorage {
     async initializeDatabase(passphrase, platform) {
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
         if (this.isUnlocked()) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
+        let hasKek = false;
         try {
-            const hasKek = this.conn.prepare("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' LIMIT 1").get();
-            if (hasKek) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
+            const row = this.conn.prepare("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' LIMIT 1").get();
+            if (row) hasKek = true;
         } catch (e) {
-            if (e instanceof errors.StorageAlreadyInitialized) {
-                throw e;
-            }
             if (!e.message.includes("no such table")) {
                 throw new errors.DatabaseBackendError(`Database error during initialization check: ${e.message}`);
             }
+        }
+        if (hasKek) {
+            throw new errors.StorageAlreadyInitialized("Storage is already initialized");
         }
 
         this._validatePlatform(platform);

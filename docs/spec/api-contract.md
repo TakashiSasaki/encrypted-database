@@ -6,7 +6,7 @@ This document defines the formal public API contract and lifecycle states for th
 
 The storage implementations must track the database lifecycle using the following conceptual states:
 
-- `uninitialized`: The backend is not yet fully configured or ready. (In browser environments, this is the state before `init()` completes).
+- `uninitialized`: The backend is not yet fully configured or ready. (In browser environments, this is the state before `init()` completes, and before `initializeDatabase` is called).
 - `open_locked`: The backend database is initialized or opened, but no active key material is loaded in memory.
 - `open_unlocked`: The backend database is initialized and active key material is present in memory, allowing read/write operations.
 - `closed`: The backend database connection has been closed and any key material has been cleared. No further operations except state queries are permitted.
