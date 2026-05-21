@@ -115,7 +115,12 @@ class EncryptedStorage {
             const insertWrappedKeyStmt = this.conn.prepare("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             insertWrappedKeyStmt.run(wrapId, dbKid, unlockKid, 1, 'key_wrap', wrapAlg, nonce, wrappedDbKek, aadPolicyName, this._currentMs());
         });
-        runTransaction();
+
+        try {
+            runTransaction();
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during initialization: ${e.message}`);
+        }
 
         this.activeDbKek = dbKekBytes;
         this.activeDbKid = dbKid;
@@ -124,16 +129,24 @@ class EncryptedStorage {
     async unlockDatabase(passphrase) {
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
 
-        const findDbKekStmt = this.conn.prepare("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' AND status = 'active' LIMIT 1");
-        const row = findDbKekStmt.get();
-        if (!row) throw new errors.StorageNotInitialized("No active database KEK found");
-        const dbKid = row.kid;
+        let dbKid;
+        let wrapRows;
+        let findUnlockProviderStmt;
+        try {
+            const findDbKekStmt = this.conn.prepare("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' AND status = 'active' LIMIT 1");
+            const row = findDbKekStmt.get();
+            if (!row) throw new errors.StorageNotInitialized("No active database KEK found");
+            dbKid = row.kid;
 
-        const findWrapStmt = this.conn.prepare("SELECT wrapping_kid, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ?");
-        const wrapRows = findWrapStmt.all(dbKid);
+            const findWrapStmt = this.conn.prepare("SELECT wrapping_kid, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ?");
+            wrapRows = findWrapStmt.all(dbKid);
+            findUnlockProviderStmt = this.conn.prepare("SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = ?");
+        } catch (e) {
+            if (e instanceof errors.StorageNotInitialized) throw e;
+            throw new errors.DatabaseBackendError(`Database error during unlock: ${e.message}`);
+        }
 
         let unwrapped = false;
-        const findUnlockProviderStmt = this.conn.prepare("SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = ?");
 
         for (const wrapRow of wrapRows) {
             try {
@@ -145,7 +158,12 @@ class EncryptedStorage {
                 throw err;
             }
 
-            const provRow = findUnlockProviderStmt.get(wrapRow.wrapping_kid);
+            let provRow;
+            try {
+                provRow = findUnlockProviderStmt.get(wrapRow.wrapping_kid);
+            } catch (e) {
+                throw new errors.DatabaseBackendError(`Database error during unlock configuration retrieval: ${e.message}`);
+            }
             if (provRow && provRow.unlock_provider === 'passphrase_argon2id') {
                 const config = JSON.parse(provRow.provider_config_json);
                 const salt = this._b64d(config.salt);
@@ -215,7 +233,12 @@ class EncryptedStorage {
             const insertEncryptedObjectStmt = this.conn.prepare("INSERT INTO encrypted_object_tbl (object_uuid, envelope_v, envelope_type, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             insertEncryptedObjectStmt.run(objectUuid, 1, 'aead', schemaUuid, contentType, alg, recordKid, noncePayload, ciphertext, payloadAadPolicy, this._currentMs(), this._currentMs());
         });
-        runTransaction();
+
+        try {
+            runTransaction();
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during store: ${e.message}`);
+        }
 
         return objectUuid;
     }
@@ -225,14 +248,24 @@ class EncryptedStorage {
         if (!this.activeDbKek) throw new errors.StorageLocked("Database is locked");
 
 
-        const findObjectStmt = this.conn.prepare("SELECT schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy FROM encrypted_object_tbl WHERE object_uuid = ?");
-        const row = findObjectStmt.get(objectUuid);
+        let row;
+        try {
+            const findObjectStmt = this.conn.prepare("SELECT schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy FROM encrypted_object_tbl WHERE object_uuid = ?");
+            row = findObjectStmt.get(objectUuid);
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during retrieve: ${e.message}`);
+        }
         if (!row) throw new errors.ObjectNotFound("Object not found");
 
         aadPolicy.getPolicy(row.aad_policy);
 
-        const findWrapStmt = this.conn.prepare("SELECT nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?");
-        const wrapRow = findWrapStmt.get(row.kid, this.activeDbKid);
+        let wrapRow;
+        try {
+            const findWrapStmt = this.conn.prepare("SELECT nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?");
+            wrapRow = findWrapStmt.get(row.kid, this.activeDbKid);
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during record key retrieval: ${e.message}`);
+        }
         if (!wrapRow) throw new errors.IntegrityCheckFailed("Record DEK wrap info not found");
         aadPolicy.getPolicy(wrapRow.aad_policy);
 

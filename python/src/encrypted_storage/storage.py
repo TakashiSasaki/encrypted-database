@@ -125,6 +125,9 @@ class EncryptedStorage:
                 (wrap_id, db_kid, unlock_kid, 1, 'key_wrap', wrap_alg, nonce, wrapped_db_kek, aad_policy_name, self._current_ms())
             )
             self.conn.commit()
+        except sqlite3.Error as e:
+            self.conn.rollback()
+            raise errors.DatabaseBackendError(f"Database error during initialization: {e}") from e
         except Exception as e:
             self.conn.rollback()
             raise e
@@ -140,16 +143,19 @@ class EncryptedStorage:
             raise errors.StorageNotInitialized("Database not initialized")
         cur = self.conn.cursor()
 
-        # Find active database KEK
-        cur.execute("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' AND status = 'active' LIMIT 1")
-        row = cur.fetchone()
-        if not row:
-            raise errors.StorageNotInitialized("No active database KEK found")
-        db_kid = row[0]
+        try:
+            # Find active database KEK
+            cur.execute("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' AND status = 'active' LIMIT 1")
+            row = cur.fetchone()
+            if not row:
+                raise errors.StorageNotInitialized("No active database KEK found")
+            db_kid = row[0]
 
-        # Get wrap info
-        cur.execute("SELECT wrapping_kid, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ?", (db_kid,))
-        wrap_rows = cur.fetchall()
+            # Get wrap info
+            cur.execute("SELECT wrapping_kid, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ?", (db_kid,))
+            wrap_rows = cur.fetchall()
+        except sqlite3.Error as e:
+            raise errors.DatabaseBackendError(f"Database error during unlock: {e}") from e
 
         unwrapped = False
         for wrapping_kid, nonce, wrapped_key, aad_policy_name in wrap_rows:
@@ -158,8 +164,12 @@ class EncryptedStorage:
             except aad_policy.AadPolicyError:
                 continue
 
-            cur.execute("SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = ?", (wrapping_kid,))
-            prov_row = cur.fetchone()
+            try:
+                cur.execute("SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = ?", (wrapping_kid,))
+                prov_row = cur.fetchone()
+            except sqlite3.Error as e:
+                raise errors.DatabaseBackendError(f"Database error during unlock configuration retrieval: {e}") from e
+
             if prov_row and prov_row[0] == 'passphrase_argon2id':
                 config = json.loads(prov_row[1])
                 salt = self._b64d(config['salt'])
@@ -246,6 +256,9 @@ class EncryptedStorage:
                 (object_uuid, 1, 'aead', schema_uuid, content_type, alg, record_kid, nonce_payload, ciphertext, payload_aad_policy, self._current_ms(), self._current_ms())
             )
             self.conn.commit()
+        except sqlite3.Error as e:
+            self.conn.rollback()
+            raise errors.DatabaseBackendError(f"Database error during store: {e}") from e
         except Exception as e:
             self.conn.rollback()
             raise e
@@ -260,8 +273,12 @@ class EncryptedStorage:
             raise errors.StorageLocked("Database is locked")
 
         cur = self.conn.cursor()
-        cur.execute("SELECT schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy FROM encrypted_object_tbl WHERE object_uuid = ?", (object_uuid,))
-        row = cur.fetchone()
+        try:
+            cur.execute("SELECT schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy FROM encrypted_object_tbl WHERE object_uuid = ?", (object_uuid,))
+            row = cur.fetchone()
+        except sqlite3.Error as e:
+            raise errors.DatabaseBackendError(f"Database error during retrieve: {e}") from e
+
         if not row:
             raise errors.ObjectNotFound("Object not found")
 
@@ -269,8 +286,11 @@ class EncryptedStorage:
         aad_policy.get_policy(payload_aad_policy)
 
         # Get wrapped record DEK
-        cur.execute("SELECT nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?", (record_kid, self.active_db_kid))
-        wrap_row = cur.fetchone()
+        try:
+            cur.execute("SELECT nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?", (record_kid, self.active_db_kid))
+            wrap_row = cur.fetchone()
+        except sqlite3.Error as e:
+            raise errors.DatabaseBackendError(f"Database error during record key retrieval: {e}") from e
         if not wrap_row:
             raise errors.IntegrityCheckFailed("Record DEK wrap info not found")
 
