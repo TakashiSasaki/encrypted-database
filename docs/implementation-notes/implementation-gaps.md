@@ -4,16 +4,7 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ## Active Gaps
 
-### 1. SQLite roundtrip interoperability coverage
-
-**Status:** Resolved
-**Area:** Cryptography / Interoperability
-**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and ensure cross-platform database semantic equivalence. Browser DB export/import interoperability remains future work.
-**Expected or intended state:** Automated tests ensuring DB files created in one platform can be successfully read and decrypted in another.
-**Why it matters:** Interoperability is the core value proposition of the library.
-**Recommended next action:** Expand to include browser interoperability tests.
-
-### 2. Cross-language cryptographic test vectors are not materially implemented
+### 1. Cross-language cryptographic test vectors are not materially implemented
 
 **Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
@@ -75,3 +66,15 @@ This document tracks known discrepancies and gaps between the current specificat
 **Expected or intended state:** Production-ready packages that can be seamlessly published to PyPI and npm with correct dependencies, exports, and documentation.
 **Why it matters:** Incomplete packaging hinders adoption and makes it difficult for other projects to cleanly depend on the library.
 **Recommended next action:** Refine `setup.py`, `package.json`, and related metadata to align with standard publishing best practices for each ecosystem.
+
+
+## Resolved Gaps
+
+### SQLite roundtrip interoperability coverage
+
+**Status:** Resolved
+**Area:** Cryptography / Interoperability
+**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and ensure cross-platform database semantic equivalence. Browser DB export/import interoperability remains future work.
+**Expected or intended state:** Automated tests ensuring DB files created in one platform can be successfully read and decrypted in another.
+**Why it matters:** Interoperability is the core value proposition of the library.
+**Recommended next action:** Expand to include browser interoperability tests.
