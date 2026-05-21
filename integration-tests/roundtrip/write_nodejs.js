@@ -11,21 +11,25 @@ async function main() {
     const passphrase = process.argv[3];
 
     const storage = new EncryptedStorage(dbPath);
-    await storage.initializeDatabase(passphrase, "linux");
+    try {
+        await storage.initializeDatabase(passphrase, "linux");
 
-    const schemaUuid = "00000000-0000-4000-8000-000000000001";
-    const contentType = "application/json";
-    const payload = {
-        "secret": "cross-language",
-        "value": 42,
-        "nested": {
-            "ok": true
-        },
-        "items": ["python", "nodejs"]
-    };
+        const schemaUuid = "00000000-0000-4000-8000-000000000001";
+        const contentType = "application/json";
+        const payload = {
+            "secret": "cross-language",
+            "value": 42,
+            "nested": {
+                "ok": true
+            },
+            "items": ["python", "nodejs"]
+        };
 
-    const objUuid = storage.storePayload(schemaUuid, contentType, payload);
-    console.log(objUuid);
+        const objUuid = storage.storePayload(schemaUuid, contentType, payload);
+        console.log(objUuid);
+    } finally {
+        storage.close();
+    }
 }
 
 main().catch(err => {

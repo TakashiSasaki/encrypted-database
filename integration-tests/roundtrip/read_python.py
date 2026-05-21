@@ -17,24 +17,27 @@ def main():
     obj_uuid = sys.argv[3]
 
     storage = EncryptedStorage(db_path)
-    storage.unlock_database(passphrase)
+    try:
+        storage.unlock_database(passphrase)
 
-    payload = storage.retrieve_payload(obj_uuid)
+        payload = storage.retrieve_payload(obj_uuid)
 
-    expected_payload = {
-        "secret": "cross-language",
-        "value": 42,
-        "nested": {
-            "ok": True
-        },
-        "items": ["python", "nodejs"]
-    }
+        expected_payload = {
+            "secret": "cross-language",
+            "value": 42,
+            "nested": {
+                "ok": True
+            },
+            "items": ["python", "nodejs"]
+        }
 
-    if payload != expected_payload:
-        print(f"Payload mismatch. Expected: {expected_payload}, Got: {payload}", file=sys.stderr)
-        sys.exit(1)
+        if payload != expected_payload:
+            print(f"Payload mismatch. Expected: {expected_payload}, Got: {payload}", file=sys.stderr)
+            sys.exit(1)
 
-    print("PAYLOAD_MATCH_SUCCESS")
+        print("PAYLOAD_MATCH_SUCCESS")
+    finally:
+        storage.close()
 
 if __name__ == "__main__":
     main()

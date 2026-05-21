@@ -1,21 +1,29 @@
 #!/bin/bash
+set -euo pipefail
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(dirname "$(dirname "$DIR")")"
 
 PASSPHRASE="roundtrip-passphrase"
+DB1="$DIR/py_to_node.db"
+DB2="$DIR/node_to_py.db"
+
+# Cleanup on exit
+trap 'rm -f "$DB1" "$DB2"' EXIT
+
 FAILED=0
 
+echo "Installing dependencies..."
+cd "$ROOT_DIR/python" && pip install -e . > /dev/null 2>&1
+cd "$ROOT_DIR/nodejs" && npm install > /dev/null 2>&1
+
 echo "=== Testing Python to Node.js ==="
-DB1="$DIR/py_to_node.db"
 rm -f "$DB1"
 
 echo "Writing in Python..."
-cd "$ROOT_DIR/python" && pip install -e . > /dev/null 2>&1
 OBJ_UUID1=$(python3 "$DIR/write_python.py" "$DB1" "$PASSPHRASE")
 
 echo "Reading in Node.js..."
-cd "$ROOT_DIR/nodejs" && npm install > /dev/null 2>&1
 PAYLOAD1=$(node "$DIR/read_nodejs.js" "$DB1" "$PASSPHRASE" "$OBJ_UUID1")
 
 if [[ "$PAYLOAD1" == *"PAYLOAD_MATCH_SUCCESS"* ]]; then
@@ -26,11 +34,9 @@ else
 fi
 
 echo "=== Testing Node.js to Python ==="
-DB2="$DIR/node_to_py.db"
 rm -f "$DB2"
 
 echo "Writing in Node.js..."
-cd "$DIR" && npm install > /dev/null 2>&1
 OBJ_UUID2=$(node "$DIR/write_nodejs.js" "$DB2" "$PASSPHRASE")
 
 echo "Reading in Python..."
@@ -45,8 +51,6 @@ fi
 
 if [ $FAILED -eq 0 ]; then
     echo "All roundtrip tests passed!"
-fi
-rm -f "$DB1" "$DB2"
-if [ $FAILED -ne 0 ]; then
+else
     exit 1
 fi

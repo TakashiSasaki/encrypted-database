@@ -391,7 +391,7 @@ CREATE TABLE wrapped_key_tbl (
     wrap_alg TEXT NOT NULL,
     nonce BLOB NOT NULL,
     wrapped_key BLOB NOT NULL,
-    aad_context_json TEXT NOT NULL CHECK (json_valid(aad_context_json)),
+    aad_policy TEXT NOT NULL,
     created_at_ms INTEGER NOT NULL,
     PRIMARY KEY (wrapped_kid, wrapping_kid),
     FOREIGN KEY (wrapped_kid) REFERENCES key_tbl(kid),
@@ -408,7 +408,7 @@ INSERT INTO wrapped_key_tbl (
     wrap_alg,
     nonce,
     wrapped_key,
-    aad_context_json,
+    aad_policy,
     created_at_ms
 ) VALUES
 (
@@ -417,7 +417,7 @@ INSERT INTO wrapped_key_tbl (
     'A256GCM',
     X'8F2A1C7D3E4B901122334455',
     X'F4B62A8C99D0E1A23C44556677889900AABBCCDDEEFF00112233445566778899A1B2C3D4E5F60718293A4B5C6D7E8F90',
-    '{"v":1,"aad_policy":"wrap-database-key-v1","wrapped_kid":"dbk-01972f2e-4b51-7a11-8a2f-8a4f0db0a101","wrapping_kid":"ulk-passphrase-argon2id-01"}',
+    'wrap-database-key-v1',
     1778947203000
 );
 ```
@@ -1284,15 +1284,6 @@ payload 暗号化 test vector は、最低限以下のフィールドを含む�
   },
   "nonce": "base64url-no-padding-12-bytes",
   "aad_policy": "record-payload-v1",
-  "aad_context_json": {
-    "v": 1,
-    "aad_policy": "record-payload-v1",
-    "object_uuid": "...",
-    "schema_uuid": "...",
-    "content_type": "application/json; profile=\"https://example.invalid/schema/login-v1\"",
-    "kid": "550e8400-e29b-41d4-a716-446655440000",
-    "alg": "A256GCM"
-  },
   "canonical_aad_hex": "...",
   "ciphertext_and_tag": "base64url-no-padding",
   "envelope": {

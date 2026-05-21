@@ -29,14 +29,42 @@ describe('Storage Lifecycle Browser', () => {
         expect(storage.getStatus()).toBe('open_unlocked');
         expect(storage.isUnlocked()).toBe(true);
 
+        // Store a payload to verify the database operations work fully with the new schema (no aad_context_json column)
+        const schemaUuid = '00000000-0000-4000-8000-000000000001';
+        const testPayload = { message: "hello browser" };
+        const objectId = storage.storePayload(schemaUuid, 'application/json', testPayload);
+        expect(objectId).toBeDefined();
+
+        // Retrieve before lock
+        const retrievedBeforeLock = storage.retrievePayload(objectId);
+        expect(retrievedBeforeLock).toEqual(testPayload);
+
         // 6. Lock
         storage.lock();
         expect(storage.getStatus()).toBe('open_locked');
         expect(storage.isUnlocked()).toBe(false);
 
+        // Retrieve fails when locked
+        expect(() => storage.retrievePayload(objectId)).toThrow(errors.StorageLocked);
+
         // 7. Unlock
         await storage.unlockDatabase('pass');
         expect(storage.getStatus()).toBe('open_unlocked');
+
+        // Retrieve succeeds after unlock, meaning key-wrap AAD was correctly built on the fly from wrapped_kid and wrapping_kid
+        const retrievedAfterUnlock = storage.retrievePayload(objectId);
+        expect(retrievedAfterUnlock).toEqual(testPayload);
+
+        // Verify there is no aad_context_json column in wrapped_key_tbl
+        const stmt = storage.db.prepare("PRAGMA table_info(wrapped_key_tbl)");
+        let hasAadContextJson = false;
+        while(stmt.step()) {
+            if (stmt.get()[1] === 'aad_context_json') {
+                hasAadContextJson = true;
+            }
+        }
+        stmt.free();
+        expect(hasAadContextJson).toBe(false);
 
         // 8. Close
         storage.close();
