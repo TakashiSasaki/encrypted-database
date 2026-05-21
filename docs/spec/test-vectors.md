@@ -34,9 +34,11 @@ UUIDv4 generation must output the standard lowercase hyphen-separated format (e.
 
 ### Key Derivation (KDF) Test Vectors
 
-A cross-language machine-readable test vector for Argon2id is available in `test-vectors/kdf/argon2id-v1.json`. This tests the standard Profile V1 (`memory_kib=65536, iterations=3, parallelism=1, salt_bytes=16, output_bytes=32`) against a fixed passphrase and salt to ensure byte-for-byte equivalence across Python, Node.js, and browser environments.
+A cross-language machine-readable test vector for Argon2id is available in `test-vectors/kdf/argon2id-v1.json`. This tests the standard Profile V1 (`memory_kib=65536, iterations=3, parallelism=1, salt_bytes=16, output_bytes=32`) against a fixed passphrase and salt to ensure byte-for-byte equivalence across Python, Node.js, and browser environments. These KDF vectors have been implemented and verified in the automated tests for Python, Node.js, and browser-test environments.
 
-### AEAD Test Vectors
+Note that the KDF test vectors do not replace the SQLite roundtrip interoperability tests. The roundtrip test asserts high-level semantic interoperability between different language implementations, while the KDF test vector is a strict byte-level primitive equivalence test.
+
+### AEAD, Key-Wrap, and Payload Encryption Test Vectors
 
 While AES-GCM nonces are randomly generated, deterministic tests should be implemented by allowing test environments to inject fixed nonces. This allows cross-language verification that:
 1. AES-GCM generates identical ciphertext and tag given the same plaintext, key, nonce, and AAD bytes.

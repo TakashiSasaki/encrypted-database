@@ -22,6 +22,13 @@ describe('Argon2id Profile V1', () => {
         expect(config.parallelism).toBe(1);
         expect(config.salt).toBeDefined();
 
+        const saltBuffer = Buffer.from(config.salt, 'base64url');
+        expect(saltBuffer.length).toBe(16);
+
+        const providerConfigStr = Buffer.from(row.provider_config_json).toString('utf8');
+        const canonicalConfigStr = cryptoUtils.canonicalizeJson(config).toString('utf8');
+        expect(providerConfigStr).toBe(canonicalConfigStr);
+
         stmt.free();
         storage.close();
     });

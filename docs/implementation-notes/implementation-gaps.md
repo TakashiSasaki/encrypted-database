@@ -8,10 +8,10 @@ This document tracks known discrepancies and gaps between the current specificat
 
 **Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** JCS canonicalization and AAD vectors (both positive schema-valid UUIDs and negative validations) are fully implemented and verified via shared cross-language test suites in `test-vectors/jcs` and `test-vectors/aad`. The `aad_context_json` column was also historically removed to resolve redundancy bugs. We also have a KDF vector (`test-vectors/kdf/argon2id-v1.json`) for the standardized Argon2id profile. However, there are no machine-readable test vectors for AES-GCM, fixed nonce, and fixed salt operations.
+**Current state:** JCS canonicalization and AAD vectors (both positive schema-valid UUIDs and negative validations) are fully implemented and verified via shared cross-language test suites in `test-vectors/jcs` and `test-vectors/aad`. The `aad_context_json` column was also historically removed to resolve redundancy bugs. We have a KDF vector (`test-vectors/kdf/argon2id-v1.json`) for the standardized Argon2id profile, which is successfully implemented and verified across Python, Node.js, and browser-test environments. However, there are no machine-readable test vectors for AES-GCM, key-wrap, and payload encryption operations.
 **Expected or intended state:** A comprehensive suite of cross-language test vectors ensuring byte-for-byte equivalence for all cryptographic and key-derivation operations.
 **Why it matters:** Without shared test vectors, implementations might subtly diverge in cryptographic implementations, resulting in data that cannot be decrypted across platforms.
-**Recommended next action:** Generate and commit additional JSON datasets for AEAD, key-wrap, and payload encryption operations.
+**Recommended next action:** Generate and commit additional JSON datasets for AES-GCM, key-wrap, and payload encryption operations.
 
 ### 2. JWE/JOSE compatibility is not implemented
 

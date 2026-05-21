@@ -29,6 +29,17 @@ def test_initialization_saves_correct_profile(temp_db):
     assert config["iterations"] == 3
     assert config["parallelism"] == 1
     assert "salt" in config
+    import base64
+    salt_str = config["salt"]
+    padding_needed = 4 - (len(salt_str) % 4)
+    if padding_needed and padding_needed != 4:
+        salt_str += "=" * padding_needed
+    salt_bytes = base64.urlsafe_b64decode(salt_str.encode('utf-8'))
+    assert len(salt_bytes) == 16
+
+    # Verify canonical JSON
+    canonical = crypto.canonicalize_json(config).decode('utf-8')
+    assert config_json == canonical
 
     storage.close()
 
