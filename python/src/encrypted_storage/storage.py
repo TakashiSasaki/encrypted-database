@@ -3,11 +3,14 @@ import time
 import uuid
 import json
 import base64
+import re
 from pathlib import Path
 
 from . import aad_policy, crypto, errors
 
 class EncryptedStorage:
+    _UUID_PATTERN = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')
+
     def __init__(self, db_path: str):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
@@ -53,8 +56,32 @@ class EncryptedStorage:
         if not cur.fetchone():
             raise errors.UnsupportedPlatform(f"Unsupported platform: {platform}")
 
+    def _validate_uuid(self, value: str, field_name: str):
+        if not isinstance(value, str) or not self._UUID_PATTERN.match(value):
+            raise errors.InvalidUuid(f"Invalid {field_name}: must be a canonical lowercase hyphenated UUID")
+
+    def _validate_content_type(self, value: str):
+        if not isinstance(value, str) or not value.strip():
+            raise errors.InvalidContentType("Content type must be a non-empty string")
+        if any(ord(c) < 32 or ord(c) == 127 for c in value):
+            raise errors.InvalidContentType("Content type must not contain control characters")
+        if '/' not in value:
+            raise errors.InvalidContentType("Content type must be a basic type/subtype format")
+
+    def _validate_payload(self, value: dict):
+        if not isinstance(value, dict):
+            raise errors.InvalidPayload("Payload must be a dictionary/JSON object")
+
+    def _validate_passphrase(self, value: str):
+        if not isinstance(value, str):
+            raise errors.UnlockFailed("Passphrase must be a string")
+
     def initialize_database(self, passphrase: str, platform: str):
         """Initializes a new database with a new database_kek wrapped by a new unlock_kek."""
+        self._validate_passphrase(passphrase)
+        if not isinstance(platform, str):
+            raise errors.UnsupportedPlatform("Platform must be a string")
+
         if self._is_closed:
             raise errors.StorageClosed("Storage is closed")
         if self.is_unlocked():
@@ -138,6 +165,7 @@ class EncryptedStorage:
 
     def unlock_database(self, passphrase: str):
         """Unlocks the database by retrieving and unwrapping the database_kek."""
+        self._validate_passphrase(passphrase)
         if self._is_closed:
             raise errors.StorageClosed("Storage is closed")
         if not self.conn:
@@ -201,6 +229,10 @@ class EncryptedStorage:
 
     def store_payload(self, schema_uuid: str, content_type: str, payload: dict) -> str:
         """Encrypts and stores a JSON payload."""
+        self._validate_uuid(schema_uuid, "schema_uuid")
+        self._validate_content_type(content_type)
+        self._validate_payload(payload)
+
         if self._is_closed:
             raise errors.StorageClosed("Storage is closed")
         if not self.active_db_kek:
@@ -268,6 +300,8 @@ class EncryptedStorage:
 
     def retrieve_payload(self, object_uuid: str) -> dict:
         """Retrieves and decrypts a payload."""
+        self._validate_uuid(object_uuid, "object_uuid")
+
         if self._is_closed:
             raise errors.StorageClosed("Storage is closed")
         if not self.active_db_kek:

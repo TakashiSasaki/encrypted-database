@@ -22,7 +22,7 @@ describe('Storage Lifecycle Browser', () => {
         storage.lock();
 
         // 4. Store should fail
-        expect(() => storage.storePayload('schema', 'type', {})).toThrow(errors.StorageLocked);
+        expect(() => storage.storePayload('11111111-1111-4111-8111-111111111111', 'application/json', {})).toThrow(errors.StorageLocked);
 
         // 5. Initialize
         await storage.initializeDatabase('pass', 'web');
@@ -108,7 +108,7 @@ describe('Storage Lifecycle Browser', () => {
         const storage = new EncryptedStorage();
         await storage.init();
         await storage.initializeDatabase('pass', 'web');
-        expect(() => storage.retrievePayload('00000000-0000-0000-0000-000000000000')).toThrow(errors.ObjectNotFound);
+        expect(() => storage.retrievePayload('00000000-0000-4000-8000-000000000000')).toThrow(errors.ObjectNotFound);
         storage.close();
     });
 

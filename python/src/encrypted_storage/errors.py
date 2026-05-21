@@ -29,6 +29,9 @@ class InvalidUuid(StorageError):
 class InvalidContentType(StorageError):
     pass
 
+class InvalidPayload(StorageError):
+    pass
+
 class IntegrityCheckFailed(StorageError):
     pass
 

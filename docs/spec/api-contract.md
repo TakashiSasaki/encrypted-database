@@ -58,11 +58,22 @@ All implementations must expose the following state helpers:
 - `is_closed()` / `isClosed()` -> `boolean`
 - `get_status()` / `getStatus()` -> `string` (returns `"uninitialized"`, `"open_locked"`, `"open_unlocked"`, or `"closed"`)
 
+## Input Validation
+
+All implementations must strictly validate inputs at the public API boundary before executing backend operations. Relying solely on the SQLite constraints and failing late with generic errors is prohibited.
+
+*   **`schema_uuid` / `object_uuid`**: Must be a string strictly matching the lowercase hyphenated canonical UUID format. Implementations should either automatically normalize non-canonical UUIDs, or throw `InvalidUuid`. The current specification requires rejecting non-canonical inputs (e.g. uppercase, missing hyphens) by throwing `InvalidUuid`. Note that the semantic meaning of the UUID registry is not validated at this boundary.
+*   **`content_type`**: Must be a string representing a basic `type/subtype` format. It must not be empty and must not contain control characters. Violations throw `InvalidContentType`. More advanced MIME type parsing may be added in the future.
+*   **`payload`**: Must be a plain JSON object (dictionary). Arrays, nulls, primitives, or raw byte buffers are strictly rejected by throwing `InvalidPayload`. This guarantees semantic consistency.
+*   **`platform`**: Must be a supported platform identifier string. Violations throw `UnsupportedPlatform`.
+*   **`passphrase`**: Must be a string. Empty strings are permitted. If an invalid type is provided, implementations should throw an appropriate stable typed error.
+
 ## Error Taxonomy
 
 Implementations must expose specific error types to provide programmatic error handling without parsing message strings.
 
 - `StorageError`: Base error class for all storage errors.
+- `InvalidPayload`: The provided payload was not a valid dictionary/object.
 - `StorageClosed`: Action attempted on a closed database.
 - `StorageLocked`: Action attempted without an active unlocked KEK.
 - `StorageNotInitialized`: Action attempted before the database was initialized.

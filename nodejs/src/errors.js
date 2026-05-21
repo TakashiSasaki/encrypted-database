@@ -15,6 +15,7 @@ class ObjectNotFound extends StorageError {}
 class UnsupportedPlatform extends StorageError {}
 class InvalidUuid extends StorageError {}
 class InvalidContentType extends StorageError {}
+class InvalidPayload extends StorageError {}
 class IntegrityCheckFailed extends StorageError {}
 class CryptoOperationFailed extends StorageError {}
 class DatabaseBackendError extends StorageError {}
@@ -31,6 +32,7 @@ module.exports = {
     UnsupportedPlatform,
     InvalidUuid,
     InvalidContentType,
+    InvalidPayload,
     IntegrityCheckFailed,
     CryptoOperationFailed,
     DatabaseBackendError,
