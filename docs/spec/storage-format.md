@@ -83,9 +83,9 @@ Unlock providers govern the derivation or retrieval of the `unlock_kek`. The pri
       "output_bytes": 32
     }
     ```
-    *   `salt` MUST be a base64url encoded string.
+    *   `salt` MUST be a base64url encoded string (without padding).
 *   **Argon2id Profile V1 Immutable Definition**: The `argon2id-profile-v1` defines immutable parameters (`memory_kib=65536`, `iterations=3`, `parallelism=1`, `salt_bytes=16`, `output_bytes=32`). Implementations MUST use these exact parameters for new database initialization.
-*   **Unlock Validation**: Unlock operations dynamically read parameters from `provider_config_json`. If the explicit parameters contradict the immutable definition of `profile="argon2id-profile-v1"`, the database is considered invalid and unlock MUST be rejected.
+*   **Unlock Validation**: Unlock operations dynamically read parameters from `provider_config_json`. If the explicit parameters contradict the immutable definition of `profile="argon2id-profile-v1"`, or if the decoded length of the `salt` does not exactly match `salt_bytes` (16 bytes), the database is considered invalid and unlock MUST be rejected.
 
 ## 8. AEAD Envelope Layout
 All encrypted data (both keys and payloads) utilizes an invariant Authenticated Encryption with Associated Data (AEAD) layout.
