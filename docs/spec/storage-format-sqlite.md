@@ -57,7 +57,7 @@ This profile strictly divides the enforcement of rules between the SQLite engine
 
 ### 8.1 SQLite Enforced Constraints
 The database schema actively enforces the following using `NOT NULL`, `PRIMARY KEY`, `FOREIGN KEY`, and `CHECK` constraints:
-*   **UUID Formatting**: All `UUID` columns (`kid`, `wrap_id`, `object_uuid`, `schema_uuid`) use `GLOB '[0-9a-f]{8}-...'` checks to ensure v1-v8 canonical formatting.
+*   **UUID Formatting**: All `UUID` columns (`kid`, `wrap_id`, `object_uuid`, `schema_uuid`) use SQLite `GLOB` checks written with repeated `[0-9a-f]` character classes (rather than `{8}`-style repetition), including explicit UUID version and variant nibble constraints, to ensure canonical formatting as defined in `docs/backend/sqlite/schema.sql`.
 *   **Key Relationships**: `FOREIGN KEY` constraints ensure a `wrapped_key_tbl` cannot reference non-existent keys.
 *   **Enumerations**: `CHECK(status IN ('active', ...))` and similar constraints enforce finite state machines for keys and envelopes.
 *   **Static Invariants**: `envelope_v = 1`, `envelope_type = 'key_wrap'`, etc., are locked via `CHECK` constraints.
