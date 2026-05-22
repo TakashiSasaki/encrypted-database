@@ -113,21 +113,22 @@ CREATE TABLE IF NOT EXISTS storage_metadata_tbl (
 ```
 
 **Cryptographic & Length Invariants**:
+
+To apply the proposed constraints, the existing tables in `schema.sql` would be modified to include the following table-level or column-level constraints:
+
 ```sql
--- wrapped_key_tbl.nonce and encrypted_object_tbl.nonce
-CHECK(length(nonce) = 12)
+-- To be added to: CREATE TABLE wrapped_key_tbl (...)
+    -- ... existing columns ...
+    -- nonce BLOB NOT NULL CHECK(length(nonce) = 12),
+    -- wrapped_key BLOB NOT NULL CHECK(length(wrapped_key) >= 16),
+    -- Note: Current AES-GCM output is 32-byte key + 16-byte tag = 48 bytes.
+    -- However, we only enforce >= 16 bytes to avoid fixing algorithm-dependent length too rigidly in the schema.
 
--- wrapped_key_tbl.wrapped_key
--- Note: Current AES-GCM output is 32-byte key + 16-byte tag = 48 bytes.
--- However, we only enforce >= 16 bytes to avoid fixing algorithm-dependent length too rigidly in the schema.
-CHECK(length(wrapped_key) >= 16)
-
--- encrypted_object_tbl.ciphertext
-CHECK(length(ciphertext) >= 16)
-
--- encrypted_object_tbl.content_type
--- Ensures MIME-like strings are not empty and contain a slash.
-CHECK(length(content_type) > 0 AND instr(content_type, '/') > 1)
+-- To be added to: CREATE TABLE encrypted_object_tbl (...)
+    -- ... existing columns ...
+    -- nonce BLOB NOT NULL CHECK(length(nonce) = 12),
+    -- ciphertext BLOB NOT NULL CHECK(length(ciphertext) >= 16),
+    -- content_type TEXT NOT NULL CHECK(length(content_type) > 0 AND instr(content_type, '/') > 1),
 ```
 
 ## 16. Known SQLite Profile Gaps
