@@ -13,6 +13,7 @@ __all__ = [
     "UnsupportedPlatform",
     "InvalidUuid",
     "InvalidContentType",
+    "InvalidPayload",
     "IntegrityCheckFailed",
     "CryptoOperationFailed",
     "DatabaseBackendError",
