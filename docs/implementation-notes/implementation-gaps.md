@@ -86,8 +86,8 @@ This document tracks known discrepancies and gaps between the current specificat
 **Area:** Implementation
 **Current state:** Python, Node.js, and browser-test implementations exist. Go and Rust implementations are planned to prove the portability of the storage format but do not yet exist. (Note: These are not V1-blocking for the Python/JS core).
 **Expected or intended state:** Native Go and Rust packages exist and pass all cross-language test vectors.
-**Why it matters:** The storage format core is designed for multi-language support. Proving it in strictly-typed, compiled languages (Go/Rust) is crucial for V1 stabilization.
-**Recommended next action:** Create initial scaffolding for the Go module and Rust crate.
+**Why it matters:** The storage format core is designed for multi-language support. While proving it in strictly-typed, compiled languages (Go/Rust) provides strong confidence, it is not strictly required for declaring the V1 specification stable.
+**Recommended next action:** Create initial scaffolding for the Go module and Rust crate as future enhancements.
 
 ### 10. Roundtrip matrix does not yet include Go/Rust
 
