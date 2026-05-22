@@ -100,7 +100,7 @@ def test_unlock_ignores_no_provider(temp_db):
         storage.unlock_database("pass")
     storage.close()
 
-def test_unlock_fails_if_no_db_kek(temp_db):
+def test_unlock_fails_on_empty_db(temp_db):
     storage = EncryptedStorage(temp_db)
     try:
         with pytest.raises(errors.InvalidStorageFormat):

@@ -120,9 +120,9 @@ describe('EncryptedStorage', () => {
         await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.UnlockFailed);
     });
 
-    test('unlockDatabase fails if no active db kek', async () => {
+    test('unlockDatabase fails on empty or uninitialized database', async () => {
         const storage = new EncryptedStorage(tempDbPath);
-        // Create an empty db, without calling initializeDatabase
+        // Database lacks proper v1 schema and metadata, unlocking should fail early
         await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.InvalidStorageFormat);
     });
 
