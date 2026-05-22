@@ -123,7 +123,7 @@ describe('EncryptedStorage', () => {
     test('unlockDatabase fails if no active db kek', async () => {
         const storage = new EncryptedStorage(tempDbPath);
         // Create an empty db, without calling initializeDatabase
-        await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.StorageNotInitialized);
+        await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.InvalidStorageFormat);
     });
 
     test('AAD mutation causes decryption failure', async () => {

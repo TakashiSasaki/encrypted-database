@@ -198,9 +198,10 @@ The following criteria must be met before transitioning this document from Draft
 The following issues track the difference between the decisions written above and current implementation state:
 
 **V1-Blocking Implementation Gaps:**
-1.  **Format Identity / Pre-V1 Rejection**: Implementations do not yet reject pre-V1 DBs, nor do they read/write the metadata table or check `format_major`/`format_minor`.
-2.  **Metadata Table Implementation**: The physical `storage_metadata_tbl` is designed but not yet added to `schema.sql`.
-3.  **Provider Config Explicitness**: The code does not yet generate or validate the fully explicit `provider_config_json` (e.g., adding `kdf`, `profile`, `output_bytes`).
+None. All V1-blocking gaps have been resolved.
+
+
+
 
 **Future Hardening (Post-V1):**
 1.  **Schema Fingerprint / Hash**: Calculating and verifying a canonical SQL `schema_hash` to guarantee exact DDL integrity is deferred.

@@ -103,13 +103,14 @@ def test_unlock_ignores_no_provider(temp_db):
 def test_unlock_fails_if_no_db_kek(temp_db):
     storage = EncryptedStorage(temp_db)
     try:
-        with pytest.raises(errors.StorageNotInitialized):
+        with pytest.raises(errors.InvalidStorageFormat):
             storage.unlock_database("pass")
     finally:
         storage.close()
 
 def test_initialize_database_rollback(temp_db):
     storage = EncryptedStorage(temp_db)
+    storage._bootstrap_schema()
 
     # Drop table to force insert error
     storage.conn.execute("DROP TABLE wrapped_key_tbl")

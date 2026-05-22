@@ -18,9 +18,7 @@ describe('EncryptedStorage', () => {
         storage.close();
 
         const storage2 = new EncryptedStorage();
-        await storage2.init(); // Init creates a blank db. Let's overwrite it.
-        const SQL = await require('sql.js/dist/sql-wasm.js')();
-        storage2.db = new SQL.Database(dbData); // Overwrite with saved data
+        await storage2.init(dbData);
 
         await expect(storage2.unlockDatabase('wrong_password')).rejects.toThrow(errors.UnlockFailed);
 
@@ -66,7 +64,7 @@ describe('EncryptedStorage', () => {
     test('unlockDatabase fails if no db kek', async () => {
         const storage = new EncryptedStorage();
         await storage.init();
-        await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.StorageNotInitialized);
+        await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.InvalidStorageFormat);
     });
 
     test('unlockDatabase ignores unknown aad policy', async () => {

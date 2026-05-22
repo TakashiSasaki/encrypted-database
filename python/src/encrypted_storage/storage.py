@@ -16,16 +16,17 @@ class EncryptedStorage:
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
         self.conn.execute("PRAGMA foreign_keys = ON")
-        self._init_db()
         self.active_db_kek = None
         self.active_db_kid = None
         self._is_closed = False
 
-    def _init_db(self):
+    def _bootstrap_schema(self):
         schema_path = Path(__file__).parent.parent.parent.parent / "docs" / "backend" / "sqlite" / "schema.sql"
         with open(schema_path, "r", encoding="utf-8") as f:
             schema_sql = f.read()
         self.conn.executescript(schema_sql)
+        self.conn.execute("PRAGMA application_id = 1447906135")
+        self.conn.execute("PRAGMA user_version = 1")
         self.conn.commit()
 
     def _generate_kid(self) -> str:
@@ -126,6 +127,11 @@ class EncryptedStorage:
                 raise errors.StorageAlreadyInitialized("Storage is already initialized")
         except sqlite3.OperationalError:
             pass
+        cur = self.conn.cursor()
+        cur.execute("SELECT 1 FROM sqlite_master WHERE type='table'")
+        if not cur.fetchone():
+            self._bootstrap_schema()
+
         self._validate_platform(platform)
 
         db_kek_bytes = crypto.generate_random_bytes(32)
@@ -142,10 +148,13 @@ class EncryptedStorage:
         unlock_kid = self._generate_kid()
 
         provider_config = {
+            "kdf": "argon2id",
+            "profile": "argon2id-profile-v1",
             "salt": self._b64e(salt),
             "memory_kib": memory_cost,
             "iterations": time_cost,
-            "parallelism": parallelism
+            "parallelism": parallelism,
+            "output_bytes": output_bytes
         }
 
         # Wrap database KEK with unlock KEK. The library selects the AAD policy
@@ -167,6 +176,24 @@ class EncryptedStorage:
         cur = self.conn.cursor()
         cur.execute("BEGIN TRANSACTION")
         try:
+            db_uuid = str(uuid.uuid4())
+            metadata = {
+                "storage_format_id": "vault.moukaeritai.work.storage",
+                "format_major": "1",
+                "format_minor": "0",
+                "schema_version": "1",
+                "database_uuid": db_uuid,
+                "created_at_ms": str(self._current_ms()),
+                "created_by_library": "python",
+                "created_by_version": "0.0.0-dev",
+                "sqlite_application_id": "1447906135",
+                "sqlite_user_version": "1",
+                "required_features": crypto.canonicalize_json([]).decode("utf-8"),
+                "optional_features": crypto.canonicalize_json([]).decode("utf-8")
+            }
+            for prop, val in metadata.items():
+                cur.execute("INSERT INTO storage_metadata_tbl (property, value) VALUES (?, ?)", (prop, val))
+
             # Save db_kek info
             cur.execute(
                 "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)",
@@ -208,6 +235,75 @@ class EncryptedStorage:
             raise errors.StorageNotInitialized("Database not initialized")
         cur = self.conn.cursor()
 
+        # Check if database is initialized by looking for the kek table or metadata table first
+        try:
+            cur.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'")
+            if not cur.fetchone():
+                raise errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)")
+        except sqlite3.Error as e:
+            raise errors.DatabaseBackendError(f"Database error during check: {e}") from e
+
+        # Validate PRAGMA application_id and user_version
+        try:
+            cur.execute("PRAGMA application_id")
+            app_id = cur.fetchone()[0]
+            if str(app_id) != "1447906135":
+                raise errors.InvalidStorageFormat(f"Invalid PRAGMA application_id: {app_id}")
+
+            cur.execute("PRAGMA user_version")
+            user_version = cur.fetchone()[0]
+        except sqlite3.Error as e:
+            raise errors.DatabaseBackendError(f"Database error during PRAGMA check: {e}") from e
+
+        # Validate storage_metadata_tbl
+        try:
+            cur.execute("SELECT property, value FROM storage_metadata_tbl")
+            metadata_rows = cur.fetchall()
+            if not metadata_rows:
+                raise errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)")
+            metadata = {k: v for k, v in metadata_rows}
+        except sqlite3.Error as e:
+            if "no such table" in str(e):
+                raise errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)")
+            raise errors.DatabaseBackendError(f"Database error during metadata read: {e}") from e
+
+        required_props = [
+            "storage_format_id", "format_major", "format_minor", "schema_version",
+            "database_uuid", "sqlite_application_id", "sqlite_user_version",
+            "required_features", "optional_features"
+        ]
+        for prop in required_props:
+            if prop not in metadata:
+                raise errors.InvalidStorageFormat(f"Missing metadata property: {prop}")
+
+        if metadata["storage_format_id"] != "vault.moukaeritai.work.storage":
+            raise errors.InvalidStorageFormat("Invalid storage_format_id")
+        if metadata["format_major"] != "1":
+            raise errors.InvalidStorageFormat("Invalid format_major")
+        if metadata["format_minor"] != "0":
+            raise errors.InvalidStorageFormat("Invalid format_minor")
+        if metadata["schema_version"] != "1":
+            raise errors.InvalidStorageFormat("Invalid schema_version")
+        if metadata["sqlite_application_id"] != "1447906135":
+            raise errors.InvalidStorageFormat("Invalid metadata sqlite_application_id")
+        if metadata["sqlite_user_version"] != "1":
+            raise errors.InvalidStorageFormat("Invalid metadata sqlite_user_version")
+        if str(user_version) != "1":
+            raise errors.InvalidStorageFormat("PRAGMA user_version and metadata contradiction")
+
+        if not self._UUID_PATTERN.match(metadata["database_uuid"]):
+            raise errors.InvalidStorageFormat("Invalid canonical database_uuid")
+
+        try:
+            req_feat = json.loads(metadata["required_features"])
+            if not isinstance(req_feat, list) or len(req_feat) > 0:
+                raise errors.InvalidStorageFormat("Unknown required features found")
+            opt_feat = json.loads(metadata["optional_features"])
+            if not isinstance(opt_feat, list) or len(opt_feat) > 0:
+                raise errors.InvalidStorageFormat("Unknown optional features found")
+        except Exception:
+            raise errors.InvalidStorageFormat("Features are not valid JCS canonical JSON arrays")
+
         try:
             # Find active database KEK
             cur.execute("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' AND status = 'active' LIMIT 1")
@@ -236,8 +332,21 @@ class EncryptedStorage:
                 raise errors.DatabaseBackendError(f"Database error during unlock configuration retrieval: {e}") from e
 
             if prov_row and prov_row[0] == 'passphrase_argon2id':
-                config = json.loads(prov_row[1])
+                try:
+                    config = json.loads(prov_row[1])
+                except Exception:
+                    raise errors.InvalidStorageFormat("provider_config_json is not valid JSON")
+
+                if config.get("profile") == "argon2id-profile-v1":
+                    if config.get("kdf") != "argon2id" or config.get("memory_kib") != 65536 or \
+                       config.get("iterations") != 3 or config.get("parallelism") != 1 or \
+                       config.get("output_bytes") != 32:
+                        raise errors.InvalidStorageFormat("provider_config_json explicit parameters mismatch argon2id-profile-v1")
+
                 salt = self._b64d(config['salt'])
+                if len(salt) != 16:
+                    raise errors.InvalidStorageFormat("decoded salt length is not 16 bytes")
+
                 try:
                     unlock_kek_bytes = crypto.derive_kek_argon2id(
                         passphrase, salt, 32, config['iterations'], config['memory_kib'], config['parallelism']

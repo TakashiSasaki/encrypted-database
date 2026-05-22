@@ -18,6 +18,9 @@ class StorageNotInitialized(StorageError):
 class StorageAlreadyInitialized(StorageError):
     pass
 
+class InvalidStorageFormat(StorageError):
+    pass
+
 class UnlockFailed(StorageError):
     pass
 

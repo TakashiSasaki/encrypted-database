@@ -17,6 +17,7 @@ class StorageClosed extends StorageError {}
 class StorageLocked extends StorageError {}
 class StorageNotInitialized extends StorageError {}
 class StorageAlreadyInitialized extends StorageError {}
+class InvalidStorageFormat extends StorageError {}
 class UnlockFailed extends StorageError {}
 class ObjectNotFound extends StorageError {}
 class UnsupportedPlatform extends StorageError {}
@@ -34,6 +35,7 @@ module.exports = {
     StorageLocked,
     StorageNotInitialized,
     StorageAlreadyInitialized,
+    InvalidStorageFormat,
     UnlockFailed,
     ObjectNotFound,
     UnsupportedPlatform,
