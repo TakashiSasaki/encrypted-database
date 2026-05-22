@@ -25,7 +25,7 @@ An SQLite database file implementing this profile should be identifiable both ex
 To ensure security, data integrity, and cross-platform compatibility, implementations interacting with the SQLite profile MUST execute specific PRAGMAs upon connection:
 *   `PRAGMA foreign_keys = ON;` (Mandatory: Validates relationships like `wrapped_kid` referencing `kid`).
 *   `PRAGMA journal_mode = WAL;` (Recommended: For concurrency and crash resilience, though environments like `sql.js` in the browser may differ).
-*   `PRAGMA strict = ON;` (Candidate: Consideration for SQLite STRICT tables, but requires SQLite >= 3.37.0).
+*   SQLite `STRICT` tables are a candidate schema feature for stronger type enforcement, enabled per table via `CREATE TABLE ... STRICT` rather than by PRAGMA, and require SQLite >= 3.37.0.
 
 ## 5. Canonical Schema Source
 The definitive, unversioned schema for the current pre-v1 state is located at `docs/backend/sqlite/schema.sql`.
