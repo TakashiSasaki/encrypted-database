@@ -1,3 +1,8 @@
+CREATE TABLE IF NOT EXISTS storage_metadata_tbl (
+    property TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS key_class_tbl (
     key_class TEXT PRIMARY KEY,
     description TEXT NOT NULL,
@@ -52,8 +57,8 @@ CREATE TABLE IF NOT EXISTS wrapped_key_tbl (
     envelope_v INTEGER NOT NULL CHECK (envelope_v = 1),
     envelope_type TEXT NOT NULL CHECK (envelope_type = 'key_wrap'),
     wrap_alg TEXT NOT NULL,
-    nonce BLOB NOT NULL,
-    wrapped_key BLOB NOT NULL,
+    nonce BLOB NOT NULL CHECK(length(nonce) = 12),
+    wrapped_key BLOB NOT NULL CHECK(length(wrapped_key) >= 16),
     aad_policy TEXT NOT NULL,
     created_at_ms INTEGER NOT NULL,
     FOREIGN KEY (wrapped_kid) REFERENCES key_tbl(kid),
@@ -65,11 +70,11 @@ CREATE TABLE IF NOT EXISTS encrypted_object_tbl (
     envelope_v INTEGER NOT NULL CHECK (envelope_v = 1),
     envelope_type TEXT NOT NULL CHECK (envelope_type = 'aead'),
     schema_uuid TEXT NOT NULL CHECK (schema_uuid GLOB '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[1-8][0-9a-f][0-9a-f][0-9a-f]-[89ab][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
-    content_type TEXT NOT NULL,
+    content_type TEXT NOT NULL CHECK(length(content_type) > 0 AND instr(content_type, '/') > 1),
     alg TEXT NOT NULL,
     kid TEXT NOT NULL CHECK (kid GLOB '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[1-8][0-9a-f][0-9a-f][0-9a-f]-[89ab][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
-    nonce BLOB NOT NULL,
-    ciphertext BLOB NOT NULL,
+    nonce BLOB NOT NULL CHECK(length(nonce) = 12),
+    ciphertext BLOB NOT NULL CHECK(length(ciphertext) >= 16),
     aad_policy TEXT NOT NULL,
     created_at_ms INTEGER NOT NULL,
     updated_at_ms INTEGER NOT NULL,

@@ -8,6 +8,7 @@ __all__ = [
     "StorageLocked",
     "StorageNotInitialized",
     "StorageAlreadyInitialized",
+    "InvalidStorageFormat",
     "UnlockFailed",
     "ObjectNotFound",
     "UnsupportedPlatform",

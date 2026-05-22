@@ -18,9 +18,9 @@ describe('Provider Config Canonicalization Browser', () => {
         expect(jsonStr).not.toMatch(/,\s/);
 
         // Keys should be ordered lexicographically
-        // "iterations", "memory_kib", "parallelism", "salt"
+        // "iterations", "kdf", "memory_kib", "output_bytes", "parallelism", "profile", "salt"
         const parsed = JSON.parse(jsonStr);
-        expect(Object.keys(parsed)).toEqual(["iterations", "memory_kib", "parallelism", "salt"]);
+        expect(Object.keys(parsed)).toEqual(["iterations", "kdf", "memory_kib", "output_bytes", "parallelism", "profile", "salt"]);
 
         // A canonicalized JSON string must exactly match this format:
         const expectedPrefix = '{"iterations":';

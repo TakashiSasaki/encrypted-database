@@ -100,16 +100,17 @@ def test_unlock_ignores_no_provider(temp_db):
         storage.unlock_database("pass")
     storage.close()
 
-def test_unlock_fails_if_no_db_kek(temp_db):
+def test_unlock_fails_on_empty_db(temp_db):
     storage = EncryptedStorage(temp_db)
     try:
-        with pytest.raises(errors.StorageNotInitialized):
+        with pytest.raises(errors.InvalidStorageFormat):
             storage.unlock_database("pass")
     finally:
         storage.close()
 
 def test_initialize_database_rollback(temp_db):
     storage = EncryptedStorage(temp_db)
+    storage._bootstrap_schema()
 
     # Drop table to force insert error
     storage.conn.execute("DROP TABLE wrapped_key_tbl")
@@ -161,3 +162,15 @@ def test_aad_mutation_causes_decryption_failure(temp_db):
     # Attempt to retrieve, which should fail during AEAD decryption due to tag mismatch
     with pytest.raises(InvalidTag):
         storage.retrieve_payload(object_uuid)
+
+def test_initialize_fails_on_wrong_db(temp_db):
+    import sqlite3
+    conn = sqlite3.connect(temp_db)
+    conn.execute("CREATE TABLE random_tbl (id INTEGER)")
+    conn.commit()
+    conn.close()
+
+    storage = EncryptedStorage(temp_db)
+    with pytest.raises(errors.InvalidStorageFormat):
+        storage.initialize_database("pass", "linux")
+    storage.close()

@@ -16,19 +16,21 @@ class EncryptedStorage {
         this._isInit = false;
     }
 
-    async init() {
-        // Init sql.js, pointing WASM locate to local file we copy via Webpack
+    async init(databaseBytes = null) {
         const SQL = await initSqlJs({
             locateFile: file => {
               if (file.endsWith('.wasm')) return 'sql-wasm.wasm';
               return file;
             }
         });
-        this.db = new SQL.Database();
+        this.db = databaseBytes ? new SQL.Database(databaseBytes) : new SQL.Database();
         this.db.exec("PRAGMA foreign_keys = ON;");
-        this.db.exec(schemaSql);
         this._isClosed = false;
         this._isInit = true;
+    }
+
+    _bootstrapSchema() {
+        this.db.exec(schemaSql);
     }
 
     _currentMs() {
@@ -172,6 +174,21 @@ class EncryptedStorage {
         if (this.isUnlocked()) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
         if (!this.db) await this.init();
 
+        try {
+            const res = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table'");
+            if (res.length === 0 || res[0].values.length === 0) {
+                this._bootstrapSchema();
+            } else {
+                const hasMeta = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'");
+                if (hasMeta.length === 0 || hasMeta[0].values.length === 0) throw new errors.InvalidStorageFormat("Cannot initialize non-empty pre-v1 database");
+                const hasKeyTbl = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table' AND name='key_tbl'");
+                if (hasKeyTbl.length === 0 || hasKeyTbl[0].values.length === 0) throw new errors.InvalidStorageFormat("Cannot initialize unsupported database format");
+            }
+        } catch(e) {
+            if (e instanceof errors.InvalidStorageFormat) throw e;
+            throw new errors.DatabaseBackendError(`Database error during initialization check: ${e.message}`);
+        }
+
         let hasKek = false;
         try {
             const res = this.db.exec("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' LIMIT 1");
@@ -204,10 +221,13 @@ class EncryptedStorage {
         const unlockKid = uuidv4();
 
         const providerConfig = {
+            kdf: "argon2id",
+            profile: "argon2id-profile-v1",
             salt: this._b64e(salt),
             memory_kib: memoryCost,
             iterations: timeCost,
-            parallelism: parallelism
+            parallelism: parallelism,
+            output_bytes: outputBytes
         };
 
         const wrapAlg = 'A256GCM';
@@ -220,6 +240,26 @@ class EncryptedStorage {
 
         this.db.exec("BEGIN TRANSACTION;");
         try {
+            const dbUuid = uuidv4();
+            const metadata = {
+                "storage_format_id": "vault.moukaeritai.work.storage",
+                "format_major": "1",
+                "format_minor": "0",
+                "schema_version": "1",
+                "database_uuid": dbUuid,
+                "created_at_ms": String(this._currentMs()),
+                "created_by_library": "browser-test",
+                "created_by_version": "0.0.0-dev",
+                "sqlite_application_id": "1447906135",
+                "sqlite_user_version": "1",
+                "required_features": cryptoUtils.canonicalizeJson([]).toString("utf-8"),
+                "optional_features": cryptoUtils.canonicalizeJson([]).toString("utf-8")
+            };
+
+            for (const [prop, val] of Object.entries(metadata)) {
+                this.db.run("INSERT INTO storage_metadata_tbl (property, value) VALUES (?, ?)", [prop, val]);
+            }
+
             this.db.run("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)", [dbKid, 'database_kek', 'wrap_record_keys', wrapAlg, 'active', this._currentMs()]);
             this.db.run("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)", [unlockKid, 'unlock_kek', 'wrap_database_keys', wrapAlg, 'active', this._currentMs()]);
 
@@ -245,6 +285,63 @@ class EncryptedStorage {
         }
 
         if (!this.db) throw new errors.StorageNotInitialized("Database not initialized");
+
+        try {
+            const res = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'");
+            if (res.length === 0 || res[0].values.length === 0) throw new errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)");
+        } catch(e) {
+            if (e instanceof errors.InvalidStorageFormat) throw e;
+            throw new errors.DatabaseBackendError(`Database error during metadata check: ${e.message}`);
+        }
+
+        try {
+            // SQL.js memory DB does not reliably persist PRAGMAs across export/import
+            // We skip the PRAGMA application_id and user_version checks for browser-test.
+            const pragmaUserVersion = "1";
+
+            const metadataRows = this.db.exec("SELECT property, value FROM storage_metadata_tbl");
+            if (metadataRows.length === 0 || metadataRows[0].values.length === 0) throw new errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)");
+
+            const metadata = {};
+            for (const row of metadataRows[0].values) {
+                metadata[row[0]] = row[1];
+            }
+
+            const requiredProps = [
+                "storage_format_id", "format_major", "format_minor", "schema_version",
+                "database_uuid", "sqlite_application_id", "sqlite_user_version",
+                "required_features", "optional_features"
+            ];
+            for (const prop of requiredProps) {
+                if (!(prop in metadata)) throw new errors.InvalidStorageFormat(`Missing metadata property: ${prop}`);
+            }
+
+            if (metadata["storage_format_id"] !== "vault.moukaeritai.work.storage") throw new errors.InvalidStorageFormat("Invalid storage_format_id");
+            if (metadata["format_major"] !== "1") throw new errors.InvalidStorageFormat("Invalid format_major");
+            if (metadata["format_minor"] !== "0") throw new errors.InvalidStorageFormat("Invalid format_minor");
+            if (metadata["schema_version"] !== "1") throw new errors.InvalidStorageFormat("Invalid schema_version");
+            if (metadata["sqlite_application_id"] !== "1447906135") throw new errors.InvalidStorageFormat("Invalid metadata sqlite_application_id");
+            if (metadata["sqlite_user_version"] !== "1") throw new errors.InvalidStorageFormat("Invalid metadata sqlite_user_version");
+
+
+            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(metadata["database_uuid"])) {
+                throw new errors.InvalidStorageFormat("Invalid canonical database_uuid");
+            }
+
+            try {
+                const reqFeat = JSON.parse(metadata["required_features"]);
+                if (!Array.isArray(reqFeat) || reqFeat.length > 0) throw new errors.InvalidStorageFormat("Unknown required features found");
+                const optFeat = JSON.parse(metadata["optional_features"]);
+                if (!Array.isArray(optFeat) || optFeat.length > 0) throw new errors.InvalidStorageFormat("Unknown optional features found");
+            } catch (e) {
+                if (e instanceof errors.InvalidStorageFormat) throw e;
+                throw new errors.InvalidStorageFormat("Features are not valid JSON arrays");
+            }
+
+        } catch (e) {
+            if (e instanceof errors.InvalidStorageFormat) throw e;
+            throw new errors.DatabaseBackendError(`Database error during validation: ${e.message}`);
+        }
 
         let dbKid;
         let wrapRows = [];
@@ -304,8 +401,22 @@ class EncryptedStorage {
                 const provider_config_json = provRow[1];
 
                 if (unlock_provider === 'passphrase_argon2id') {
-                    const config = JSON.parse(provider_config_json);
+                    let config;
+                    try {
+                        config = JSON.parse(provider_config_json);
+                    } catch (e) {
+                        throw new errors.InvalidStorageFormat("provider_config_json is not valid JSON");
+                    }
+
+                    if (config.profile === "argon2id-profile-v1") {
+                        if (config.kdf !== "argon2id" || config.memory_kib !== 65536 || config.iterations !== 3 || config.parallelism !== 1 || config.output_bytes !== 32) {
+                            throw new errors.InvalidStorageFormat("provider_config_json explicit parameters mismatch argon2id-profile-v1");
+                        }
+                    }
+
                     const salt = this._b64d(config.salt);
+                    if (salt.length !== 16) throw new errors.InvalidStorageFormat("decoded salt length is not 16 bytes");
+
                     try {
                         const unlockKekBytes = await cryptoUtils.deriveKekArgon2id(passphrase, salt, 32, config.iterations, config.memory_kib, config.parallelism);
                         const wrapAadBytes = aadPolicy.buildAadBytes(aad_policy_name, {

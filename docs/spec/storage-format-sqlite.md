@@ -21,7 +21,7 @@ While the core defines that encrypted keys use A256GCM with a 12-byte nonce, thi
 ## 3. SQLite File Identity
 An SQLite database file implementing this profile should be identifiable both externally (e.g., via magic numbers) and internally.
 *   **Magic Number**: Standard SQLite 3 magic header.
-*   **`PRAGMA application_id`**: Used as a magic number to identify the specific file type (e.g., a specific 32-bit integer representing this vault format).
+*   **`PRAGMA application_id`**: Used as a magic number to identify the specific file type (e.g., a specific 32-bit integer `1447906135` / `0x564D4B57` representing this vault format).
 *   **`PRAGMA user_version`**: Used as an auxiliary integer tracking the SQLite schema / migration version (synchronizes with `schema_version` in the metadata table).
 
 ## 4. Required PRAGMAs
@@ -134,7 +134,4 @@ To apply the proposed constraints, the existing tables in `schema.sql` would be 
 ## 16. Known SQLite Profile Gaps
 A review of the current `docs/backend/sqlite/schema.sql` against the V1 draft reveals the following "decided but not implemented" gaps:
 
-1.  **Missing Metadata/Version Table**: The schema lacks `storage_metadata_tbl` to track `format_major`, `format_minor`, `required_features`, or `optional_features`.
-2.  **Missing `PRAGMA application_id` / `user_version`**: The schema does not yet set or enforce these SQLite file identity mechanisms.
-3.  **Missing BLOB Length Constraints**: The schema lacks the `CHECK(length(nonce) = 12)`, `CHECK(length(wrapped_key) >= 16)`, and `CHECK(length(ciphertext) >= 16)` constraints.
-4.  **Missing Content Type Constraints**: `content_type` lacks the `CHECK(length(content_type) > 0 AND instr(content_type, '/') > 1)` constraint.
+None. The schema now includes `storage_metadata_tbl`, PRAGMA checks, and the necessary `CHECK` constraints for `nonce`, `wrapped_key`, `ciphertext`, and `content_type`.

@@ -120,10 +120,10 @@ describe('EncryptedStorage', () => {
         await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.UnlockFailed);
     });
 
-    test('unlockDatabase fails if no active db kek', async () => {
+    test('unlockDatabase fails on empty or uninitialized database', async () => {
         const storage = new EncryptedStorage(tempDbPath);
-        // Create an empty db, without calling initializeDatabase
-        await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.StorageNotInitialized);
+        // Database lacks proper v1 schema and metadata, unlocking should fail early
+        await expect(storage.unlockDatabase('pass')).rejects.toThrow(errors.InvalidStorageFormat);
     });
 
     test('AAD mutation causes decryption failure', async () => {
@@ -149,3 +149,15 @@ describe('EncryptedStorage', () => {
         }).toThrow();
     });
 });
+
+    test('initializeDatabase fails on wrong db', async () => {
+        const path = require('path');
+        const os = require('os');
+        const tempDbPath = path.join(os.tmpdir(), `test-${Date.now()}-${Math.random()}.db`);
+        const db = require('better-sqlite3')(tempDbPath);
+        db.exec("CREATE TABLE random_tbl (id INTEGER)");
+        db.close();
+
+        const storage = new EncryptedStorage(tempDbPath);
+        await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.InvalidStorageFormat);
+    });

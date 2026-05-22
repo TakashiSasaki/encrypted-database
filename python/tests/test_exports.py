@@ -4,6 +4,7 @@ from encrypted_storage import (
     StorageLocked,
     StorageNotInitialized,
     StorageAlreadyInitialized,
+    InvalidStorageFormat,
     UnlockFailed,
     ObjectNotFound,
     UnsupportedPlatform,
@@ -27,6 +28,7 @@ def test_top_level_error_exports():
         "StorageLocked",
         "StorageNotInitialized",
         "StorageAlreadyInitialized",
+        "InvalidStorageFormat",
         "UnlockFailed",
         "ObjectNotFound",
         "UnsupportedPlatform",
@@ -55,6 +57,7 @@ def test_top_level_error_exports():
     assert issubclass(StorageLocked, StorageError)
     assert issubclass(StorageNotInitialized, StorageError)
     assert issubclass(StorageAlreadyInitialized, StorageError)
+    assert issubclass(InvalidStorageFormat, StorageError)
     assert issubclass(UnlockFailed, StorageError)
     assert issubclass(ObjectNotFound, StorageError)
     assert issubclass(UnsupportedPlatform, StorageError)
