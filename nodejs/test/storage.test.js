@@ -149,3 +149,15 @@ describe('EncryptedStorage', () => {
         }).toThrow();
     });
 });
+
+    test('initializeDatabase fails on wrong db', async () => {
+        const path = require('path');
+        const os = require('os');
+        const tempDbPath = path.join(os.tmpdir(), `test-${Date.now()}-${Math.random()}.db`);
+        const db = require('better-sqlite3')(tempDbPath);
+        db.exec("CREATE TABLE random_tbl (id INTEGER)");
+        db.close();
+
+        const storage = new EncryptedStorage(tempDbPath);
+        await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.InvalidStorageFormat);
+    });

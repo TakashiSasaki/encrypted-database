@@ -131,6 +131,13 @@ class EncryptedStorage:
         cur.execute("SELECT 1 FROM sqlite_master WHERE type='table'")
         if not cur.fetchone():
             self._bootstrap_schema()
+        else:
+            cur.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'")
+            if not cur.fetchone():
+                raise errors.InvalidStorageFormat("Cannot initialize non-empty pre-v1 database")
+            cur.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='key_tbl'")
+            if not cur.fetchone():
+                raise errors.InvalidStorageFormat("Cannot initialize unsupported database format")
 
         self._validate_platform(platform)
 

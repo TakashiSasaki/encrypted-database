@@ -14,20 +14,16 @@ class EncryptedStorage {
         this.conn = new Database(dbPath);
         this.conn.pragma('foreign_keys = ON');
 
-        // Only run schema init if tables don't exist
-        const row = this.conn.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='key_class_tbl'").get();
-        if (!row) {
-            this._initDb();
-        }
+
         this.activeDbKek = null;
         this.activeDbKid = null;
         this._isClosed = false;
     }
 
-    _initDb() {
+    _bootstrapSchema() {
         const schemaPath = path.join(__dirname, '..', '..', 'docs', 'backend', 'sqlite', 'schema.sql');
         const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-        this.conn.exec(schemaSql);
+        this.conn.exec("PRAGMA application_id = 1447906135; PRAGMA user_version = 1; " + schemaSql);
     }
 
     _currentMs() {
@@ -172,6 +168,21 @@ class EncryptedStorage {
         }
         if (hasKek) {
             throw new errors.StorageAlreadyInitialized("Storage is already initialized");
+        }
+
+        try {
+            const res = this.conn.prepare("SELECT 1 FROM sqlite_master WHERE type='table'").get();
+            if (!res) {
+                this._bootstrapSchema();
+            } else {
+                const hasMeta = this.conn.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'").get();
+                if (!hasMeta) throw new errors.InvalidStorageFormat("Cannot initialize non-empty pre-v1 database");
+                const hasKeyTbl = this.conn.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='key_tbl'").get();
+                if (!hasKeyTbl) throw new errors.InvalidStorageFormat("Cannot initialize unsupported database format");
+            }
+        } catch(e) {
+            if (e instanceof errors.InvalidStorageFormat) throw e;
+            throw new errors.DatabaseBackendError(`Database error during initialization check: ${e.message}`);
         }
 
         this._validatePlatform(platform);

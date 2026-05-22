@@ -162,3 +162,15 @@ def test_aad_mutation_causes_decryption_failure(temp_db):
     # Attempt to retrieve, which should fail during AEAD decryption due to tag mismatch
     with pytest.raises(InvalidTag):
         storage.retrieve_payload(object_uuid)
+
+def test_initialize_fails_on_wrong_db(temp_db):
+    import sqlite3
+    conn = sqlite3.connect(temp_db)
+    conn.execute("CREATE TABLE random_tbl (id INTEGER)")
+    conn.commit()
+    conn.close()
+
+    storage = EncryptedStorage(temp_db)
+    with pytest.raises(errors.InvalidStorageFormat):
+        storage.initialize_database("pass", "linux")
+    storage.close()

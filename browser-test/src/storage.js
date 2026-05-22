@@ -178,8 +178,14 @@ class EncryptedStorage {
             const res = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table'");
             if (res.length === 0 || res[0].values.length === 0) {
                 this._bootstrapSchema();
+            } else {
+                const hasMeta = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'");
+                if (hasMeta.length === 0 || hasMeta[0].values.length === 0) throw new errors.InvalidStorageFormat("Cannot initialize non-empty pre-v1 database");
+                const hasKeyTbl = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table' AND name='key_tbl'");
+                if (hasKeyTbl.length === 0 || hasKeyTbl[0].values.length === 0) throw new errors.InvalidStorageFormat("Cannot initialize unsupported database format");
             }
         } catch(e) {
+            if (e instanceof errors.InvalidStorageFormat) throw e;
             throw new errors.DatabaseBackendError(`Database error during initialization check: ${e.message}`);
         }
 

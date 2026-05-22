@@ -25,7 +25,18 @@ describe('EncryptedStorage', () => {
         await storage2.unlockDatabase('my_secure_password');
         expect(storage2.activeDbKek).not.toBeNull();
         storage2.close();
+        test('initializeDatabase fails on wrong db', async () => {
+        const SQL = await require('sql.js/dist/sql-wasm.js')();
+        const rawDb = new SQL.Database();
+        rawDb.exec("CREATE TABLE random_tbl (id INTEGER)");
+        const bytes = rawDb.export();
+        rawDb.close();
+
+        const storage = new EncryptedStorage();
+        await storage.init(bytes);
+        await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.InvalidStorageFormat);
     });
+});
 
     test('store and retrieve payload', async () => {
         const storage = new EncryptedStorage();
