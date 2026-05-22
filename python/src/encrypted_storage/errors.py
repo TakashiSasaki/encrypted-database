@@ -1,3 +1,7 @@
+class InvalidPassphrase(TypeError):
+    """Raised when passphrase is not a string."""
+    pass
+
 class StorageError(Exception):
     """Base exception for all storage errors."""
     pass

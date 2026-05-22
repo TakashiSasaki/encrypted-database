@@ -169,7 +169,9 @@ describe('Input Validation', () => {
     });
 
     test('validates passphrase correctly', async () => {
-        await expect(storage.initializeDatabase(null, 'linux')).rejects.toThrow(TypeError);
+        expect(errors.InvalidPassphrase.prototype instanceof TypeError).toBe(true);
+
+        await expect(storage.initializeDatabase(null, 'linux')).rejects.toThrow(errors.InvalidPassphrase);
 
         // Empty string should be allowed
         await storage.initializeDatabase('', 'linux');
@@ -178,7 +180,7 @@ describe('Input Validation', () => {
         storage.close();
 
         storage = new EncryptedStorage(dbPath);
-        await expect(storage.unlockDatabase(null)).rejects.toThrow(TypeError);
+        await expect(storage.unlockDatabase(null)).rejects.toThrow(errors.InvalidPassphrase);
     });
 
     test('closed state precedence', async () => {

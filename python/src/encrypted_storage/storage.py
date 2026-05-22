@@ -114,7 +114,7 @@ class EncryptedStorage:
             raise errors.StorageClosed("Storage is closed")
 
         if not isinstance(passphrase, str):
-            raise TypeError("Passphrase must be a string")
+            raise errors.InvalidPassphrase("Passphrase must be a string")
         if not isinstance(platform, str):
             raise errors.UnsupportedPlatform("Platform must be a string")
         if self.is_unlocked():
@@ -202,7 +202,7 @@ class EncryptedStorage:
             raise errors.StorageClosed("Storage is closed")
 
         if not isinstance(passphrase, str):
-            raise TypeError("Passphrase must be a string")
+            raise errors.InvalidPassphrase("Passphrase must be a string")
 
         if not self.conn:
             raise errors.StorageNotInitialized("Database not initialized")

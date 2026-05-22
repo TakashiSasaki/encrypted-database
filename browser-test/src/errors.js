@@ -1,3 +1,10 @@
+class InvalidPassphrase extends TypeError {
+    constructor(message = "Passphrase must be a string") {
+        super(message);
+        this.name = "InvalidPassphrase";
+    }
+}
+
 class StorageError extends Error {
     constructor(message) {
         super(message);
@@ -36,5 +43,6 @@ module.exports = {
     IntegrityCheckFailed,
     CryptoOperationFailed,
     DatabaseBackendError,
-    AadPolicyError
+    AadPolicyError,
+    InvalidPassphrase
 };

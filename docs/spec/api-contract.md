@@ -24,14 +24,14 @@ The following operations are defined conceptually and must be implemented with i
 - **Errors**:
   - If closed, throw `StorageClosed`.
   - If an active database KEK already exists, throw `StorageAlreadyInitialized`.
-  - If `passphrase` is not a string, throw `TypeError`.
+  - If `passphrase` is not a string, throw `InvalidPassphrase`.
 
 ### `unlock_database` / `unlockDatabase(passphrase)`
 - **Precondition**: State must not be `closed`.
 - **Action**: Verifies the passphrase, derives the unlock KEK, unwraps the database KEK, and stores it in memory. If verification fails, any existing active key material is explicitly cleared from memory.
 - **Postcondition**: Transitions to `open_unlocked` on success. Transitions to `open_locked` on failure. Remains `uninitialized` if called before the backend is initialized or before any active database KEK metadata exists.
-- **Errors**: `StorageClosed`, `StorageNotInitialized`, `UnlockFailed`, `TypeError`.
-  - Note: Non-string passphrases result in `TypeError`. Incorrect string passphrases result in `UnlockFailed`. Empty string passphrases are valid and allowed.
+- **Errors**: `StorageClosed`, `StorageNotInitialized`, `UnlockFailed`, `InvalidPassphrase`.
+  - Note: Non-string passphrases result in `InvalidPassphrase`. Incorrect string passphrases result in `UnlockFailed`. Empty string passphrases are valid and allowed.
 
 ### `store_payload` / `storePayload(schemaUuid, contentType, payload)`
 - **Precondition**: State must be `open_unlocked`.
@@ -84,13 +84,14 @@ All implementations must strictly validate inputs at the public API boundary bef
     }
     ```
 *   **`platform`**: Must be a supported platform identifier string. Violations throw `UnsupportedPlatform`.
-*   **`passphrase`**: Must be a string. Empty strings are permitted. If an invalid type is provided, implementations should throw an appropriate stable typed error.
+*   **`passphrase`**: Must be a string. Empty strings are permitted. If an invalid type is provided, implementations must throw `InvalidPassphrase`.
 
 ## Error Taxonomy
 
 Implementations must expose specific error types to provide programmatic error handling without parsing message strings.
 
 - `StorageError`: Base error class for all storage errors.
+- `InvalidPassphrase`: The provided passphrase argument was not a string. This is a TypeError subclass and represents an API argument type error (programmer error), not an unlock/authentication failure. It does not inherit from `StorageError`.
 - `InvalidPayload`: The provided payload was not a valid dictionary/object.
 - `StorageClosed`: Action attempted on a closed database.
 - `StorageLocked`: Action attempted without an active unlocked KEK.

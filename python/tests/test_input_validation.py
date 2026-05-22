@@ -117,16 +117,20 @@ def test_validate_payload(temp_db):
 
 def test_validate_passphrase(temp_db):
     storage = EncryptedStorage(temp_db)
-    with pytest.raises(TypeError):
+
+    # Assert that InvalidPassphrase is a subclass of TypeError
+    assert issubclass(errors.InvalidPassphrase, TypeError)
+
+    with pytest.raises(errors.InvalidPassphrase):
         storage.initialize_database(None, "linux")
 
     # Empty string is allowed
     storage.initialize_database("", "linux")
 
-    # unlock_database raises TypeError for invalid types
+    # unlock_database raises InvalidPassphrase for invalid types
     storage.close()
     storage = EncryptedStorage(temp_db)
-    with pytest.raises(TypeError):
+    with pytest.raises(errors.InvalidPassphrase):
         storage.unlock_database(None)
 
 

@@ -1,11 +1,7 @@
-const fs = require('fs');
 const EncryptedStorage = require('../src/storage');
 const errors = require('../src/errors');
-const path = require('path');
-const os = require('os');
 
 describe('Input Validation', () => {
-    let dbPath;
     let storage;
 
     beforeEach(async () => {
@@ -19,9 +15,6 @@ describe('Input Validation', () => {
                 storage.close();
             }
         } catch (e) {}
-        if (fs.existsSync(dbPath)) {
-            fs.unlinkSync(dbPath);
-        }
     });
 
     test('validates UUID correctly', async () => {
@@ -156,7 +149,9 @@ describe('Input Validation', () => {
     });
 
     test('validates passphrase correctly', async () => {
-        await expect(storage.initializeDatabase(null, 'linux')).rejects.toThrow(TypeError);
+        expect(errors.InvalidPassphrase.prototype instanceof TypeError).toBe(true);
+
+        await expect(storage.initializeDatabase(null, 'linux')).rejects.toThrow(errors.InvalidPassphrase);
 
         // Empty string should be allowed
         await storage.initializeDatabase('', 'linux');
@@ -170,7 +165,7 @@ describe('Input Validation', () => {
         const SQL = await require('sql.js/dist/sql-wasm.js')();
         storage.db = new SQL.Database(exportedDb);
 
-        await expect(storage.unlockDatabase(null)).rejects.toThrow(TypeError);
+        await expect(storage.unlockDatabase(null)).rejects.toThrow(errors.InvalidPassphrase);
     });
 
     test('closed state precedence', async () => {

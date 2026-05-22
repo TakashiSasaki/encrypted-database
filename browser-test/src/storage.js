@@ -163,7 +163,7 @@ class EncryptedStorage {
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
 
         if (typeof passphrase !== 'string') {
-            throw new TypeError("Passphrase must be a string");
+            throw new errors.InvalidPassphrase("Passphrase must be a string");
         }
         if (typeof platform !== 'string') {
             throw new errors.UnsupportedPlatform("Platform must be a string");
@@ -241,7 +241,7 @@ class EncryptedStorage {
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
 
         if (typeof passphrase !== 'string') {
-            throw new TypeError("Passphrase must be a string");
+            throw new errors.InvalidPassphrase("Passphrase must be a string");
         }
 
         if (!this.db) throw new errors.StorageNotInitialized("Database not initialized");
