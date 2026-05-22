@@ -17,7 +17,32 @@ from encrypted_storage import (
     InvalidPassphrase,
 )
 
+import encrypted_storage
+
 def test_top_level_error_exports():
+    # Test that __all__ contains the expected error classes
+    expected_exports = {
+        "StorageError",
+        "StorageClosed",
+        "StorageLocked",
+        "StorageNotInitialized",
+        "StorageAlreadyInitialized",
+        "UnlockFailed",
+        "ObjectNotFound",
+        "UnsupportedPlatform",
+        "InvalidUuid",
+        "InvalidContentType",
+        "InvalidPayload",
+        "IntegrityCheckFailed",
+        "CryptoOperationFailed",
+        "DatabaseBackendError",
+        "AadPolicyError",
+        "InvalidPassphrase",
+    }
+
+    for expected_export in expected_exports:
+        assert expected_export in encrypted_storage.__all__
+
     # Test InvalidPassphrase inheritance
     assert issubclass(InvalidPassphrase, TypeError)
     assert not issubclass(InvalidPassphrase, StorageError)
