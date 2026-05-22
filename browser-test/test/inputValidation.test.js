@@ -19,7 +19,7 @@ describe('Input Validation', () => {
                 storage.close();
             }
         } catch (e) {}
-        if (fs.existsSync(dbPath)) {
+        if (dbPath && fs.existsSync(dbPath)) {
             fs.unlinkSync(dbPath);
         }
     });
