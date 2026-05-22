@@ -17,4 +17,5 @@ __all__ = [
     "CryptoOperationFailed",
     "DatabaseBackendError",
     "AadPolicyError",
+    "InvalidPassphrase",
 ]
