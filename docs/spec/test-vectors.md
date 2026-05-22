@@ -22,21 +22,21 @@ UUIDv4 generation must output the standard lowercase hyphen-separated format (e.
 
 ### Key Derivation (KDF) Test Vectors
 
-A cross-language machine-readable test vector for Argon2id is available in `test-vectors/kdf/argon2id-v1.json`. This tests the standard Profile V1 (`memory_kib=65536, iterations=3, parallelism=1, salt_bytes=16, output_bytes=32`) against a fixed passphrase and salt to ensure byte-for-byte equivalence across Python, Node.js, and browser environments. These KDF vectors have been implemented and verified in the automated tests for Python, Node.js, and browser-test environments (verified via browser-test Jest tests using the same shared vectors).
+A cross-language machine-readable test vector for Argon2id is available in `test-vectors/kdf/argon2id-v1.json`. This tests the standard Profile V1 (`memory_kib=65536, iterations=3, parallelism=1, salt_bytes=16, output_bytes=32`) against a fixed passphrase and salt to ensure byte-for-byte equivalence across Python, Node.js, and browser environments. These KDF vectors have been implemented and verified in the automated tests for Python, Node.js, and browser-test environments. The browser-test Jest environment validates the same shared vectors.
 
 Note that the KDF test vectors do not replace the SQLite roundtrip interoperability tests. The roundtrip test asserts high-level semantic interoperability between different language implementations, while the KDF test vector is a strict byte-level primitive equivalence test.
 
 ### AEAD (AES-256-GCM) Test Vectors
 
-A cross-language machine-readable test vector for AES-256-GCM primitive operations is available in `test-vectors/aead/aes-256-gcm-v1.json`. It tests the base encryption and decryption using fixed keys, nonces, plaintext, and AAD bytes. Implementations must ensure byte-for-byte equivalence for ciphertext and authentication tags, properly handling combined or separated tag formats according to the standard.
+A cross-language machine-readable test vector for AES-256-GCM primitive operations is available in `test-vectors/aead/aes-256-gcm-v1.json`. It tests the base encryption and decryption using fixed keys, nonces, plaintext, and AAD bytes. Implementations must ensure byte-for-byte equivalence for ciphertext and authentication tags, properly handling combined or separated tag formats according to the standard. AEAD primitive checks currently use Node.js crypto in the Jest environment. This does not fully validate a real browser WebCrypto runtime path.
 
 ### Key-Wrap Test Vectors
 
-Machine-readable test vectors for the wrapping and unwrapping of database KEKs and record DEKs are available in `test-vectors/key-wrap/key-wrap-v1.json`. Implementations must verify that they can dynamically reconstruct the correct AAD from the policy and IDs, and correctly wrap/unwrap the key materials.
+Machine-readable test vectors for the wrapping and unwrapping of database KEKs and record DEKs are available in `test-vectors/key-wrap/key-wrap-v1.json`. Implementations must verify that they can dynamically reconstruct the correct AAD from the policy and IDs, and correctly wrap/unwrap the key materials. The browser-test Jest environment validates the same shared vectors using Node.js crypto.
 
 ### Payload Encryption Test Vectors
 
-Machine-readable test vectors for payload encryption are available in `test-vectors/payload/payload-encryption-v1.json`. Implementations must ensure they correctly JCS-canonicalize the JSON payload before encryption, reconstruct the required AAD, and successfully encrypt/decrypt the payload. Tests must verify that variations in JSON key order resolve to the identical canonicalized bytes and result in equivalent ciphertext given the same nonce.
+Machine-readable test vectors for payload encryption are available in `test-vectors/payload/payload-encryption-v1.json`. Implementations must ensure they correctly JCS-canonicalize the JSON payload before encryption, reconstruct the required AAD, and successfully encrypt/decrypt the payload. Tests must verify that variations in JSON key order resolve to the identical canonicalized bytes and result in equivalent ciphertext given the same nonce. The browser-test Jest environment validates the same shared vectors using Node.js crypto.
 
 ### Semantic Interoperability (SQLite Roundtrip)
 
