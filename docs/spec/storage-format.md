@@ -48,7 +48,7 @@ This policy outlines how implementations handle versioning and feature flags for
 *   **Pre-V1 Databases**: Implementations of V1 MUST explicitly reject opening databases that lack V1 metadata/versioning structures (pre-v1 databases). Since no production databases exist yet, pre-V1 compatibility is not guaranteed.
 *   **Format Major Mismatch**: If the `format_major` of the database is unknown or greater than the implementation's supported major version, the implementation MUST reject opening the database.
 *   **Format Minor Mismatch**: If the `format_minor` of the database is greater than the implementation's supported minor version, the implementation MAY attempt to open it, provided no unknown features are present.
-*   **Unknown Features (Required or Optional)**: If the database requires a feature flag not implemented by the reader (whether in `required_features` or `optional_features`), the implementation MUST safely default to rejecting the open operation. V1 does not support read-only fallback for unknown optional features; this is deferred as a future enhancement.
+*   **Unknown Features (Required or Optional)**: If the database contains any feature flag not implemented by the reader (whether in `required_features` or `optional_features`), the implementation MUST safely default to rejecting the open operation. V1 does not support read-only fallback for unknown optional features; this is deferred as a future enhancement.
 *   **Destructive Changes**: V1 stabilization prohibits destructive changes without an explicit migration policy.
 
 ## 5. Database Identity and Metadata
