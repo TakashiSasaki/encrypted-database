@@ -108,5 +108,6 @@ Implementations must expose specific error types to provide programmatic error h
 - `AadPolicyError`: The specified AAD policy is unknown or mismatched.
 
 ### Language-Specific Error Handling
-- **Python**: Expose custom exception classes inheriting from `StorageError`.
-- **Node.js/Browser**: Export custom classes extending `Error`. Error handling should rely strictly on custom class instances (`instanceof`) rather than a `.code` property.
+
+- **Python**: Storage-related errors are exposed as custom exception classes inheriting from `StorageError`. `InvalidPassphrase` is intentionally separate: it inherits from `TypeError`, not `StorageError`, because it represents an API argument type error rather than a storage operation failure.
+- **Node.js/Browser**: Storage-related errors are exported as custom classes extending `Error`. `InvalidPassphrase` extends `TypeError`, not the storage error base class, for the same reason. Error handling should rely on custom class instances (`instanceof`) rather than parsing message strings.

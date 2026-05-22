@@ -149,7 +149,7 @@ describe('Input Validation', () => {
     });
 
     test('validates passphrase correctly', async () => {
-        expect(errors.InvalidPassphrase.prototype instanceof TypeError).toBe(true);
+        expect(new errors.InvalidPassphrase() instanceof TypeError).toBe(true);
 
         await expect(storage.initializeDatabase(null, 'linux')).rejects.toThrow(errors.InvalidPassphrase);
 
