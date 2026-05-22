@@ -77,9 +77,17 @@ class EncryptedStorage {
         }
     }
 
-    _validatePayload(value, path = "$", isTopLevel = true) {
+    _validatePayload(value, path = "$", isTopLevel = true, visited = new Set()) {
+        if (typeof value === 'object' && value !== null) {
+            if (visited.has(value)) {
+                throw new errors.InvalidPayload(`Invalid payload at ${path}: cyclic reference detected`);
+            }
+            visited.add(value);
+        }
+
         if (isTopLevel) {
             if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+                if (typeof value === 'object' && value !== null) visited.delete(value);
                 throw new errors.InvalidPayload(`Invalid payload at ${path}: must be a plain object at top level`);
             }
         }
@@ -101,30 +109,36 @@ class EncryptedStorage {
 
         if (typeof value === 'object') {
             if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
+                visited.delete(value);
                 throw new errors.InvalidPayload(`Invalid payload at ${path}: Buffer is not allowed`);
             }
             if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) {
+                visited.delete(value);
                 throw new errors.InvalidPayload(`Invalid payload at ${path}: ArrayBuffer/TypedArray/DataView is not allowed`);
             }
             if (value instanceof Date || value instanceof Map || value instanceof Set || value instanceof RegExp) {
+                visited.delete(value);
                 throw new errors.InvalidPayload(`Invalid payload at ${path}: ${value.constructor.name} is not allowed`);
             }
 
             if (Array.isArray(value)) {
                 for (let i = 0; i < value.length; i++) {
-                    this._validatePayload(value[i], `${path}[${i}]`, false);
+                    this._validatePayload(value[i], `${path}[${i}]`, false, visited);
                 }
+                visited.delete(value);
                 return;
             }
 
             const proto = Object.getPrototypeOf(value);
             if (proto !== Object.prototype && proto !== null) {
+                visited.delete(value);
                 throw new errors.InvalidPayload(`Invalid payload at ${path}: class instances are not allowed`);
             }
 
             for (const key of Object.keys(value)) {
-                this._validatePayload(value[key], `${path}.${key}`, false);
+                this._validatePayload(value[key], `${path}.${key}`, false, visited);
             }
+            visited.delete(value);
             return;
         }
 

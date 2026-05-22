@@ -69,7 +69,16 @@ class EncryptedStorage:
         if '/' not in value:
             raise errors.InvalidContentType("Content type must be a basic type/subtype format")
 
-    def _validate_payload(self, value: dict, path: str = "$", is_top_level: bool = True):
+    def _validate_payload(self, value: object, path: str = "$", is_top_level: bool = True, visited: set = None):
+        if visited is None:
+            visited = set()
+
+        if id(value) in visited:
+            raise errors.InvalidPayload(f"Invalid payload at {path}: cyclic reference detected")
+
+        if type(value) in (dict, list):
+            visited.add(id(value))
+
         if is_top_level:
             if type(value) is not dict:
                 raise errors.InvalidPayload(f"Invalid payload at {path}: must be a dictionary/JSON object at top level")
@@ -78,10 +87,10 @@ class EncryptedStorage:
             for k, v in value.items():
                 if type(k) is not str:
                     raise errors.InvalidPayload(f"Invalid payload at {path}: dictionary keys must be strings")
-                self._validate_payload(v, path=f"{path}.{k}", is_top_level=False)
+                self._validate_payload(v, path=f"{path}.{k}", is_top_level=False, visited=visited)
         elif type(value) is list:
             for i, v in enumerate(value):
-                self._validate_payload(v, path=f"{path}[{i}]", is_top_level=False)
+                self._validate_payload(v, path=f"{path}[{i}]", is_top_level=False, visited=visited)
         elif type(value) is bool:
             pass
         elif type(value) is int:
@@ -95,6 +104,9 @@ class EncryptedStorage:
             pass
         else:
             raise errors.InvalidPayload(f"Invalid payload at {path}: unsupported type {type(value).__name__}")
+
+        if type(value) in (dict, list):
+            visited.remove(id(value))
 
     def initialize_database(self, passphrase: str, platform: str):
         """Initializes a new database with a new database_kek wrapped by a new unlock_kek."""

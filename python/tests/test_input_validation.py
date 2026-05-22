@@ -103,6 +103,17 @@ def test_validate_payload(temp_db):
     with pytest.raises(errors.InvalidPayload, match="unsupported type Dummy"):
         storage.store_payload(schema_uuid, "application/json", {"data": Dummy()})
 
+    # Reject cyclic references
+    cyclic_dict = {}
+    cyclic_dict['self'] = cyclic_dict
+    with pytest.raises(errors.InvalidPayload, match="cyclic reference"):
+        storage.store_payload(schema_uuid, "application/json", cyclic_dict)
+
+    cyclic_list = []
+    cyclic_list.append(cyclic_list)
+    with pytest.raises(errors.InvalidPayload, match="cyclic reference"):
+        storage.store_payload(schema_uuid, "application/json", {"data": cyclic_list})
+
 
 def test_validate_passphrase(temp_db):
     storage = EncryptedStorage(temp_db)

@@ -131,6 +131,19 @@ describe('Input Validation', () => {
             storage.storePayload(schemaUuid, 'application/json', { data: new Dummy() });
         }).toThrow(errors.InvalidPayload);
 
+        // Cyclic references
+        const cyclicObj = {};
+        cyclicObj.self = cyclicObj;
+        expect(() => {
+            storage.storePayload(schemaUuid, 'application/json', cyclicObj);
+        }).toThrow(errors.InvalidPayload);
+
+        const cyclicArray = [];
+        cyclicArray.push(cyclicArray);
+        expect(() => {
+            storage.storePayload(schemaUuid, 'application/json', { data: cyclicArray });
+        }).toThrow(errors.InvalidPayload);
+
         // Primitives
         expect(() => {
             storage.storePayload(schemaUuid, 'application/json', { num: NaN });
