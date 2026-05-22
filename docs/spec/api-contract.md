@@ -18,16 +18,20 @@ When queried via the status API, the implementations will return these states as
 The following operations are defined conceptually and must be implemented with idiomatic naming (`snake_case` in Python, `camelCase` in JS/TS).
 
 ### `initialize_database` / `initializeDatabase(passphrase, platform)`
-- **Precondition**: State must be `open_locked` or `open_unlocked` (if allowing re-initialization of an empty db). Must throw `StorageClosed` if `closed`.
+- **Precondition**: Storage must not be closed. The database must not already contain an active database KEK. Implementations may be in the `uninitialized` state before initialization.
 - **Action**: Initializes a new database schema and generates the initial keys using the provided passphrase and platform string. Generating the initial KEK from the passphrase must use the platform-independent Argon2id Profile V1 parameters.
 - **Postcondition**: Transitions to `open_unlocked` state. The database is immediately ready for use.
-- **Errors**: `StorageAlreadyInitialized`, `StorageClosed`.
+- **Errors**:
+  - If closed, throw `StorageClosed`.
+  - If an active database KEK already exists, throw `StorageAlreadyInitialized`.
+  - If `passphrase` is not a string, throw `TypeError`.
 
 ### `unlock_database` / `unlockDatabase(passphrase)`
 - **Precondition**: State must not be `closed`.
 - **Action**: Verifies the passphrase, derives the unlock KEK, unwraps the database KEK, and stores it in memory. If verification fails, any existing active key material is explicitly cleared from memory.
 - **Postcondition**: Transitions to `open_unlocked` on success. Transitions to `open_locked` on failure. Remains `uninitialized` if called before the backend is initialized or before any active database KEK metadata exists.
 - **Errors**: `StorageClosed`, `StorageNotInitialized`, `UnlockFailed`.
+  - Note: Non-string passphrases and incorrect string passphrases both result in `UnlockFailed`. Empty string passphrases are valid and allowed.
 
 ### `store_payload` / `storePayload(schemaUuid, contentType, payload)`
 - **Precondition**: State must be `open_unlocked`.
@@ -64,7 +68,21 @@ All implementations must strictly validate inputs at the public API boundary bef
 
 *   **`schema_uuid` / `object_uuid`**: Must be a string strictly matching the lowercase hyphenated canonical UUID format. Implementations should either automatically normalize non-canonical UUIDs, or throw `InvalidUuid`. The current specification requires rejecting non-canonical inputs (e.g. uppercase, missing hyphens) by throwing `InvalidUuid`. Note that the semantic meaning of the UUID registry is not validated at this boundary.
 *   **`content_type`**: Must be a string representing a basic `type/subtype` format. It must not be empty and must not contain control characters. Violations throw `InvalidContentType`. More advanced MIME type parsing may be added in the future.
-*   **`payload`**: Must be a plain JSON object (dictionary). Arrays, nulls, primitives, or raw byte buffers are strictly rejected by throwing `InvalidPayload`. This guarantees semantic consistency.
+*   **`payload`**: Must be a plain JSON object / dictionary at the top level. Nested values are strictly limited to the following acceptable JSON-compatible types:
+    - plain object / dictionary
+    - array / list
+    - string
+    - finite number
+    - boolean
+    - null
+    Raw binary values (e.g., `Buffer`, `bytes`, `ArrayBuffer`, etc.) or non-JSON values (e.g., `NaN`, `Infinity`, class instances, sets) are strictly rejected at any depth by throwing `InvalidPayload` prior to any JCS canonicalization. Callers wishing to store binary data must handle encoding (e.g., base64url) externally and store the result as a string within a valid JSON object. For example:
+    ```json
+    {
+      "data_b64url": "aGVsbG8...",
+      "encoding": "base64url",
+      "content_type": "application/octet-stream"
+    }
+    ```
 *   **`platform`**: Must be a supported platform identifier string. Violations throw `UnsupportedPlatform`.
 *   **`passphrase`**: Must be a string. Empty strings are permitted. If an invalid type is provided, implementations should throw an appropriate stable typed error.
 

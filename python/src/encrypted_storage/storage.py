@@ -1,3 +1,4 @@
+import math
 import sqlite3
 import time
 import uuid
@@ -68,22 +69,42 @@ class EncryptedStorage:
         if '/' not in value:
             raise errors.InvalidContentType("Content type must be a basic type/subtype format")
 
-    def _validate_payload(self, value: dict):
-        if not isinstance(value, dict):
-            raise errors.InvalidPayload("Payload must be a dictionary/JSON object")
+    def _validate_payload(self, value: dict, path: str = "$", is_top_level: bool = True):
+        if is_top_level:
+            if type(value) is not dict:
+                raise errors.InvalidPayload(f"Invalid payload at {path}: must be a dictionary/JSON object at top level")
 
-    def _validate_passphrase(self, value: str):
-        if not isinstance(value, str):
-            raise errors.UnlockFailed("Passphrase must be a string")
+        if type(value) is dict:
+            for k, v in value.items():
+                if type(k) is not str:
+                    raise errors.InvalidPayload(f"Invalid payload at {path}: dictionary keys must be strings")
+                self._validate_payload(v, path=f"{path}.{k}", is_top_level=False)
+        elif type(value) is list:
+            for i, v in enumerate(value):
+                self._validate_payload(v, path=f"{path}[{i}]", is_top_level=False)
+        elif type(value) is bool:
+            pass
+        elif type(value) is int:
+            pass
+        elif type(value) is float:
+            if math.isnan(value) or math.isinf(value):
+                raise errors.InvalidPayload(f"Invalid payload at {path}: NaN and Infinity are not valid JSON")
+        elif type(value) is str:
+            pass
+        elif value is None:
+            pass
+        else:
+            raise errors.InvalidPayload(f"Invalid payload at {path}: unsupported type {type(value).__name__}")
 
     def initialize_database(self, passphrase: str, platform: str):
         """Initializes a new database with a new database_kek wrapped by a new unlock_kek."""
-        self._validate_passphrase(passphrase)
-        if not isinstance(platform, str):
-            raise errors.UnsupportedPlatform("Platform must be a string")
-
         if self._is_closed:
             raise errors.StorageClosed("Storage is closed")
+
+        if not isinstance(passphrase, str):
+            raise TypeError("Passphrase must be a string")
+        if not isinstance(platform, str):
+            raise errors.UnsupportedPlatform("Platform must be a string")
         if self.is_unlocked():
             raise errors.StorageAlreadyInitialized("Storage is already initialized")
         try:
@@ -165,9 +186,12 @@ class EncryptedStorage:
 
     def unlock_database(self, passphrase: str):
         """Unlocks the database by retrieving and unwrapping the database_kek."""
-        self._validate_passphrase(passphrase)
         if self._is_closed:
             raise errors.StorageClosed("Storage is closed")
+
+        if not isinstance(passphrase, str):
+            raise TypeError("Passphrase must be a string")
+
         if not self.conn:
             raise errors.StorageNotInitialized("Database not initialized")
         cur = self.conn.cursor()
@@ -229,12 +253,13 @@ class EncryptedStorage:
 
     def store_payload(self, schema_uuid: str, content_type: str, payload: dict) -> str:
         """Encrypts and stores a JSON payload."""
+        if self._is_closed:
+            raise errors.StorageClosed("Storage is closed")
+
         self._validate_uuid(schema_uuid, "schema_uuid")
         self._validate_content_type(content_type)
         self._validate_payload(payload)
 
-        if self._is_closed:
-            raise errors.StorageClosed("Storage is closed")
         if not self.active_db_kek:
             raise errors.StorageLocked("Database is locked")
 
@@ -300,10 +325,11 @@ class EncryptedStorage:
 
     def retrieve_payload(self, object_uuid: str) -> dict:
         """Retrieves and decrypts a payload."""
-        self._validate_uuid(object_uuid, "object_uuid")
-
         if self._is_closed:
             raise errors.StorageClosed("Storage is closed")
+
+        self._validate_uuid(object_uuid, "object_uuid")
+
         if not self.active_db_kek:
             raise errors.StorageLocked("Database is locked")
 

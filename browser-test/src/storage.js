@@ -91,24 +91,70 @@ class EncryptedStorage {
         }
     }
 
-    _validatePayload(value) {
-        if (typeof value !== 'object' || value === null || Array.isArray(value) || value instanceof Uint8Array || value instanceof ArrayBuffer) {
-            throw new errors.InvalidPayload("Payload must be a dictionary/JSON object");
+    _validatePayload(value, path = "$", isTopLevel = true) {
+        if (isTopLevel) {
+            if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+                throw new errors.InvalidPayload(`Invalid payload at ${path}: must be a plain object at top level`);
+            }
         }
-    }
 
-    _validatePassphrase(value) {
-        if (typeof value !== 'string') {
-            throw new errors.UnlockFailed("Passphrase must be a string");
+        if (value === null) {
+            return;
         }
+
+        if (typeof value === 'boolean' || typeof value === 'string') {
+            return;
+        }
+
+        if (typeof value === 'number') {
+            if (!Number.isFinite(value)) {
+                throw new errors.InvalidPayload(`Invalid payload at ${path}: NaN and Infinity are not valid JSON`);
+            }
+            return;
+        }
+
+        if (typeof value === 'object') {
+            if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
+                throw new errors.InvalidPayload(`Invalid payload at ${path}: Buffer is not allowed`);
+            }
+            if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) {
+                throw new errors.InvalidPayload(`Invalid payload at ${path}: ArrayBuffer/TypedArray/DataView is not allowed`);
+            }
+            if (value instanceof Date || value instanceof Map || value instanceof Set || value instanceof RegExp) {
+                throw new errors.InvalidPayload(`Invalid payload at ${path}: ${value.constructor.name} is not allowed`);
+            }
+
+            if (Array.isArray(value)) {
+                for (let i = 0; i < value.length; i++) {
+                    this._validatePayload(value[i], `${path}[${i}]`, false);
+                }
+                return;
+            }
+
+            const proto = Object.getPrototypeOf(value);
+            if (proto !== Object.prototype && proto !== null) {
+                throw new errors.InvalidPayload(`Invalid payload at ${path}: class instances are not allowed`);
+            }
+
+            for (const key of Object.keys(value)) {
+                this._validatePayload(value[key], `${path}.${key}`, false);
+            }
+            return;
+        }
+
+        throw new errors.InvalidPayload(`Invalid payload at ${path}: unsupported type ${typeof value}`);
     }
 
     async initializeDatabase(passphrase, platform = "web") {
-        this._validatePassphrase(passphrase);
+        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+
+        if (typeof passphrase !== 'string') {
+            throw new TypeError("Passphrase must be a string");
+        }
         if (typeof platform !== 'string') {
             throw new errors.UnsupportedPlatform("Platform must be a string");
         }
-        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+
         if (this.isUnlocked()) throw new errors.StorageAlreadyInitialized("Storage is already initialized");
         if (!this.db) await this.init();
 
@@ -178,8 +224,11 @@ class EncryptedStorage {
     }
 
     async unlockDatabase(passphrase) {
-        this._validatePassphrase(passphrase);
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+
+        if (typeof passphrase !== 'string') {
+            throw new TypeError("Passphrase must be a string");
+        }
 
         if (!this.db) throw new errors.StorageNotInitialized("Database not initialized");
 
@@ -268,11 +317,12 @@ class EncryptedStorage {
     }
 
     storePayload(schemaUuid, contentType, payload) {
+        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+
         this._validateUuid(schemaUuid, "schemaUuid");
         this._validateContentType(contentType);
         this._validatePayload(payload);
 
-        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
         if (!this.activeDbKek) throw new errors.StorageLocked("Database is locked");
 
 
@@ -317,9 +367,9 @@ class EncryptedStorage {
     }
 
     retrievePayload(objectUuid) {
-        this._validateUuid(objectUuid, "objectUuid");
-
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+
+        this._validateUuid(objectUuid, "objectUuid");
         if (!this.activeDbKek) throw new errors.StorageLocked("Database is locked");
 
 
