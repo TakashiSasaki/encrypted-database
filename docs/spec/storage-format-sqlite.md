@@ -134,7 +134,4 @@ To apply the proposed constraints, the existing tables in `schema.sql` would be 
 ## 16. Known SQLite Profile Gaps
 A review of the current `docs/backend/sqlite/schema.sql` against the V1 draft reveals the following "decided but not implemented" gaps:
 
-1.  **Missing Metadata/Version Table**: The schema lacks `storage_metadata_tbl` to track `format_major`, `format_minor`, `required_features`, or `optional_features`.
-
-3.  **Missing BLOB Length Constraints**: The schema lacks the `CHECK(length(nonce) = 12)`, `CHECK(length(wrapped_key) >= 16)`, and `CHECK(length(ciphertext) >= 16)` constraints.
-4.  **Missing Content Type Constraints**: `content_type` lacks the `CHECK(length(content_type) > 0 AND instr(content_type, '/') > 1)` constraint.
+None. The schema now includes `storage_metadata_tbl`, PRAGMA checks, and the necessary `CHECK` constraints for `nonce`, `wrapped_key`, `ciphertext`, and `content_type`.
