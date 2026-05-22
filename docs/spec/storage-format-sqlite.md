@@ -11,26 +11,29 @@ Normative status: Proposed SQLite profile for storage-format-v1
 This document specifies the SQLite physical storage profile for the Encrypted Database Storage Format V1. It defines how the abstract cryptographic invariants, metadata, and key hierarchies defined in the Storage Format Core are mapped to SQLite tables, columns, constraints, and PRAGMAs.
 
 ## 2. Relationship to Storage Format Core
-This document is a physical realization of the abstract `storage-format.md`. While the core defines that encrypted keys use A256GCM with a 12-byte nonce, this profile defines that those bytes are stored in specific SQLite `BLOB` columns (`nonce`, `wrapped_key`, `ciphertext`).
+This document is a physical realization of the abstract `storage-format.md`. To maintain a clean separation of concerns, the boundaries are strictly defined:
 
-Where SQLite provides native mechanisms (e.g., `CHECK`, `NOT NULL`, `FOREIGN KEY`), this profile leverages them. Where SQLite cannot fully enforce the invariant (e.g., recursive JSON structure validation, JCS canonicalization), this profile specifies that enforcement is deferred to the library application code.
+*   **Storage Format Core**: Defines UUID canonical format, key hierarchy, AEAD layout, JCS normalization, AAD reconstruction rules, provider config semantics, payload value models, and feature/versioning policies.
+*   **SQLite Storage Profile**: Defines the physical tables, columns, column types, CHECK constraints, PRAGMAs, `json_valid` usage, foreign keys, transaction behavior, and the canonical `schema.sql`.
+
+While the core defines that encrypted keys use A256GCM with a 12-byte nonce, this profile defines that those bytes are stored in specific SQLite `BLOB` columns (`nonce`, `wrapped_key`, `ciphertext`). Where SQLite provides native mechanisms (e.g., `CHECK`, `NOT NULL`, `FOREIGN KEY`), this profile leverages them. Where SQLite cannot fully enforce the invariant (e.g., recursive JSON structure validation, JCS canonicalization), this profile specifies that enforcement is deferred to the library application code.
 
 ## 3. SQLite File Identity
 An SQLite database file implementing this profile should be identifiable both externally (e.g., via magic numbers) and internally.
 *   **Magic Number**: Standard SQLite 3 magic header.
-*   **`PRAGMA application_id`**: Proposed candidate for V1 to identify the specific file type (e.g., a specific 32-bit integer representing this vault format).
-*   **`PRAGMA user_version`**: Proposed candidate for tracking coarse format revisions or schema migrations.
+*   **`PRAGMA application_id`**: Used as a magic number to identify the specific file type (e.g., a specific 32-bit integer representing this vault format).
+*   **`PRAGMA user_version`**: Used as an auxiliary integer tracking the SQLite schema / migration version (synchronizes with `schema_version` in the metadata table).
 
 ## 4. Required PRAGMAs
 To ensure security, data integrity, and cross-platform compatibility, implementations interacting with the SQLite profile MUST execute specific PRAGMAs upon connection:
-*   `PRAGMA foreign_keys = ON;` (Mandatory: Validates relationships like `wrapped_kid` referencing `kid`).
-*   `PRAGMA journal_mode = WAL;` (Recommended: For concurrency and crash resilience, though environments like `sql.js` in the browser may differ).
-*   SQLite `STRICT` tables are a candidate schema feature for stronger type enforcement, enabled per table via `CREATE TABLE ... STRICT` rather than by PRAGMA, and require SQLite >= 3.37.0.
+*   `PRAGMA foreign_keys = ON;` (Mandatory: Validates relationships like `wrapped_kid` referencing `kid`. Implementations must execute this immediately upon connection, and verify it is enabled if possible).
+*   `PRAGMA journal_mode = WAL;` (Optional / Recommended: For concurrency and crash resilience on desktop/server, though environments like `sql.js` in the browser or in-memory backends may differ).
+*   *Future Hardening*: SQLite `STRICT` tables are deferred to future enhancements due to compatibility constraints across Go/Rust drivers and older SQLite versions.
 
 ## 5. Canonical Schema Source
 The definitive, unversioned schema for the current pre-v1 state is located at `docs/backend/sqlite/schema.sql`.
 
-*Proposed Candidate*: V1 may introduce a "Schema Fingerprint" derived from the canonical DDL statements to verify that the initialized database matches the expected library schema layout.
+*Future Hardening*: A "Schema Fingerprint" derived from canonical DDL statements to verify exact database schema layout is deferred.
 
 ## 6. Table Mapping
 The abstract entities from the Storage Format Core map to the following SQLite tables:
@@ -57,18 +60,16 @@ This profile strictly divides the enforcement of rules between the SQLite engine
 
 ### 8.1 SQLite Enforced Constraints
 The database schema actively enforces the following using `NOT NULL`, `PRIMARY KEY`, `FOREIGN KEY`, and `CHECK` constraints:
-*   **UUID Formatting**: All `UUID` columns (`kid`, `wrap_id`, `object_uuid`, `schema_uuid`) use SQLite `GLOB` checks written with repeated `[0-9a-f]` character classes (rather than `{8}`-style repetition), including explicit UUID version and variant nibble constraints, to ensure canonical formatting as defined in `docs/backend/sqlite/schema.sql`.
-*   **Key Relationships**: `FOREIGN KEY` constraints ensure a `wrapped_key_tbl` cannot reference non-existent keys.
+*   **UUID Formatting**: All `UUID` columns (`kid`, `wrap_id`, `object_uuid`, `schema_uuid`) use SQLite `GLOB` checks written with repeated `[0-9a-f]` character classes (rather than `{8}`-style repetition), including explicit UUID version and variant nibble constraints, to ensure canonical formatting as defined in `docs/backend/sqlite/schema.sql`. The schema permits UUID versions `[1-8]`.
+*   **Key Relationships**: `FOREIGN KEY` constraints ensure a `wrapped_key_tbl` cannot reference non-existent keys. Foreign key enforcement is a mandatory V1 requirement.
 *   **Enumerations**: `CHECK(status IN ('active', ...))` and similar constraints enforce finite state machines for keys and envelopes.
 *   **Static Invariants**: `envelope_v = 1`, `envelope_type = 'key_wrap'`, etc., are locked via `CHECK` constraints.
-*   **JSON Shape**: `json_valid(provider_config_json)` ensures columns designated as JSON at least parse via SQLite's JSON extension.
+*   **JSON Shape**: `json_valid(provider_config_json)` ensures columns designated as JSON at least parse via SQLite's JSON extension. (Note: Using `json_extract()` for field-level validation is not V1-blocking and is deferred to application-layer validation).
 
 ### 8.2 Application Layer Enforced Constraints
 SQLite capabilities are insufficient to enforce the following, which MUST be validated by the library implementation:
 *   **JCS Canonicalization**: SQLite `json_valid` does not enforce RFC 8785 byte equivalence. The application MUST ensure JCS canonical strings are bound.
-*   **Content Type Length**: While `content_type` is `TEXT NOT NULL`, preventing empty strings (`""`) is currently handled by the application layer API contract. (Note: A SQLite `CHECK (length(content_type) > 0)` could be added in the future).
 *   **Recursive Payload Validation**: SQLite cannot deeply enforce that a payload object contains only strings/numbers/booleans/nulls and no raw binary data prior to encryption.
-*   **Cryptographic Lengths**: Validating that nonces are exactly 12 bytes and tags are exactly 16 bytes is currently handled by the application's cryptographic bindings, though `length(nonce) = 12` `CHECK` constraints are strong candidates for V1.
 *   **AAD Byte Construction**: SQLite has no awareness of the dynamically constructed AAD context.
 
 ## 9. BLOB Encoding Rules
@@ -85,11 +86,11 @@ Columns suffixed with `_json` (e.g., `provider_config_json`, `description_json`)
 *   All operations spanning multiple tables (e.g., generating a new `record_dek` in `key_tbl` and subsequently wrapping it in `wrapped_key_tbl`) MUST be performed within a single SQLite transaction (`BEGIN` / `COMMIT`).
 *   Foreign Key checking must be enabled at the connection level to ensure the graph of keys remains structurally sound.
 
-## 12. Metadata Table Candidate
-*Draft Candidate*: The current schema lacks a dedicated `metadata_tbl` to store `format_major`, `format_minor`, `required_features`, and `database_uuid`. Introducing a `metadata_tbl` is a primary requirement for V1 stabilization to support the Storage Format Core identity model.
+## 12. Metadata Table Candidates
+The V1 schema introduces a dedicated `storage_metadata_tbl` to support the Storage Format Core identity model. It is designed as a strict key-value structure. The application layer handles parsing the `value` column (e.g., as strings, integers, or JCS JSON arrays).
 
 ## 13. Migration Handling
-SQLite schema migrations will rely on structural changes utilizing standard SQLite DDL techniques (e.g., creating temporary tables, copying data, and renaming). A dedicated `migration_tbl` or reliance on `PRAGMA user_version` is required to track applied migrations in a V1-stable state.
+SQLite schema migrations will rely on structural changes utilizing standard SQLite DDL techniques (e.g., creating temporary tables, copying data, and renaming). In V1, migrations are tracked using `schema_version` in the metadata table and `PRAGMA user_version`. A dedicated `storage_migration_tbl` is reserved as a future enhancement.
 
 ## 14. Implementation Requirements
 Any library implementing this profile MUST:
@@ -98,12 +99,41 @@ Any library implementing this profile MUST:
 3.  Trap raw `sqlite3.Error` (or equivalent) and map them to standard `DatabaseBackendError` or input validation errors as dictated by the API contract.
 4.  Correctly close database connections in `finally` blocks to release file locks across all platforms.
 
-## 15. Known SQLite Profile Gaps
-A review of the current `docs/backend/sqlite/schema.sql` against the V1 draft reveals the following gaps and candidate enhancements:
+## 15. Proposed V1 Schema Changes
+The following are proposed constraints and structures that fulfill the V1 requirements.
 
-1.  **Missing Metadata/Version Table**: There is no table to track `format_major`, `format_minor`, `required_features`, or `optional_features`.
-2.  **Missing `PRAGMA application_id` / `user_version`**: The schema does not set or enforce these SQLite file identity mechanisms.
-3.  **Missing BLOB Length Constraints**: The schema lacks `CHECK (length(nonce) = 12)` and minimum length checks for `wrapped_key` and `ciphertext` BLOBs. SQLite could easily enforce these.
-4.  **Missing Empty String Constraints**: `content_type` lacks a `CHECK (length(content_type) > 0)` constraint. Currently enforced solely in application code.
-5.  **Schema Fingerprint / Hash**: There is no mechanism defined to verify the integrity/version of the exact DDL schema present in the database.
-6.  **Provider Config Field Constraints**: SQLite's `json_valid` ensures basic parsing, but a JSON1-based constraint (e.g., `CHECK(json_extract(provider_config_json, '$.salt') IS NOT NULL)`) could provide stronger schema-level enforcement.
+-- Proposed V1 structures and constraints; not yet applied to docs/backend/sqlite/schema.sql.
+
+**Metadata Table**:
+```sql
+CREATE TABLE IF NOT EXISTS storage_metadata_tbl (
+    property TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+```
+
+**Cryptographic & Length Invariants**:
+```sql
+-- wrapped_key_tbl.nonce and encrypted_object_tbl.nonce
+CHECK(length(nonce) = 12)
+
+-- wrapped_key_tbl.wrapped_key
+-- Note: Current AES-GCM output is 32-byte key + 16-byte tag = 48 bytes.
+-- However, we only enforce >= 16 bytes to avoid fixing algorithm-dependent length too rigidly in the schema.
+CHECK(length(wrapped_key) >= 16)
+
+-- encrypted_object_tbl.ciphertext
+CHECK(length(ciphertext) >= 16)
+
+-- encrypted_object_tbl.content_type
+-- Ensures MIME-like strings are not empty and contain a slash.
+CHECK(length(content_type) > 0 AND instr(content_type, '/') > 1)
+```
+
+## 16. Known SQLite Profile Gaps
+A review of the current `docs/backend/sqlite/schema.sql` against the V1 draft reveals the following "decided but not implemented" gaps:
+
+1.  **Missing Metadata/Version Table**: The schema lacks `storage_metadata_tbl` to track `format_major`, `format_minor`, `required_features`, or `optional_features`.
+2.  **Missing `PRAGMA application_id` / `user_version`**: The schema does not yet set or enforce these SQLite file identity mechanisms.
+3.  **Missing BLOB Length Constraints**: The schema lacks the `CHECK(length(nonce) = 12)`, `CHECK(length(wrapped_key) >= 16)`, and `CHECK(length(ciphertext) >= 16)` constraints.
+4.  **Missing Content Type Constraints**: `content_type` lacks the `CHECK(length(content_type) > 0 AND instr(content_type, '/') > 1)` constraint.

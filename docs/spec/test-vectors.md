@@ -2,7 +2,7 @@
 
 To guarantee interoperability between different language implementations (e.g., Python, Node.js, WebAssembly browsers, and eventually Go/Rust) and future migration pathways, implementations must verify their cryptographic operations and canonicalizations against standard test vectors.
 
-These test vectors serve as the foundational conformance suite for the Storage Format V1 invariants.
+These test vectors serve as the foundational conformance suite for the Storage Format V1 invariants. Note that while Go/Rust implementations are planned to prove broader portability, passing the conformance suite in Python, Node.js, and browser-test environments is sufficient for declaring V1 stable.
 
 ## JSON Canonicalization (JCS) Vectors
 
@@ -43,3 +43,7 @@ Machine-readable test vectors for payload encryption are available in `test-vect
 ### Semantic Interoperability (SQLite Roundtrip)
 
 In addition to primitive test vectors, the high-level semantic interoperability between language implementations is validated using SQLite roundtrip integration tests (`integration-tests/roundtrip/`). These tests assert that higher-level payload operations and unlocking mechanics successfully work across platforms, whereas the JSON test vectors focus on byte-level cryptographic equivalence.
+
+### Metadata and Version Constraints
+
+As part of V1 conformance, automated tests must verify correct metadata writing and parsing, strict rejection of unknown `format_major` values, and strict rejection of any unknown feature (required or optional).
