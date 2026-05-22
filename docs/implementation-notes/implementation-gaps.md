@@ -4,9 +4,61 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ## Active Gaps
 
+### 1. Storage format v1 draft is not fully implemented
 
+**Status:** Draft / Active
+**Area:** Storage Format
+**Current state:** `docs/spec/storage-format.md` outlines a draft for the v1 storage format core, including identity, versioning policies, and feature flags. However, the application code does not yet implement the reading, writing, or handling of these new v1 metadata constructs.
+**Expected or intended state:** Application code respects and enforces the format identity, required/optional features, and compatibility policies defined in the v1 draft.
+**Why it matters:** Without these metadata handling mechanisms, forward/backward compatibility and feature flag protections cannot be guaranteed.
+**Recommended next action:** Implement the format identity parsing and rejection logic according to the draft specification.
 
-### 1. JWE/JOSE compatibility is not implemented
+### 2. SQLite storage profile v1 is not fully implemented
+
+**Status:** Draft / Active
+**Area:** Storage Format
+**Current state:** `docs/spec/storage-format-sqlite.md` outlines the physical SQLite profile for the v1 draft. The current database schema lacks the necessary structures to support the full v1 profile requirements.
+**Expected or intended state:** The SQLite schema fully matches the finalized v1 profile.
+**Why it matters:** The physical database layout is currently missing critical components required for format versioning.
+**Recommended next action:** Update the schema and application queries to conform to the completed v1 SQLite profile.
+
+### 3. Metadata/versioning table is not implemented
+
+**Status:** Draft / Active
+**Area:** Storage Format
+**Current state:** The current `schema.sql` lacks a table (e.g., `metadata_tbl`) to store format version numbers, required features, optional features, and the database UUID.
+**Expected or intended state:** A dedicated metadata table exists and is populated during database initialization.
+**Why it matters:** Essential for the Versioning and Compatibility Policy.
+**Recommended next action:** Design and add a `metadata_tbl` to the schema.
+
+### 4. Schema constraints for v1 invariants are not finalized
+
+**Status:** Draft / Active
+**Area:** Storage Format
+**Current state:** While the abstract storage format specifies invariants like 12-byte nonces and non-empty content types, the current SQLite schema does not use available `CHECK` constraints (e.g., `length(nonce) = 12`) to enforce them at the DBMS level, relying purely on application logic.
+**Expected or intended state:** The schema utilizes appropriate SQLite `CHECK` constraints to provide defense-in-depth for V1 invariants.
+**Why it matters:** DBMS-level enforcement prevents corruption from external tools or bugs in the application layer.
+**Recommended next action:** Finalize and add the missing `CHECK` constraints to `schema.sql`.
+
+### 5. Go and Rust implementations are planned but not implemented
+
+**Status:** Active
+**Area:** Implementation
+**Current state:** Python, Node.js, and browser-test implementations exist. Go and Rust implementations are planned to prove the portability of the storage format but do not yet exist.
+**Expected or intended state:** Native Go and Rust packages exist and pass all cross-language test vectors.
+**Why it matters:** The storage format core is designed for multi-language support. Proving it in strictly-typed, compiled languages (Go/Rust) is crucial for V1 stabilization.
+**Recommended next action:** Create initial scaffolding for the Go module and Rust crate.
+
+### 6. Roundtrip matrix does not yet include Go/Rust
+
+**Status:** Active
+**Area:** Interoperability
+**Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js.
+**Expected or intended state:** The roundtrip test matrix tests database creation, unlocking, reading, and writing across all supported languages (Python, Node.js, Go, Rust) and browser exports.
+**Why it matters:** To guarantee true V1 interoperability.
+**Recommended next action:** Expand the `test_roundtrip.sh` harness once Go/Rust implementations are viable.
+
+### 7. JWE/JOSE compatibility is not implemented
 
 **Status:** Active
 **Area:** Standards Compatibility
@@ -15,7 +67,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Developers might incorrectly assume the library produces standard JWE tokens, leading to integration issues with external systems.
 **Recommended next action:** Update documentation to clarify the non-JWE nature of the envelopes, and treat standard JWE export as a future enhancement rather than a current feature.
 
-### 2. Key rotation and lifecycle operations are not implemented
+### 8. Key rotation and lifecycle operations are not implemented
 
 **Status:** Active
 **Area:** Key Management
@@ -24,7 +76,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Lack of key rotation makes the library unsuitable for long-term production use where cryptographic hygiene and rotation are mandated.
 **Recommended next action:** Specify and implement key rotation, migration, and key destruction procedures.
 
-### 3. Additional unlock providers are schema/planned only
+### 9. Additional unlock providers are schema/planned only
 
 **Status:** Active
 **Area:** Features
@@ -33,7 +85,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Users may be confused by schema references to features that are entirely non-functional in the library.
 **Recommended next action:** Clearly document these as planned features or stub them out in the API contract.
 
-### 4. Blind index implementation is not complete
+### 10. Blind index implementation is not complete
 
 **Status:** Active
 **Area:** Features
@@ -42,7 +94,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Without blind indexes, the database cannot easily be queried based on payload contents, severely limiting its utility as a database.
 **Recommended next action:** Implement the schema tables and API methods for blind indexes according to the specification.
 
-### 5. Input validation and canonicalization boundaries need hardening
+### 11. Input validation and canonicalization boundaries need hardening
 
 **Status:** Partially Resolved
 **Area:** Security / Input Validation
@@ -51,7 +103,7 @@ This document tracks known discrepancies and gaps between the current specificat
 **Why it matters:** Relying solely on database constraints can lead to unhandled database errors bubbling up instead of providing clear, early validation errors to the caller.
 **Recommended next action:** Implement stricter MIME type parsing, and evaluate whether JSON Schema and UUID registry validations are within scope or out of scope.
 
-### 6. Packaging and distribution maturity is incomplete
+### 12. Packaging and distribution maturity is incomplete
 
 **Status:** Active
 **Area:** Deployment

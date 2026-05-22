@@ -1,6 +1,8 @@
 # Test Vectors and Portability
 
-To guarantee interoperability between different language implementations (e.g., Python, Node.js, WebAssembly browsers) and future migration pathways, implementations must verify their cryptographic operations and canonicalizations against standard test vectors.
+To guarantee interoperability between different language implementations (e.g., Python, Node.js, WebAssembly browsers, and eventually Go/Rust) and future migration pathways, implementations must verify their cryptographic operations and canonicalizations against standard test vectors.
+
+These test vectors serve as the foundational conformance suite for the Storage Format V1 invariants.
 
 ## JSON Canonicalization (JCS) Vectors
 
