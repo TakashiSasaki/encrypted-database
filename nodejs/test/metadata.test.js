@@ -14,18 +14,24 @@ describe('Metadata V1 Validation', () => {
         dbPath = path.join(tempDir, 'test.db');
     });
 
+    let activeStorages = [];
+
     afterEach(() => {
+        for (const storage of activeStorages) {
+            try { storage.close(); } catch (e) {}
+        }
+        activeStorages = [];
         if (fs.existsSync(dbPath)) {
-            fs.unlinkSync(dbPath);
+            try { fs.unlinkSync(dbPath); } catch (e) {}
         }
         const tempDir = path.dirname(dbPath);
         if (fs.existsSync(tempDir)) {
-            fs.rmdirSync(tempDir);
+            try { fs.rmdirSync(tempDir); } catch (e) {}
         }
     });
 
     it('should create valid metadata on initialization', async () => {
-        const storage = new EncryptedStorage(dbPath);
+        const storage = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await storage.initializeDatabase("password", "linux");
 
         const db = new Database(dbPath);
@@ -54,7 +60,7 @@ describe('Metadata V1 Validation', () => {
     });
 
     it('should reject invalid metadata format_major', async () => {
-        const storage = new EncryptedStorage(dbPath);
+        const storage = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await storage.initializeDatabase("password", "linux");
         storage.close();
 
@@ -62,12 +68,12 @@ describe('Metadata V1 Validation', () => {
         db.prepare("UPDATE storage_metadata_tbl SET value = '2' WHERE property = 'format_major'").run();
         db.close();
 
-        const storage2 = new EncryptedStorage(dbPath);
+        const storage2 = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
     });
 
     it('should reject missing metadata property', async () => {
-        const storage = new EncryptedStorage(dbPath);
+        const storage = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await storage.initializeDatabase("password", "linux");
         storage.close();
 
@@ -75,12 +81,12 @@ describe('Metadata V1 Validation', () => {
         db.prepare("DELETE FROM storage_metadata_tbl WHERE property = 'database_uuid'").run();
         db.close();
 
-        const storage2 = new EncryptedStorage(dbPath);
+        const storage2 = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
     });
 
     it('should reject invalid feature', async () => {
-        const storage = new EncryptedStorage(dbPath);
+        const storage = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await storage.initializeDatabase("password", "linux");
         storage.close();
 
@@ -88,12 +94,12 @@ describe('Metadata V1 Validation', () => {
         db.prepare("UPDATE storage_metadata_tbl SET value = '[\"unknown_feature\"]' WHERE property = 'required_features'").run();
         db.close();
 
-        const storage2 = new EncryptedStorage(dbPath);
+        const storage2 = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
     });
 
     it('should reject invalid jcs feature', async () => {
-        const storage = new EncryptedStorage(dbPath);
+        const storage = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await storage.initializeDatabase("password", "linux");
         storage.close();
 
@@ -101,12 +107,12 @@ describe('Metadata V1 Validation', () => {
         db.prepare("UPDATE storage_metadata_tbl SET value = '[ ]' WHERE property = 'required_features'").run();
         db.close();
 
-        const storage2 = new EncryptedStorage(dbPath);
+        const storage2 = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
     });
 
     it('should reject invalid provider config', async () => {
-        const storage = new EncryptedStorage(dbPath);
+        const storage = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await storage.initializeDatabase("password", "linux");
         storage.close();
 
@@ -119,19 +125,19 @@ describe('Metadata V1 Validation', () => {
         db.prepare("UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?").run(canonicalConfig, row.kid);
         db.close();
 
-        const storage2 = new EncryptedStorage(dbPath);
+        const storage2 = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
     });
 
     it('should enforce error precedence', async () => {
-        const storage = new EncryptedStorage(dbPath);
+        const storage = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         await storage.initializeDatabase("password", "linux");
         storage.close();
 
         // 1. Closed storage + invalid arg -> StorageClosed
         await expect(storage.unlockDatabase(123)).rejects.toThrow(errors.StorageClosed);
 
-        const storage2 = new EncryptedStorage(dbPath);
+        const storage2 = (() => { const s = new EncryptedStorage(dbPath); activeStorages.push(s); return s; })();
         // 2. Open storage + invalid arg -> InvalidPassphrase
         await expect(storage2.unlockDatabase(123)).rejects.toThrow(errors.InvalidPassphrase);
 
