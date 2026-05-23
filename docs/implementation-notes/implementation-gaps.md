@@ -4,52 +4,18 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ## Active Gaps (V1-Blocking Storage-Format Gaps)
 
-### 1. Storage format v1 identity and metadata handling is not implemented
-
-**Status:** Decided but not implemented
-**Area:** Storage Format
-**Current state:** `docs/spec/storage-format.md` outlines the v1 storage format core, including identity (`format_major`, `format_minor`), versioning policies, and strictly rejecting unknown features. The application code does not yet implement reading, writing, or handling these new v1 metadata constructs. Pre-V1 database rejection is also not yet implemented.
-**Expected or intended state:** Application code initializes V1 databases with proper metadata and respects/enforces the format identity and strict feature rejection policies. Pre-V1 databases are explicitly rejected.
-**Why it matters:** Without these metadata handling mechanisms, forward/backward compatibility and feature flag protections cannot be guaranteed.
-**Recommended next action:** Implement the format identity parsing and rejection logic according to the specification.
-
-### 2. SQLite storage profile v1 is not fully implemented
-
-**Status:** Decided but not implemented
-**Area:** Storage Format
-**Current state:** `docs/spec/storage-format-sqlite.md` outlines the physical SQLite profile for the v1 draft. The current database schema lacks the necessary structures (e.g., `PRAGMA application_id`) to support the full v1 profile requirements.
-**Expected or intended state:** The SQLite schema fully matches the v1 profile.
-**Why it matters:** The physical database layout is currently missing critical components required for format versioning.
-**Recommended next action:** Update the schema and application queries to conform to the v1 SQLite profile.
-
-### 3. Metadata/versioning table is not implemented
-
-**Status:** Decided but not implemented
-**Area:** Storage Format
-**Current state:** The current `schema.sql` lacks the `storage_metadata_tbl` to store format version numbers, required features, optional features, and the database UUID as a key-value store.
-**Expected or intended state:** A dedicated `storage_metadata_tbl` exists and is populated with JCS canonical JSON feature flags during database initialization.
-**Why it matters:** Essential for the Versioning and Compatibility Policy.
-**Recommended next action:** Add `storage_metadata_tbl` to the schema.
-
-### 4. Schema constraints for v1 invariants are not implemented
-
-**Status:** Decided but not implemented
-**Area:** Storage Format
-**Current state:** The abstract storage format specifies invariants like 12-byte nonces and non-empty content types. The V1 constraints are proposed (`CHECK(length(nonce)=12)`, etc.) but not yet applied to `schema.sql`.
-**Expected or intended state:** The schema utilizes the proposed SQLite `CHECK` constraints to provide defense-in-depth for V1 invariants.
-**Why it matters:** DBMS-level enforcement prevents corruption from external tools or bugs in the application layer.
-**Recommended next action:** Apply the missing `CHECK` constraints to `schema.sql`.
-
-### 5. Provider Config Explicitness is not implemented
-
-**Status:** Decided but not implemented
-**Area:** Storage Format
-**Current state:** The schema decision requires `provider_config_json` to explicitly store `kdf`, `profile`, `output_bytes`, etc. The current implementations rely partly on implicit assumptions.
-**Expected or intended state:** The initialization logic writes a fully explicit `provider_config_json` block for the `passphrase_argon2id` provider.
-**Why it matters:** Implicit parameters risk long-term compatibility issues.
-**Recommended next action:** Update database initialization to write the explicitly required fields.
+None.
 
 ## Active Gaps (Future Hardening)
+
+### Dynamic `created_by_version` discovery
+
+**Status:** Future enhancement
+**Area:** Deployment / Metadata
+**Current state:** The `created_by_version` in the metadata table is hardcoded to `"0.0.0-dev"`. Dynamic discovery from package metadata (e.g. `package.json` or `pyproject.toml`) is not implemented.
+**Expected or intended state:** The library dynamically discovers its own version at runtime or build time to embed in new databases.
+**Why it matters:** Accurate version tracking helps diagnose issues with specific library versions.
+**Recommended next action:** Implement dynamic version discovery as a packaging/metadata polish step.
 
 ### 6. Schema fingerprint / hash
 
@@ -154,6 +120,61 @@ This document tracks known discrepancies and gaps between the current specificat
 
 
 ## Resolved Gaps
+
+### Browser/sql.js PRAGMA validation exception
+
+**Status:** Documented Exception (Resolved)
+**Area:** Storage Format
+**Current state:** `browser-test` bypasses `PRAGMA application_id` and `PRAGMA user_version` validations due to `sql.js` in-memory behavior, instead relying entirely on `storage_metadata_tbl` as the authoritative source. This is explicitly documented in the SQLite Profile specification.
+**Expected or intended state:** The exception is documented and covered by specific tests.
+**Why it matters:** Prevents browser export/import flows from incorrectly triggering format validation failures.
+**Recommended next action:** None.
+
+### Storage format v1 identity and metadata handling
+
+**Status:** Resolved
+**Area:** Storage Format
+**Current state:** Python, Node.js, and browser-test implementations fully support parsing, validating, and writing Storage Format V1 metadata. This includes `storage_metadata_tbl`, `PRAGMA application_id`, JCS canonical exactness checking for features, and pre-V1 database explicit rejection.
+**Expected or intended state:** Application code initializes V1 databases with proper metadata and respects/enforces the format identity and strict feature rejection policies. Pre-V1 databases are explicitly rejected.
+**Why it matters:** Without these metadata handling mechanisms, forward/backward compatibility and feature flag protections cannot be guaranteed.
+**Recommended next action:** None.
+
+### SQLite storage profile v1 metadata implementation
+
+**Status:** Resolved
+**Area:** Storage Format
+**Current state:** Python, Node.js, and browser-test implementations strictly validate `PRAGMA application_id` and `PRAGMA user_version` (with an explicit, documented exception for the browser-test sql.js in-memory database). The SQLite schema fully matches the v1 profile.
+**Expected or intended state:** The SQLite schema fully matches the v1 profile.
+**Why it matters:** The physical database layout must support format versioning.
+**Recommended next action:** None.
+
+### Metadata/versioning table
+
+**Status:** Resolved
+**Area:** Storage Format
+**Current state:** The `schema.sql` includes the `storage_metadata_tbl`. Implementations properly initialize it with JCS canonical JSON feature flags and required version strings.
+**Expected or intended state:** A dedicated `storage_metadata_tbl` exists and is populated during database initialization.
+**Why it matters:** Essential for the Versioning and Compatibility Policy.
+**Recommended next action:** None.
+
+### Schema constraints for v1 invariants
+
+**Status:** Resolved
+**Area:** Storage Format
+**Current state:** `CHECK` constraints for 12-byte nonces, wrapped key minimum lengths, ciphertext minimum lengths, and non-empty content types have been added to `schema.sql`. Direct SQL constraint tests verify that SQLite actively enforces these on Python, Node.js, and browser-test backends.
+**Expected or intended state:** The schema utilizes the proposed SQLite `CHECK` constraints to provide defense-in-depth for V1 invariants.
+**Why it matters:** DBMS-level enforcement prevents corruption from external tools or bugs in the application layer.
+**Recommended next action:** None.
+
+### Provider Config Explicitness
+
+**Status:** Resolved
+**Area:** Storage Format
+**Current state:** `provider_config_json` explicitly stores `kdf`, `profile`, `output_bytes`, `memory_kib`, `iterations`, `parallelism`, and `salt`. Validations require strict JCS canonical exactness, exact profile matching, and exact parameter matching for Argon2id Profile V1.
+**Expected or intended state:** The initialization logic writes a fully explicit `provider_config_json` block for the `passphrase_argon2id` provider.
+**Why it matters:** Implicit parameters risk long-term compatibility issues.
+**Recommended next action:** None.
+
 
 ### Cross-language cryptographic test vectors are not materially implemented
 
