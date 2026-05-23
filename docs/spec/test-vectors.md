@@ -54,3 +54,10 @@ In addition to the static cryptographic vectors above, the V1 Conformance Suite 
 ## Metadata and Version Validation Tests
 
 Implementations must verify their database provenance, version strings, JCS exactness of metadata JSON, and strict provider configurations (including base64url padding checks) through test suites. These tests are considered part of the overarching V1 conformance suite alongside cryptographic test vectors.
+
+## Validation Conformance Suites
+Beyond the cryptographic test vectors provided in `test-vectors/`, implementations MUST implement their own conformance test suites validating that malformed inputs and format manipulations are proactively rejected by the public API layers, including:
+- Metadata rejection (`InvalidStorageFormat` for missing/wrong values)
+- Feature flag rejection (for unknown required/optional features)
+- Provider Config parameter mismatch and padding rejection
+- Cross-implementation compatibility assurance tests

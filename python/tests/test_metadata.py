@@ -118,7 +118,8 @@ def test_invalid_provider_config(tmp_path):
         storage2.unlock_database("password")
 
 def test_error_precedence(tmp_path):
-    db_path = str(tmp_path / "test.db")
+    import uuid
+    db_path = str(tmp_path / f"test_{uuid.uuid4().hex}.db")
     storage = EncryptedStorage(db_path)
     storage.initialize_database("password", "linux")
     storage.close()
@@ -135,3 +136,13 @@ def test_error_precedence(tmp_path):
     # 3. Open storage + wrong arg -> UnlockFailed
     with pytest.raises(UnlockFailed):
         storage2.unlock_database("wrong")
+
+    # 4. Storage format metadata failure -> InvalidStorageFormat
+    with sqlite3.connect(db_path) as conn:
+        cur = conn.cursor()
+        cur.execute("UPDATE storage_metadata_tbl SET value = 'invalid' WHERE property = 'format_major'")
+        conn.commit()
+
+    storage3 = EncryptedStorage(db_path)
+    with pytest.raises(InvalidStorageFormat):
+        storage3.unlock_database("password")

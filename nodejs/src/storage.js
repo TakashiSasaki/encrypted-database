@@ -193,7 +193,7 @@ class EncryptedStorage {
                 throw new errors.InvalidStorageFormat("Invalid canonical database_uuid");
             }
 
-            if (!/^[0-9]+$/.test(metadata["created_at_ms"])) throw new errors.InvalidStorageFormat("Invalid created_at_ms format");
+            if (!/^(0|[1-9][0-9]*)$/.test(metadata["created_at_ms"])) throw new errors.InvalidStorageFormat("Invalid created_at_ms format");
             if (typeof metadata["created_by_library"] !== 'string' || metadata["created_by_library"].trim() === '') throw new errors.InvalidStorageFormat("Invalid created_by_library");
             if (typeof metadata["created_by_version"] !== 'string' || metadata["created_by_version"].trim() === '') throw new errors.InvalidStorageFormat("Invalid created_by_version");
 
