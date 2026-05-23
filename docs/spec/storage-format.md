@@ -35,8 +35,10 @@ Components for Storage Format Identity include:
 *   **`schema_version`**: An integer representing the specific underlying schema layout (e.g., SQLite DDL / migration step). The `PRAGMA user_version` should generally synchronize with this value.
 *   **`database_uuid`**: A canonical UUID uniquely identifying this specific database instance. Initialized via UUIDv4.
 *   **`created_at_ms`**: Unix timestamp in milliseconds indicating when the database was created.
-*   **`created_by_library`**: A string indicating the library implementation that created the database (e.g., `"python-vault"`, `"nodejs-vault"`). Note that the library version and storage format version are fundamentally separate.
-*   **`created_by_version`**: The version string of the library that created the database.
+*   **`created_by_library`**: A string indicating the library implementation that created the database (e.g., `"python"`, `"nodejs"`). Note that the library version and storage format version are fundamentally separate.
+*   **`created_by_version`**: A string indicating the version of the library that created the database.
+
+> **Note on Provenance Metadata:** `created_by_library` and `created_by_version` are diagnostic provenance metadata. They are not compatibility gates. Readers MUST require them to be present and non-empty, but MUST NOT reject a database merely because it was created by another supported implementation.
 *   **`required_features`**: A JCS canonical JSON array of feature flags that a reader MUST understand.
 *   **`optional_features`**: A JCS canonical JSON array of feature flags that a reader MAY understand.
 
@@ -206,3 +208,8 @@ None. All V1-blocking gaps have been resolved.
 2.  **Optional Feature Fallback**: Implementing a strictly read-only mode for unknown optional features is deferred. V1 strictly rejects them.
 3.  **Migration Tracking Table**: A dedicated `storage_migration_tbl` is deferred.
 4.  **Safe Integer Policy**: A strict numeric portability policy across languages for JSON payloads is deferred.
+
+
+## Conformance Testing
+
+To ensure full compatibility with Storage Format V1, all implementations must pass a conformance suite that explicitly includes metadata rejection tests, feature flags validation tests, provider_config validation tests, and explicit PRAGMA property validations.

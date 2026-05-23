@@ -144,4 +144,231 @@ describe('Metadata V1 Validation', () => {
         // 3. Open storage + wrong arg -> UnlockFailed
         await expect(storage2.unlockDatabase("wrong")).rejects.toThrow(errors.UnlockFailed);
     });
+
+    async function withFreshInitializedDb(testFn) {
+        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'metadata-test-'));
+        const dbPath = path.join(tempDir, 'test.db');
+        let storage = null;
+        let rawDb = null;
+
+        try {
+            storage = new EncryptedStorage(dbPath);
+            await storage.initializeDatabase('password', 'linux');
+
+            await testFn({
+                dbPath,
+                storage,
+                closeStorage: () => {
+                    if (storage && !storage.isClosed()) {
+                        storage.close();
+                    }
+                    storage = null;
+                },
+                openRawDb: () => {
+                    rawDb = new Database(dbPath);
+                    return rawDb;
+                },
+                reopenStorage: () => new EncryptedStorage(dbPath),
+            });
+        } finally {
+            if (rawDb) {
+                try { rawDb.close(); } catch (_) {}
+            }
+            if (storage && !storage.isClosed()) {
+                try { storage.close(); } catch (_) {}
+            }
+            try {
+                fs.rmSync(tempDir, { recursive: true, force: true });
+            } catch (_) {}
+        }
+    }
+
+    test('invalid created_at_ms format', async () => {
+        const invalidCases = ["", "-1", "+1", "1.0", "1e3", " 123", "123 ", "abc", "001", "00"];
+        for (const invalidVal of invalidCases) {
+            await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+                closeStorage();
+                const conn = openRawDb();
+                conn.prepare("UPDATE storage_metadata_tbl SET value = ? WHERE property = 'created_at_ms'").run(invalidVal);
+                conn.close();
+                const storage2 = reopenStorage();
+                await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+                storage2.close();
+            });
+        }
+    });
+
+    test('invalid created_by_library and created_by_version', async () => {
+        const invalidCases = ["", "   ", "\t\n"];
+        for (const invalidVal of invalidCases) {
+            await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+                closeStorage();
+                const conn = openRawDb();
+                conn.prepare("UPDATE storage_metadata_tbl SET value = ? WHERE property = 'created_by_library'").run(invalidVal);
+                conn.close();
+                const storage2 = reopenStorage();
+                await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+                storage2.close();
+            });
+            await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+                closeStorage();
+                const conn = openRawDb();
+                conn.prepare("UPDATE storage_metadata_tbl SET value = ? WHERE property = 'created_by_version'").run(invalidVal);
+                conn.close();
+                const storage2 = reopenStorage();
+                await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+                storage2.close();
+            });
+        }
+    });
+
+    test('missing metadata table or empty', async () => {
+        await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+            closeStorage();
+            const conn = openRawDb();
+            conn.prepare("DELETE FROM storage_metadata_tbl").run();
+            conn.close();
+            const storage2 = reopenStorage();
+            await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+            storage2.close();
+        });
+        await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+            closeStorage();
+            const conn = openRawDb();
+            conn.prepare("DROP TABLE storage_metadata_tbl").run();
+            conn.close();
+            const storage2 = reopenStorage();
+            await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+            storage2.close();
+        });
+    });
+
+    test('feature flags validation', async () => {
+        const invalidCases = ["{}", '""', '"[]"', "null", "123", "0", "true", "false", "[1]", "[\"unknown_feature\"]", "[ ]", "[\n]", "[ \n\t]", "invalid"];
+
+        for (const invalidVal of invalidCases) {
+            await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+                closeStorage();
+                const conn = openRawDb();
+                conn.prepare("UPDATE storage_metadata_tbl SET value = ? WHERE property = 'required_features'").run(invalidVal);
+                conn.close();
+                const storage2 = reopenStorage();
+                await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+                storage2.close();
+            });
+
+            await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+                closeStorage();
+                const conn = openRawDb();
+                conn.prepare("UPDATE storage_metadata_tbl SET value = ? WHERE property = 'optional_features'").run(invalidVal);
+                conn.close();
+                const storage2 = reopenStorage();
+                await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+                storage2.close();
+            });
+        }
+    }, 15000);
+
+    test('PRAGMA validation', async () => {
+        await withFreshInitializedDb(async ({ closeStorage, openRawDb }) => {
+            closeStorage();
+            const conn = openRawDb();
+            let appId = conn.pragma("application_id", { simple: true });
+            expect(appId).toBe(1447906135);
+            let userVersion = conn.pragma("user_version", { simple: true });
+            expect(userVersion).toBe(1);
+        });
+
+        await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+            closeStorage();
+            const conn = openRawDb();
+            conn.pragma("application_id = 0");
+            conn.close();
+            const storage2 = reopenStorage();
+            await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+            storage2.close();
+        });
+
+        await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+            closeStorage();
+            const conn = openRawDb();
+            conn.pragma("application_id = 1447906135");
+            conn.pragma("user_version = 2");
+            conn.close();
+            const storage3 = reopenStorage();
+            await expect(storage3.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+            storage3.close();
+        });
+    });
+
+    test('invalid provider config combinations', async () => {
+        const modifiers = [
+            c => { delete c.profile; return c; },
+            c => { c.profile = "argon2id-profile-v2"; return c; },
+            c => { c.kdf = "pbkdf2"; return c; },
+            c => { c.memory_kib = 1024; return c; },
+            c => { c.iterations = 4; return c; },
+            c => { c.parallelism = 2; return c; },
+            c => { c.output_bytes = 16; return c; },
+            c => { delete c.salt; return c; },
+            c => { c.salt += "="; return c; },
+            c => { c.salt = "invalid+salt/char"; return c; },
+            c => { c.salt = "MTIzNDU2Nzg5MDEyMzQ1"; return c; },
+            c => '{ "profile": "argon2id-profile-v1", "kdf": "argon2id" }'
+        ];
+
+        for (const mod of modifiers) {
+            await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+                closeStorage();
+                const db = openRawDb();
+                const row = db.prepare("SELECT kid, provider_config_json FROM unlock_kek_tbl WHERE unlock_provider = 'passphrase_argon2id'").get();
+                const config = JSON.parse(row.provider_config_json);
+
+                const newConfig = mod(config);
+                let canonicalConfig;
+                if (typeof newConfig === 'string') {
+                    canonicalConfig = newConfig;
+                } else {
+                    canonicalConfig = cryptoUtils.canonicalizeJson(newConfig).toString('utf-8');
+                }
+
+                db.prepare("UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?").run(canonicalConfig, row.kid);
+                db.close();
+
+                const storage2 = reopenStorage();
+                await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+                storage2.close();
+            });
+        }
+
+        // Malformed JSON (corruption test bypassing CHECK constraints)
+        await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+            closeStorage();
+            const db = openRawDb();
+            db.pragma('ignore_check_constraints = ON');
+            db.prepare("UPDATE unlock_kek_tbl SET provider_config_json = '{ malformed' WHERE unlock_provider = 'passphrase_argon2id'").run();
+            db.pragma('ignore_check_constraints = OFF');
+            db.close();
+
+            const storage2 = reopenStorage();
+            await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+            storage2.close();
+        });
+    }, 15000);
+
+    test('provenance not compatibility gate', async () => {
+        await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+            closeStorage();
+            const conn = openRawDb();
+            conn.prepare("UPDATE storage_metadata_tbl SET value = 'some-other-implementation' WHERE property = 'created_by_library'").run();
+            conn.prepare("UPDATE storage_metadata_tbl SET value = '9.9.9-test' WHERE property = 'created_by_version'").run();
+            conn.close();
+
+            const storage2 = reopenStorage();
+            await storage2.unlockDatabase("password");
+            expect(storage2.activeDbKek).toBeDefined();
+            storage2.close();
+        });
+    });
+
 });

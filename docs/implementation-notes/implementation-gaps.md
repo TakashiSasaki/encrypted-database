@@ -119,16 +119,17 @@ None.
 **Recommended next action:** Refine `setup.py`, `package.json`, and related metadata to align with standard publishing best practices for each ecosystem.
 
 
-### Dynamic `created_by_version` discovery is not implemented
-
-**Status:** Active
-**Area:** Deployment / Packaging
-**Current state:** The `created_by_version` field in `storage_metadata_tbl` is currently hardcoded to `"0.0.0-dev"` across all implementations.
-**Expected or intended state:** The version string should be dynamically discovered from package metadata (`setup.py` / `package.json`) at runtime.
-**Why it matters:** Hardcoded development versions diminish the usefulness of provenance metadata in production databases.
-**Recommended next action:** Implement dynamic version discovery as part of future packaging metadata polish.
-
 ## Resolved Gaps
+
+### Browser/sql.js malformed provider_config_json corruption test exception
+
+**Status:** Documented Exception (Resolved)
+**Area:** Testing
+**Current state:** Python and Node.js file-backed SQLite implementations use `PRAGMA ignore_check_constraints = ON` to verify that the public API handles malformed JSON in `provider_config_json` (corruption on disk) gracefully by raising `InvalidStorageFormat`. `browser-test` skips this direct corruption test because `sql.js` schema constraints strictly block malformed JSON via `CHECK(json_valid(...))` and bypassing it via PRAGMA is not a required conformance path for the browser implementation.
+**Expected or intended state:** The browser-test exception is fully documented. Semantic invalid JSON cases (which bypass the schema constraint) are universally tested across all environments.
+**Why it matters:** Clearly defines that this is a test-scope exception rather than a missing compatibility guarantee.
+**Recommended next action:** None.
+
 
 ### Storage-format-v1 validation policy parity
 

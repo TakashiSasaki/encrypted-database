@@ -58,6 +58,32 @@ describe('V1 Metadata tests (Browser)', () => {
         await expect(storage.unlockDatabase(123)).rejects.toThrow(errors.InvalidPassphrase);
     });
 
+    it('should throw UnlockFailed for wrong passphrase', async () => {
+        let storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase("pass", "web");
+        const exported = storage.db.export();
+        await storage.close();
+
+        let storage2 = new EncryptedStorage();
+        await storage2.init(exported);
+        await expect(storage2.unlockDatabase("wrong")).rejects.toThrow(errors.UnlockFailed);
+    });
+
+    it('should prioritize InvalidStorageFormat over UnlockFailed for bad metadata', async () => {
+        let storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase("pass", "web");
+        storage.db.run("UPDATE storage_metadata_tbl SET value = 'invalid' WHERE property = 'format_major'");
+        const exported = storage.db.export();
+        await storage.close();
+
+        let storage2 = new EncryptedStorage();
+        await storage2.init(exported);
+        await expect(storage2.unlockDatabase("wrong")).rejects.toThrow(errors.InvalidStorageFormat);
+    });
+
+
     it('should prioritize InvalidStorageFormat on already initialized check if missing KEK', async () => {
         let storage = new EncryptedStorage();
         await storage.init();
