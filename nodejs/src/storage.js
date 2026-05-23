@@ -164,7 +164,7 @@ class EncryptedStorage {
             const pragmaUserVersion = this.conn.pragma("user_version", { simple: true });
 
             const metadataRows = this.conn.prepare("SELECT property, value FROM storage_metadata_tbl").all();
-            if (metadataRows.length === 0) throw new errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)");
+            if (metadataRows.length === 0) throw new errors.InvalidStorageFormat("storage_metadata_tbl is empty (invalid V1 DB)");
 
             const metadata = {};
             for (const row of metadataRows) {
