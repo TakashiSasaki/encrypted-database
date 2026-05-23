@@ -109,7 +109,7 @@ Any library implementing this profile MUST:
 ## 15. Implemented V1 Schema Changes
 The following constraints and structures have been integrated into the current `schema.sql` to fulfill the V1 requirements.
 
-*Note: These are proposed V1 structures and constraints; they are not yet applied to `docs/backend/sqlite/schema.sql`.*
+*Note: These V1 structures and constraints are now applied to the canonical `docs/backend/sqlite/schema.sql`.*
 
 **Metadata Table**:
 ```sql

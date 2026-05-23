@@ -167,7 +167,7 @@ class EncryptedStorage {
         let metadataRows;
         try {
             const res = this.db.exec("SELECT property, value FROM storage_metadata_tbl");
-            if (res.length === 0 || res[0].values.length === 0) throw new errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)");
+            if (res.length === 0 || res[0].values.length === 0) throw new errors.InvalidStorageFormat("storage_metadata_tbl is empty (invalid V1 DB)");
             metadataRows = res[0].values;
         } catch (e) {
             if (e.message.includes("no such table")) {
@@ -199,8 +199,8 @@ class EncryptedStorage {
         if (metadata["sqlite_user_version"] !== "1") throw new errors.InvalidStorageFormat("Invalid metadata sqlite_user_version");
 
         if (!/^[0-9]+$/.test(metadata["created_at_ms"])) throw new errors.InvalidStorageFormat("Invalid created_at_ms format");
-        if (metadata["created_by_library"] !== "browser-test") throw new errors.InvalidStorageFormat("Invalid created_by_library");
-        if (metadata["created_by_version"] !== "0.0.0-dev") throw new errors.InvalidStorageFormat("Invalid created_by_version");
+        if (typeof metadata["created_by_library"] !== 'string' || metadata["created_by_library"].trim() === '') throw new errors.InvalidStorageFormat("Invalid created_by_library");
+        if (typeof metadata["created_by_version"] !== 'string' || metadata["created_by_version"].trim() === '') throw new errors.InvalidStorageFormat("Invalid created_by_version");
 
         if (!this._UUID_PATTERN.test(metadata["database_uuid"])) {
             throw new errors.InvalidStorageFormat("Invalid canonical database_uuid");

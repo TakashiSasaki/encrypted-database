@@ -17,7 +17,7 @@ None.
 **Why it matters:** Accurate version tracking helps diagnose issues with specific library versions.
 **Recommended next action:** Implement dynamic version discovery as a packaging/metadata polish step.
 
-### 6. Schema fingerprint / hash
+### Schema fingerprint / hash
 
 **Status:** Future enhancement
 **Area:** Security
@@ -26,7 +26,7 @@ None.
 **Why it matters:** Defends against subtle tampering of the underlying DDL.
 **Recommended next action:** Defer until post-v1.
 
-### 7. Optional feature read-only fallback
+### Optional feature read-only fallback
 
 **Status:** Future enhancement
 **Area:** Usability
@@ -35,7 +35,7 @@ None.
 **Why it matters:** Enhances user experience when accessing a slightly newer vault with an older reader.
 **Recommended next action:** Defer until post-v1.
 
-### 8. Safe integer policy
+### Safe integer policy
 
 **Status:** Future enhancement
 **Area:** Interoperability
@@ -46,7 +46,7 @@ None.
 
 ## Active Gaps (General)
 
-### 9. Go and Rust implementations are planned but not implemented
+### Go and Rust implementations are planned but not implemented
 
 **Status:** Active
 **Area:** Implementation
@@ -55,7 +55,7 @@ None.
 **Why it matters:** The storage format core is designed for multi-language support. While proving it in strictly-typed, compiled languages (Go/Rust) provides strong confidence, it is not strictly required for declaring the V1 specification stable.
 **Recommended next action:** Create initial scaffolding for the Go module and Rust crate as future enhancements.
 
-### 10. Roundtrip matrix does not yet include Go/Rust
+### Roundtrip matrix does not yet include Go/Rust
 
 **Status:** Active
 **Area:** Interoperability
@@ -64,7 +64,7 @@ None.
 **Why it matters:** To guarantee true V1 interoperability.
 **Recommended next action:** Expand the `test_roundtrip.sh` harness once Go/Rust implementations are viable.
 
-### 11. JWE/JOSE compatibility is not implemented
+### JWE/JOSE compatibility is not implemented
 
 **Status:** Active
 **Area:** Standards Compatibility
@@ -73,7 +73,7 @@ None.
 **Why it matters:** Developers might incorrectly assume the library produces standard JWE tokens, leading to integration issues with external systems.
 **Recommended next action:** Update documentation to clarify the non-JWE nature of the envelopes, and treat standard JWE export as a future enhancement rather than a current feature.
 
-### 12. Key rotation and lifecycle operations are not implemented
+### Key rotation and lifecycle operations are not implemented
 
 **Status:** Active
 **Area:** Key Management
@@ -82,7 +82,7 @@ None.
 **Why it matters:** Lack of key rotation makes the library unsuitable for long-term production use where cryptographic hygiene and rotation are mandated.
 **Recommended next action:** Specify and implement key rotation, migration, and key destruction procedures.
 
-### 13. Additional unlock providers are schema/planned only
+### Additional unlock providers are schema/planned only
 
 **Status:** Active
 **Area:** Features
@@ -91,7 +91,7 @@ None.
 **Why it matters:** Users may be confused by schema references to features that are entirely non-functional in the library.
 **Recommended next action:** Clearly document these as planned features or stub them out in the API contract.
 
-### 14. Blind index implementation is not complete
+### Blind index implementation is not complete
 
 **Status:** Active
 **Area:** Features
@@ -100,7 +100,7 @@ None.
 **Why it matters:** Without blind indexes, the database cannot easily be queried based on payload contents, severely limiting its utility as a database.
 **Recommended next action:** Implement the schema tables and API methods for blind indexes according to the specification.
 
-### 15. Input validation and canonicalization boundaries need hardening
+### Input validation and canonicalization boundaries need hardening
 
 **Status:** Partially Resolved
 **Area:** Security / Input Validation
@@ -109,7 +109,7 @@ None.
 **Why it matters:** Relying solely on database constraints can lead to unhandled database errors bubbling up instead of providing clear, early validation errors to the caller.
 **Recommended next action:** Implement stricter MIME type parsing, and evaluate whether JSON Schema and UUID registry validations are within scope or out of scope.
 
-### 16. Packaging and distribution maturity is incomplete
+### Packaging and distribution maturity is incomplete
 
 **Status:** Active
 **Area:** Deployment
