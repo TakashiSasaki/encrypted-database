@@ -242,74 +242,7 @@ class EncryptedStorage:
             raise errors.StorageNotInitialized("Database not initialized")
         cur = self.conn.cursor()
 
-        # Check if database is initialized by looking for the kek table or metadata table first
-        try:
-            cur.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'")
-            if not cur.fetchone():
-                raise errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)")
-        except sqlite3.Error as e:
-            raise errors.DatabaseBackendError(f"Database error during check: {e}") from e
-
-        # Validate PRAGMA application_id and user_version
-        try:
-            cur.execute("PRAGMA application_id")
-            app_id = cur.fetchone()[0]
-            if str(app_id) != "1447906135":
-                raise errors.InvalidStorageFormat(f"Invalid PRAGMA application_id: {app_id}")
-
-            cur.execute("PRAGMA user_version")
-            user_version = cur.fetchone()[0]
-        except sqlite3.Error as e:
-            raise errors.DatabaseBackendError(f"Database error during PRAGMA check: {e}") from e
-
-        # Validate storage_metadata_tbl
-        try:
-            cur.execute("SELECT property, value FROM storage_metadata_tbl")
-            metadata_rows = cur.fetchall()
-            if not metadata_rows:
-                raise errors.InvalidStorageFormat("storage_metadata_tbl is empty (invalid V1 DB)")
-            metadata = {k: v for k, v in metadata_rows}
-        except sqlite3.Error as e:
-            if "no such table" in str(e):
-                raise errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)")
-            raise errors.DatabaseBackendError(f"Database error during metadata read: {e}") from e
-
-        required_props = [
-            "storage_format_id", "format_major", "format_minor", "schema_version",
-            "database_uuid", "sqlite_application_id", "sqlite_user_version",
-            "required_features", "optional_features"
-        ]
-        for prop in required_props:
-            if prop not in metadata:
-                raise errors.InvalidStorageFormat(f"Missing metadata property: {prop}")
-
-        if metadata["storage_format_id"] != "vault.moukaeritai.work.storage":
-            raise errors.InvalidStorageFormat("Invalid storage_format_id")
-        if metadata["format_major"] != "1":
-            raise errors.InvalidStorageFormat("Invalid format_major")
-        if metadata["format_minor"] != "0":
-            raise errors.InvalidStorageFormat("Invalid format_minor")
-        if metadata["schema_version"] != "1":
-            raise errors.InvalidStorageFormat("Invalid schema_version")
-        if metadata["sqlite_application_id"] != "1447906135":
-            raise errors.InvalidStorageFormat("Invalid metadata sqlite_application_id")
-        if metadata["sqlite_user_version"] != "1":
-            raise errors.InvalidStorageFormat("Invalid metadata sqlite_user_version")
-        if str(user_version) != "1":
-            raise errors.InvalidStorageFormat("PRAGMA user_version and metadata contradiction")
-
-        if not self._UUID_PATTERN.match(metadata["database_uuid"]):
-            raise errors.InvalidStorageFormat("Invalid canonical database_uuid")
-
-        try:
-            req_feat = json.loads(metadata["required_features"])
-            if not isinstance(req_feat, list) or len(req_feat) > 0:
-                raise errors.InvalidStorageFormat("Unknown required features found")
-            opt_feat = json.loads(metadata["optional_features"])
-            if not isinstance(opt_feat, list) or len(opt_feat) > 0:
-                raise errors.InvalidStorageFormat("Unknown optional features found")
-        except Exception:
-            raise errors.InvalidStorageFormat("Features are not valid JCS canonical JSON arrays")
+        self._validate_v1_metadata()
 
         try:
             # Find active database KEK
@@ -339,18 +272,40 @@ class EncryptedStorage:
                 raise errors.DatabaseBackendError(f"Database error during unlock configuration retrieval: {e}") from e
 
             if prov_row and prov_row[0] == 'passphrase_argon2id':
+                prov_config_str = prov_row[1]
                 try:
-                    config = json.loads(prov_row[1])
-                except Exception:
+                    config = json.loads(prov_config_str)
+                    import jcs
+                    canonical_config = jcs.canonicalize(config).decode("utf-8")
+                    if canonical_config != prov_config_str:
+                        raise errors.InvalidStorageFormat("provider_config_json is not valid JCS canonical JSON")
+                except Exception as e:
+                    if isinstance(e, errors.InvalidStorageFormat):
+                        raise e
                     raise errors.InvalidStorageFormat("provider_config_json is not valid JSON")
 
-                if config.get("profile") == "argon2id-profile-v1":
-                    if config.get("kdf") != "argon2id" or config.get("memory_kib") != 65536 or \
-                       config.get("iterations") != 3 or config.get("parallelism") != 1 or \
-                       config.get("output_bytes") != 32:
-                        raise errors.InvalidStorageFormat("provider_config_json explicit parameters mismatch argon2id-profile-v1")
+                required_config_props = ["kdf", "profile", "salt", "memory_kib", "iterations", "parallelism", "output_bytes"]
+                for prop in required_config_props:
+                    if prop not in config:
+                        raise errors.InvalidStorageFormat(f"Missing provider_config_json property: {prop}")
 
-                salt = self._b64d(config['salt'])
+                if config["profile"] != "argon2id-profile-v1":
+                    raise errors.InvalidStorageFormat("Unknown or missing profile in provider_config_json")
+
+                if config["kdf"] != "argon2id" or config["memory_kib"] != 65536 or \
+                   config["iterations"] != 3 or config["parallelism"] != 1 or \
+                   config["output_bytes"] != 32:
+                    raise errors.InvalidStorageFormat("provider_config_json explicit parameters mismatch argon2id-profile-v1")
+
+                salt_str = config['salt']
+                if '=' in salt_str or not re.match(r'^[A-Za-z0-9_-]+$', salt_str):
+                    raise errors.InvalidStorageFormat("salt must be base64url encoded with no padding")
+
+                try:
+                    salt = self._b64d(salt_str)
+                except Exception:
+                    raise errors.InvalidStorageFormat("salt is not valid base64url")
+
                 if len(salt) != 16:
                     raise errors.InvalidStorageFormat("decoded salt length is not 16 bytes")
 
@@ -552,3 +507,98 @@ class EncryptedStorage:
         self.active_db_kek = None
         self.active_db_kid = None
         self._is_closed = True
+
+    def _validate_v1_metadata(self):
+        cur = self.conn.cursor()
+
+        # Check if metadata table exists
+        try:
+            cur.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'")
+            if not cur.fetchone():
+                raise errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)")
+        except sqlite3.Error as e:
+            raise errors.DatabaseBackendError(f"Database error during metadata check: {e}") from e
+
+        # Validate PRAGMA application_id and user_version
+        try:
+            cur.execute("PRAGMA application_id")
+            app_id = cur.fetchone()[0]
+            if str(app_id) != "1447906135":
+                raise errors.InvalidStorageFormat(f"Invalid PRAGMA application_id: {app_id}")
+
+            cur.execute("PRAGMA user_version")
+            user_version = cur.fetchone()[0]
+        except sqlite3.Error as e:
+            raise errors.DatabaseBackendError(f"Database error during PRAGMA check: {e}") from e
+
+        # Validate storage_metadata_tbl
+        try:
+            cur.execute("SELECT property, value FROM storage_metadata_tbl")
+            metadata_rows = cur.fetchall()
+            if not metadata_rows:
+                raise errors.InvalidStorageFormat("storage_metadata_tbl is empty (invalid V1 DB)")
+            metadata = {k: v for k, v in metadata_rows}
+        except sqlite3.Error as e:
+            if "no such table" in str(e):
+                raise errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)")
+            raise errors.DatabaseBackendError(f"Database error during metadata read: {e}") from e
+
+        required_props = [
+            "storage_format_id", "format_major", "format_minor", "schema_version",
+            "database_uuid", "created_at_ms", "created_by_library", "created_by_version",
+            "sqlite_application_id", "sqlite_user_version",
+            "required_features", "optional_features"
+        ]
+        for prop in required_props:
+            if prop not in metadata:
+                raise errors.InvalidStorageFormat(f"Missing metadata property: {prop}")
+
+        if metadata["storage_format_id"] != "vault.moukaeritai.work.storage":
+            raise errors.InvalidStorageFormat("Invalid storage_format_id")
+        if metadata["format_major"] != "1":
+            raise errors.InvalidStorageFormat("Invalid format_major")
+        if metadata["format_minor"] != "0":
+            raise errors.InvalidStorageFormat("Invalid format_minor")
+        if metadata["schema_version"] != "1":
+            raise errors.InvalidStorageFormat("Invalid schema_version")
+        if metadata["sqlite_application_id"] != "1447906135":
+            raise errors.InvalidStorageFormat("Invalid metadata sqlite_application_id")
+        if metadata["sqlite_user_version"] != "1":
+            raise errors.InvalidStorageFormat("Invalid metadata sqlite_user_version")
+        if str(user_version) != "1":
+            raise errors.InvalidStorageFormat("PRAGMA user_version and metadata contradiction")
+
+        if not self._UUID_PATTERN.match(metadata["database_uuid"]):
+            raise errors.InvalidStorageFormat("Invalid canonical database_uuid")
+
+        if not re.match(r'^[0-9]+$', metadata["created_at_ms"]):
+            raise errors.InvalidStorageFormat("Invalid created_at_ms format")
+
+        if not isinstance(metadata["created_by_library"], str) or not metadata["created_by_library"].strip():
+            raise errors.InvalidStorageFormat("Invalid created_by_library")
+
+        if not isinstance(metadata["created_by_version"], str) or not metadata["created_by_version"].strip():
+            raise errors.InvalidStorageFormat("Invalid created_by_version")
+
+        # JCS validation for features
+        try:
+            req_feat_str = metadata["required_features"]
+            req_feat = json.loads(req_feat_str)
+            import jcs
+            canonical_req = jcs.canonicalize(req_feat).decode("utf-8")
+            if canonical_req != req_feat_str:
+                raise errors.InvalidStorageFormat("Features are not valid JCS canonical JSON arrays")
+            if not isinstance(req_feat, list) or len(req_feat) > 0:
+                raise errors.InvalidStorageFormat("Unknown required features found")
+
+            opt_feat_str = metadata["optional_features"]
+            opt_feat = json.loads(opt_feat_str)
+            canonical_opt = jcs.canonicalize(opt_feat).decode("utf-8")
+            if canonical_opt != opt_feat_str:
+                raise errors.InvalidStorageFormat("Features are not valid JCS canonical JSON arrays")
+            if not isinstance(opt_feat, list) or len(opt_feat) > 0:
+                raise errors.InvalidStorageFormat("Unknown optional features found")
+        except Exception as e:
+            if isinstance(e, errors.InvalidStorageFormat):
+                raise e
+            raise errors.InvalidStorageFormat("Features are not valid JSON arrays")

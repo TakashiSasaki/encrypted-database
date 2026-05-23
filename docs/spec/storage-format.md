@@ -3,7 +3,7 @@
 ```text
 Status: Draft
 Compatibility: pre-v1, no production compatibility guarantee
-Implementation status: Python partial, Node.js partial, browser-test partial, Go planned, Rust planned
+Implementation status: Python implemented, Node.js implemented, browser-test implemented, Go planned, Rust planned
 Normative status: Proposed storage-format-v1 candidate
 ```
 

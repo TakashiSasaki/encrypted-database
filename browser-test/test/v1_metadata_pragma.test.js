@@ -13,7 +13,7 @@ describe('V1 Metadata tests (Browser)', () => {
     it('should throw InvalidStorageFormat when metadata property is missing', async () => {
         let storage = new EncryptedStorage();
         await storage.init();
-        await storage.initializeDatabase("pass", "linux");
+        await storage.initializeDatabase("pass", "web");
 
         storage.db.exec("DELETE FROM storage_metadata_tbl WHERE property = 'format_major'");
 
@@ -23,7 +23,7 @@ describe('V1 Metadata tests (Browser)', () => {
     it('should throw InvalidStorageFormat on invalid created_at_ms format', async () => {
         let storage = new EncryptedStorage();
         await storage.init();
-        await storage.initializeDatabase("pass", "linux");
+        await storage.initializeDatabase("pass", "web");
 
         storage.db.exec("UPDATE storage_metadata_tbl SET value = 'abc' WHERE property = 'created_at_ms'");
 
@@ -33,7 +33,7 @@ describe('V1 Metadata tests (Browser)', () => {
     it('should throw InvalidStorageFormat on non-canonical JCS features', async () => {
         let storage = new EncryptedStorage();
         await storage.init();
-        await storage.initializeDatabase("pass", "linux");
+        await storage.initializeDatabase("pass", "web");
 
         storage.db.exec("UPDATE storage_metadata_tbl SET value = '[ ]' WHERE property = 'required_features'");
 
@@ -46,22 +46,22 @@ describe('V1 Metadata tests (Browser)', () => {
         await storage.close();
 
         await expect(storage.unlockDatabase(123)).rejects.toThrow(errors.StorageClosed);
-        await expect(storage.initializeDatabase(123, "linux")).rejects.toThrow(errors.StorageClosed);
+        await expect(storage.initializeDatabase(123, "web")).rejects.toThrow(errors.StorageClosed);
     });
 
     it('should throw InvalidPassphrase for non-string', async () => {
         let storage = new EncryptedStorage();
         await storage.init();
-        await expect(storage.initializeDatabase(123, "linux")).rejects.toThrow(errors.InvalidPassphrase);
+        await expect(storage.initializeDatabase(123, "web")).rejects.toThrow(errors.InvalidPassphrase);
 
-        await storage.initializeDatabase("pass", "linux");
+        await storage.initializeDatabase("pass", "web");
         await expect(storage.unlockDatabase(123)).rejects.toThrow(errors.InvalidPassphrase);
     });
 
     it('should prioritize InvalidStorageFormat on already initialized check if missing KEK', async () => {
         let storage = new EncryptedStorage();
         await storage.init();
-        await storage.initializeDatabase("pass", "linux");
+        await storage.initializeDatabase("pass", "web");
 
         storage.db.exec("PRAGMA foreign_keys = OFF; DELETE FROM key_tbl WHERE key_class = 'database_kek'");
 
@@ -71,13 +71,13 @@ describe('V1 Metadata tests (Browser)', () => {
         let storage2 = new EncryptedStorage();
         await storage2.init(exported);
 
-        await expect(storage2.initializeDatabase("pass", "linux")).rejects.toThrow(/missing KEK/);
+        await expect(storage2.initializeDatabase("pass", "web")).rejects.toThrow(/missing KEK/);
     });
 
     it('should throw InvalidStorageFormat for unknown required features', async () => {
         let storage = new EncryptedStorage();
         await storage.init();
-        await storage.initializeDatabase("pass", "linux");
+        await storage.initializeDatabase("pass", "web");
 
         storage.db.exec(`UPDATE storage_metadata_tbl SET value = '["unknown"]' WHERE property = 'required_features'`);
 
@@ -87,7 +87,7 @@ describe('V1 Metadata tests (Browser)', () => {
     it('should throw InvalidStorageFormat for invalid provider config explicit mismatch', async () => {
         let storage = new EncryptedStorage();
         await storage.init();
-        await storage.initializeDatabase("pass", "linux");
+        await storage.initializeDatabase("pass", "web");
 
         const res = storage.db.exec("SELECT kid, provider_config_json FROM unlock_kek_tbl LIMIT 1");
         const row = res[0].values[0];
@@ -102,13 +102,13 @@ describe('V1 Metadata tests (Browser)', () => {
         let storage2 = new EncryptedStorage();
         await storage2.init(exported);
 
-        await expect(storage2.unlockDatabase("pass")).rejects.toThrow(/provider_config_json explicit profile mismatch/);
+        await expect(storage2.unlockDatabase("pass")).rejects.toThrow(/Unknown or missing profile in provider_config_json/);
     });
 
     it('should throw InvalidStorageFormat for non JCS canonical provider config', async () => {
         let storage = new EncryptedStorage();
         await storage.init();
-        await storage.initializeDatabase("pass", "linux");
+        await storage.initializeDatabase("pass", "web");
 
         const res = storage.db.exec("SELECT kid, provider_config_json FROM unlock_kek_tbl LIMIT 1");
         const row = res[0].values[0];
@@ -128,7 +128,7 @@ describe('V1 Metadata tests (Browser)', () => {
     it('should enforce SQLite constraints', async () => {
         let storage = new EncryptedStorage();
         await storage.init();
-        await storage.initializeDatabase("pass", "linux");
+        await storage.initializeDatabase("pass", "web");
 
         // sql.js should throw on CHECK constraint
         const kid = "00000000-0000-1000-8000-000000000000";

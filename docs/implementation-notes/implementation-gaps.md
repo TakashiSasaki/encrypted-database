@@ -119,7 +119,25 @@ None.
 **Recommended next action:** Refine `setup.py`, `package.json`, and related metadata to align with standard publishing best practices for each ecosystem.
 
 
+### Dynamic `created_by_version` discovery is not implemented
+
+**Status:** Active
+**Area:** Deployment / Packaging
+**Current state:** The `created_by_version` field in `storage_metadata_tbl` is currently hardcoded to `"0.0.0-dev"` across all implementations.
+**Expected or intended state:** The version string should be dynamically discovered from package metadata (`setup.py` / `package.json`) at runtime.
+**Why it matters:** Hardcoded development versions diminish the usefulness of provenance metadata in production databases.
+**Recommended next action:** Implement dynamic version discovery as part of future packaging metadata polish.
+
 ## Resolved Gaps
+
+### Storage-format-v1 validation policy parity
+
+**Status:** Resolved
+**Area:** Storage Format
+**Current state:** Python, Node.js, and browser-test implementations have unified validation policies for Storage Format V1. All strictly validate `storage_metadata_tbl` exactness, `database_uuid` canonical form, and `provider_config_json` JCS exactness and explicit parameters. Direct SQL `CHECK` constraints verify lengths and types dynamically on Python and Node.js.
+**Expected or intended state:** Strict structural parity ensures cross-language implementation correctness. `created_by_library` and `created_by_version` are validated as diagnostic provenance metadata strings (not compatibility gates) to preserve interoperability.
+**Why it matters:** Parity ensures consistent data safety guarantees and bug-free interoperability.
+**Recommended next action:** None.
 
 ### Browser/sql.js PRAGMA validation exception
 
