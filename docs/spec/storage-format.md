@@ -151,12 +151,10 @@ The storage format imposes strict constraints on the shape of payload records.
 *   **Numeric Portability**: Numeric types present known portability issues between 64-bit IEEE 754 floats (JavaScript), arbitrary precision integers (Python), and strict typing (Go/Rust). (Draft Gap: A "safe integer policy" is not yet finalized for V1).
 
 ## 14. Feature Flags
-To support future extensibility without breaking format compatibility, the storage format utilizes required and optional feature flags.
-
-*   **Storage**: Feature flags are stored as JCS canonical JSON arrays within the metadata table's key-value structure. Dedicated tables for feature flags are explicitly not used.
-*   **Required Features**: Features that alter cryptographic layouts, fundamentally change database semantics, or dictate necessary migration logic.
-*   **Optional Features**: Performance optimizations (e.g., blind indexes) or non-critical metadata.
-*   **Handling**: See Versioning and Compatibility Policy. Unknown features (required or optional) always cause an open rejection in V1. Application-layer validation and conformance tests enforce correct handling, not SQLite constraints.
+To support safe, backward-compatible upgrades, the format uses a feature flag array system stored in the metadata.
+*   All feature flag arrays MUST be strictly stored as JCS canonical JSON strings containing arrays of strings.
+*   In the initial Storage Format V1 release, the only permitted value for both `required_features` and `optional_features` is the empty array `[]`.
+*   Any database containing unknown features (whether required or optional) MUST trigger an explicit `InvalidStorageFormat` rejection. (Read-only fallbacks for optional features are explicitly out of scope for V1).
 
 ## 15. Migration Policy
 In the post-V1 stable era, any change to the storage format requires an explicit migration pathway.

@@ -6,9 +6,8 @@ const errors = require('./errors');
 const schemaSql = require('!!raw-loader!../../docs/backend/sqlite/schema.sql').default;
 
 class EncryptedStorage {
-    static _UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-
     constructor() {
+        this._UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
         this.db = null;
         this.activeDbKek = null;
         this.activeDbKid = null;
@@ -73,7 +72,7 @@ class EncryptedStorage {
     }
 
     _validateUuid(value, fieldName) {
-        if (typeof value !== 'string' || !EncryptedStorage._UUID_PATTERN.test(value)) {
+        if (typeof value !== 'string' || !this._UUID_PATTERN.test(value)) {
             throw new errors.InvalidUuid(`Invalid ${fieldName}: must be a canonical lowercase hyphenated UUID`);
         }
     }
@@ -161,6 +160,72 @@ class EncryptedStorage {
         throw new errors.InvalidPayload(`Invalid payload at ${path}: unsupported type ${typeof value}`);
     }
 
+    _validateV1Metadata() {
+        const hasMetaRes = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'");
+        if (hasMetaRes.length === 0 || hasMetaRes[0].values.length === 0) throw new errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)");
+
+        let metadataRows;
+        try {
+            const res = this.db.exec("SELECT property, value FROM storage_metadata_tbl");
+            if (res.length === 0 || res[0].values.length === 0) throw new errors.InvalidStorageFormat("storage_metadata_tbl is empty (invalid V1 DB)");
+            metadataRows = res[0].values;
+        } catch (e) {
+            if (e.message.includes("no such table")) {
+                throw new errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)");
+            }
+            throw new errors.DatabaseBackendError(`Database error during metadata read: ${e.message}`);
+        }
+
+        const metadata = {};
+        for (const row of metadataRows) {
+            metadata[row[0]] = row[1];
+        }
+
+        const requiredProps = [
+            "storage_format_id", "format_major", "format_minor", "schema_version",
+            "database_uuid", "created_at_ms", "created_by_library", "created_by_version",
+            "sqlite_application_id", "sqlite_user_version",
+            "required_features", "optional_features"
+        ];
+        for (const prop of requiredProps) {
+            if (!(prop in metadata)) throw new errors.InvalidStorageFormat(`Missing metadata property: ${prop}`);
+        }
+
+        if (metadata["storage_format_id"] !== "vault.moukaeritai.work.storage") throw new errors.InvalidStorageFormat("Invalid storage_format_id");
+        if (metadata["format_major"] !== "1") throw new errors.InvalidStorageFormat("Invalid format_major");
+        if (metadata["format_minor"] !== "0") throw new errors.InvalidStorageFormat("Invalid format_minor");
+        if (metadata["schema_version"] !== "1") throw new errors.InvalidStorageFormat("Invalid schema_version");
+        if (metadata["sqlite_application_id"] !== "1447906135") throw new errors.InvalidStorageFormat("Invalid metadata sqlite_application_id");
+        if (metadata["sqlite_user_version"] !== "1") throw new errors.InvalidStorageFormat("Invalid metadata sqlite_user_version");
+
+        if (!/^[0-9]+$/.test(metadata["created_at_ms"])) throw new errors.InvalidStorageFormat("Invalid created_at_ms format");
+        if (typeof metadata["created_by_library"] !== 'string' || metadata["created_by_library"].trim() === '') throw new errors.InvalidStorageFormat("Invalid created_by_library");
+        if (typeof metadata["created_by_version"] !== 'string' || metadata["created_by_version"].trim() === '') throw new errors.InvalidStorageFormat("Invalid created_by_version");
+
+        if (!this._UUID_PATTERN.test(metadata["database_uuid"])) {
+            throw new errors.InvalidStorageFormat("Invalid canonical database_uuid");
+        }
+
+        try {
+            const reqFeatStr = metadata["required_features"];
+            const reqFeat = JSON.parse(reqFeatStr);
+            if (cryptoUtils.canonicalizeJson(reqFeat).toString('utf-8') !== reqFeatStr) {
+                throw new errors.InvalidStorageFormat("Features are not valid JCS canonical JSON arrays");
+            }
+            if (!Array.isArray(reqFeat) || reqFeat.length > 0) throw new errors.InvalidStorageFormat("Unknown required features found");
+
+            const optFeatStr = metadata["optional_features"];
+            const optFeat = JSON.parse(optFeatStr);
+            if (cryptoUtils.canonicalizeJson(optFeat).toString('utf-8') !== optFeatStr) {
+                throw new errors.InvalidStorageFormat("Features are not valid JCS canonical JSON arrays");
+            }
+            if (!Array.isArray(optFeat) || optFeat.length > 0) throw new errors.InvalidStorageFormat("Unknown optional features found");
+        } catch (e) {
+            if (e.name === 'InvalidStorageFormat') throw e;
+            throw new errors.InvalidStorageFormat("Features are not valid JCS canonical JSON arrays");
+        }
+    }
+
     async initializeDatabase(passphrase, platform = "web") {
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
 
@@ -175,9 +240,28 @@ class EncryptedStorage {
         if (!this.db) await this.init();
 
         try {
+            const hasMeta = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'");
+            if (hasMeta.length > 0 && hasMeta[0].values.length > 0) {
+                const hasRows = this.db.exec("SELECT 1 FROM storage_metadata_tbl");
+                if (hasRows.length > 0 && hasRows[0].values.length > 0) {
+                    this._validateV1Metadata();
+                    const resActive = this.db.exec("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' AND status = 'active' LIMIT 1");
+                    if (resActive.length > 0 && resActive[0].values.length > 0) {
+                        throw new errors.StorageAlreadyInitialized("Storage is already initialized");
+                    } else {
+                        throw new errors.InvalidStorageFormat("Storage is initialized but invalid or missing KEK");
+                    }
+                }
+            }
+        } catch (e) {
+            if (e instanceof errors.StorageError) throw e;
+            if (e.name === 'InvalidStorageFormat' || e.name === 'StorageAlreadyInitialized') throw e;
+        }
+
+        try {
             const res = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table'");
             if (res.length === 0 || res[0].values.length === 0) {
-                this._bootstrapSchema();
+                await this._bootstrapSchema();
             } else {
                 const hasMeta = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'");
                 if (hasMeta.length === 0 || hasMeta[0].values.length === 0) throw new errors.InvalidStorageFormat("Cannot initialize non-empty pre-v1 database");
@@ -187,19 +271,6 @@ class EncryptedStorage {
         } catch(e) {
             if (e instanceof errors.InvalidStorageFormat) throw e;
             throw new errors.DatabaseBackendError(`Database error during initialization check: ${e.message}`);
-        }
-
-        let hasKek = false;
-        try {
-            const res = this.db.exec("SELECT kid FROM key_tbl WHERE key_class = 'database_kek' LIMIT 1");
-            if (res && res.length > 0) hasKek = true;
-        } catch (e) {
-            if (!e.message.includes("no such table")) {
-                throw new errors.DatabaseBackendError(`Database error during initialization check: ${e.message}`);
-            }
-        }
-        if (hasKek) {
-            throw new errors.StorageAlreadyInitialized("Storage is already initialized");
         }
 
         this._validatePlatform(platform);
@@ -286,62 +357,7 @@ class EncryptedStorage {
 
         if (!this.db) throw new errors.StorageNotInitialized("Database not initialized");
 
-        try {
-            const res = this.db.exec("SELECT 1 FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'");
-            if (res.length === 0 || res[0].values.length === 0) throw new errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)");
-        } catch(e) {
-            if (e instanceof errors.InvalidStorageFormat) throw e;
-            throw new errors.DatabaseBackendError(`Database error during metadata check: ${e.message}`);
-        }
-
-        try {
-            // SQL.js memory DB does not reliably persist PRAGMAs across export/import
-            // We skip the PRAGMA application_id and user_version checks for browser-test.
-            const pragmaUserVersion = "1";
-
-            const metadataRows = this.db.exec("SELECT property, value FROM storage_metadata_tbl");
-            if (metadataRows.length === 0 || metadataRows[0].values.length === 0) throw new errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)");
-
-            const metadata = {};
-            for (const row of metadataRows[0].values) {
-                metadata[row[0]] = row[1];
-            }
-
-            const requiredProps = [
-                "storage_format_id", "format_major", "format_minor", "schema_version",
-                "database_uuid", "sqlite_application_id", "sqlite_user_version",
-                "required_features", "optional_features"
-            ];
-            for (const prop of requiredProps) {
-                if (!(prop in metadata)) throw new errors.InvalidStorageFormat(`Missing metadata property: ${prop}`);
-            }
-
-            if (metadata["storage_format_id"] !== "vault.moukaeritai.work.storage") throw new errors.InvalidStorageFormat("Invalid storage_format_id");
-            if (metadata["format_major"] !== "1") throw new errors.InvalidStorageFormat("Invalid format_major");
-            if (metadata["format_minor"] !== "0") throw new errors.InvalidStorageFormat("Invalid format_minor");
-            if (metadata["schema_version"] !== "1") throw new errors.InvalidStorageFormat("Invalid schema_version");
-            if (metadata["sqlite_application_id"] !== "1447906135") throw new errors.InvalidStorageFormat("Invalid metadata sqlite_application_id");
-            if (metadata["sqlite_user_version"] !== "1") throw new errors.InvalidStorageFormat("Invalid metadata sqlite_user_version");
-
-
-            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(metadata["database_uuid"])) {
-                throw new errors.InvalidStorageFormat("Invalid canonical database_uuid");
-            }
-
-            try {
-                const reqFeat = JSON.parse(metadata["required_features"]);
-                if (!Array.isArray(reqFeat) || reqFeat.length > 0) throw new errors.InvalidStorageFormat("Unknown required features found");
-                const optFeat = JSON.parse(metadata["optional_features"]);
-                if (!Array.isArray(optFeat) || optFeat.length > 0) throw new errors.InvalidStorageFormat("Unknown optional features found");
-            } catch (e) {
-                if (e instanceof errors.InvalidStorageFormat) throw e;
-                throw new errors.InvalidStorageFormat("Features are not valid JSON arrays");
-            }
-
-        } catch (e) {
-            if (e instanceof errors.InvalidStorageFormat) throw e;
-            throw new errors.DatabaseBackendError(`Database error during validation: ${e.message}`);
-        }
+        this._validateV1Metadata();
 
         let dbKid;
         let wrapRows = [];
@@ -402,19 +418,38 @@ class EncryptedStorage {
 
                 if (unlock_provider === 'passphrase_argon2id') {
                     let config;
+                    const provJsonStr = provider_config_json;
                     try {
-                        config = JSON.parse(provider_config_json);
+                        config = JSON.parse(provJsonStr);
+                        if (cryptoUtils.canonicalizeJson(config).toString('utf-8') !== provJsonStr) {
+                            throw new errors.InvalidStorageFormat("provider_config_json is not JCS canonical JSON");
+                        }
                     } catch (e) {
+                        if (e.name === 'InvalidStorageFormat') throw e;
                         throw new errors.InvalidStorageFormat("provider_config_json is not valid JSON");
                     }
 
-                    if (config.profile === "argon2id-profile-v1") {
-                        if (config.kdf !== "argon2id" || config.memory_kib !== 65536 || config.iterations !== 3 || config.parallelism !== 1 || config.output_bytes !== 32) {
-                            throw new errors.InvalidStorageFormat("provider_config_json explicit parameters mismatch argon2id-profile-v1");
-                        }
+                    if (!config.profile) {
+                        throw new errors.InvalidStorageFormat("provider_config_json missing profile");
+                    }
+                    if (config.profile !== "argon2id-profile-v1") {
+                        throw new errors.InvalidStorageFormat("provider_config_json explicit profile mismatch argon2id-profile-v1");
                     }
 
-                    const salt = this._b64d(config.salt);
+                    if (config.kdf !== "argon2id" || config.memory_kib !== 65536 || config.iterations !== 3 || config.parallelism !== 1 || config.output_bytes !== 32) {
+                        throw new errors.InvalidStorageFormat("provider_config_json explicit parameters mismatch argon2id-profile-v1");
+                    }
+
+                    const saltB64 = config.salt;
+                    if (typeof saltB64 !== 'string' || saltB64.includes('=')) {
+                        throw new errors.InvalidStorageFormat("salt must be base64url no padding");
+                    }
+                    let salt;
+                    try {
+                        salt = this._b64d(saltB64);
+                    } catch(e) {
+                        throw new errors.InvalidStorageFormat("salt is invalid base64url");
+                    }
                     if (salt.length !== 16) throw new errors.InvalidStorageFormat("decoded salt length is not 16 bytes");
 
                     try {

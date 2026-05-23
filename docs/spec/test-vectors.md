@@ -47,3 +47,6 @@ In addition to primitive test vectors, the high-level semantic interoperability 
 ### Metadata and Version Constraints
 
 As part of V1 conformance, automated tests must verify correct metadata writing and parsing, strict rejection of unknown `format_major` values, and strict rejection of any unknown feature (required or optional).
+
+### Storage Format Validation Tests
+In addition to the static cryptographic vectors above, the V1 Conformance Suite mandates explicit behavioral tests for metadata rejection, PRAGMA contradictions, JCS canonicality enforcement, schema `CHECK` constraints, and missing KEK states. These are implemented dynamically in the Python, Node.js, and browser test suites.

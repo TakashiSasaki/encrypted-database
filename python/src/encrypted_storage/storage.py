@@ -267,7 +267,7 @@ class EncryptedStorage:
             cur.execute("SELECT property, value FROM storage_metadata_tbl")
             metadata_rows = cur.fetchall()
             if not metadata_rows:
-                raise errors.InvalidStorageFormat("No storage_metadata_tbl found (pre-v1 DB)")
+                raise errors.InvalidStorageFormat("storage_metadata_tbl is empty (invalid V1 DB)")
             metadata = {k: v for k, v in metadata_rows}
         except sqlite3.Error as e:
             if "no such table" in str(e):

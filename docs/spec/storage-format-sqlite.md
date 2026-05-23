@@ -21,10 +21,17 @@ While the core defines that encrypted keys use A256GCM with a 12-byte nonce, thi
 ## 3. SQLite File Identity
 An SQLite database file implementing this profile should be identifiable both externally (e.g., via magic numbers) and internally.
 *   **Magic Number**: Standard SQLite 3 magic header.
-*   **`PRAGMA application_id`**: Used as a magic number to identify the specific file type (e.g., a specific 32-bit integer `1447906135` / `0x564D4B57` representing this vault format).
+*   **`PRAGMA application_id`**: Used as a magic number to identify the specific file type (e.g., a specific 32-bit integer `1447906135` (`0x564D4B57` or `'VMKW'`) representing this vault format).
 *   **`PRAGMA user_version`**: Used as an auxiliary integer tracking the SQLite schema / migration version (synchronizes with `schema_version` in the metadata table).
 
 ## 4. Required PRAGMAs
+
+### Browser/sql.js PRAGMA Exception
+In browser environments using `sql.js` (WebAssembly SQLite memory databases or export/import flows), `PRAGMA application_id` and `PRAGMA user_version` do not reliably persist across database serializations. Therefore, for `browser-test` and similar `sql.js` implementations:
+* PRAGMA validation is strictly skipped during initialization and unlock.
+* The `storage_metadata_tbl` is treated as the sole authoritative source for `sqlite_application_id` and `sqlite_user_version`.
+* This is an explicit, documented exception to the SQLite Profile conformance test suite.
+
 To ensure security, data integrity, and cross-platform compatibility, implementations interacting with the SQLite profile MUST execute specific PRAGMAs upon connection:
 *   `PRAGMA foreign_keys = ON;` (Mandatory: Validates relationships like `wrapped_kid` referencing `kid`. Implementations must execute this immediately upon connection, and verify it is enabled if possible).
 *   `PRAGMA journal_mode = WAL;` (Optional / Recommended: For concurrency and crash resilience on desktop/server, though environments like `sql.js` in the browser or in-memory backends may differ).
@@ -99,10 +106,10 @@ Any library implementing this profile MUST:
 3.  Trap raw `sqlite3.Error` (or equivalent) and map them to standard `DatabaseBackendError` or input validation errors as dictated by the API contract.
 4.  Correctly close database connections in `finally` blocks to release file locks across all platforms.
 
-## 15. Proposed V1 Schema Changes
-The following are proposed constraints and structures that fulfill the V1 requirements.
+## 15. Implemented V1 Schema Changes
+The following constraints and structures have been integrated into the current `schema.sql` to fulfill the V1 requirements.
 
-*Note: These are proposed V1 structures and constraints; they are not yet applied to `docs/backend/sqlite/schema.sql`.*
+*Note: These V1 structures and constraints are now applied to the canonical `docs/backend/sqlite/schema.sql`.*
 
 **Metadata Table**:
 ```sql
