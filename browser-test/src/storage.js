@@ -429,11 +429,15 @@ class EncryptedStorage {
                         throw new errors.InvalidStorageFormat("provider_config_json is not valid JSON");
                     }
 
-                    if (!config.profile) {
-                        throw new errors.InvalidStorageFormat("provider_config_json missing profile");
+                    const requiredConfigProps = ["kdf", "profile", "salt", "memory_kib", "iterations", "parallelism", "output_bytes"];
+                    for (const prop of requiredConfigProps) {
+                        if (!(prop in config)) {
+                            throw new errors.InvalidStorageFormat(`Missing provider_config_json property: ${prop}`);
+                        }
                     }
+
                     if (config.profile !== "argon2id-profile-v1") {
-                        throw new errors.InvalidStorageFormat("provider_config_json explicit profile mismatch argon2id-profile-v1");
+                        throw new errors.InvalidStorageFormat("Unknown or missing profile in provider_config_json");
                     }
 
                     if (config.kdf !== "argon2id" || config.memory_kib !== 65536 || config.iterations !== 3 || config.parallelism !== 1 || config.output_bytes !== 32) {

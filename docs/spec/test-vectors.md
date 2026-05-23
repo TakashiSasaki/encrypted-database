@@ -50,3 +50,7 @@ As part of V1 conformance, automated tests must verify correct metadata writing 
 
 ### Storage Format Validation Tests
 In addition to the static cryptographic vectors above, the V1 Conformance Suite mandates explicit behavioral tests for metadata rejection, PRAGMA contradictions, JCS canonicality enforcement, schema `CHECK` constraints, and missing KEK states. These are implemented dynamically in the Python, Node.js, and browser test suites.
+
+## Metadata and Version Validation Tests
+
+Implementations must verify their database provenance, version strings, JCS exactness of metadata JSON, and strict provider configurations (including base64url padding checks) through test suites. These tests are considered part of the overarching V1 conformance suite alongside cryptographic test vectors.
