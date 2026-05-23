@@ -159,7 +159,7 @@ describe('Metadata V1 Validation', () => {
                 dbPath,
                 storage,
                 closeStorage: () => {
-                    if (storage && !storage._isClosed) {
+                    if (storage && !storage.isClosed()) {
                         storage.close();
                     }
                     storage = null;
@@ -174,15 +174,12 @@ describe('Metadata V1 Validation', () => {
             if (rawDb) {
                 try { rawDb.close(); } catch (_) {}
             }
-            if (storage && !storage._isClosed) {
+            if (storage && !storage.isClosed()) {
                 try { storage.close(); } catch (_) {}
             }
-            if (fs.existsSync(dbPath)) {
-                try { fs.unlinkSync(dbPath); } catch (_) {}
-            }
-            if (fs.existsSync(tempDir)) {
-                try { fs.rmdirSync(tempDir); } catch (_) {}
-            }
+            try {
+                fs.rmSync(tempDir, { recursive: true, force: true });
+            } catch (_) {}
         }
     }
 

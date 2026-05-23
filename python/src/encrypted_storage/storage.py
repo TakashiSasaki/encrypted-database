@@ -571,7 +571,7 @@ class EncryptedStorage:
         if not self._UUID_PATTERN.match(metadata["database_uuid"]):
             raise errors.InvalidStorageFormat("Invalid canonical database_uuid")
 
-        if not re.match(r'^[0-9]+$', metadata["created_at_ms"]):
+        if not re.match(r'^(0|[1-9][0-9]*)$', metadata["created_at_ms"]):
             raise errors.InvalidStorageFormat("Invalid created_at_ms format")
 
         if not isinstance(metadata["created_by_library"], str) or not metadata["created_by_library"].strip():
