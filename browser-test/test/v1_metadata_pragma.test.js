@@ -180,7 +180,7 @@ describe('V1 Metadata tests (Browser)', () => {
             await storage.init();
             await storage.initializeDatabase("pass", "web");
 
-            const res = storage.db.exec("SELECT kid, provider_config_json FROM unlock_kek_tbl LIMIT 1");
+            const res = storage.db.exec("SELECT kid, provider_config_json FROM unlock_kek_tbl WHERE unlock_provider = 'passphrase_argon2id'");
             const row = res[0].values[0];
             const config = JSON.parse(row[1]);
 
@@ -271,7 +271,7 @@ describe('V1 Metadata tests (Browser)', () => {
         await storage.init();
         await storage.initializeDatabase("pass", "web");
 
-        const res = storage.db.exec("SELECT kid, provider_config_json FROM unlock_kek_tbl LIMIT 1");
+        const res = storage.db.exec("SELECT kid, provider_config_json FROM unlock_kek_tbl WHERE unlock_provider = 'passphrase_argon2id'");
         const row = res[0].values[0];
         const config = JSON.parse(row[1]);
         const nonCanonical = JSON.stringify(config, null, 2);
