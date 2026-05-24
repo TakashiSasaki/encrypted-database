@@ -121,22 +121,19 @@ CREATE TABLE IF NOT EXISTS storage_metadata_tbl (
 
 **Cryptographic & Length Invariants**:
 
-To apply the proposed constraints, the existing tables in `schema.sql` would be modified to include the following table-level or column-level constraints:
+The following column-level CHECK constraints have been added to the respective tables in `schema.sql`:
 
 ```sql
--- To be added to: CREATE TABLE wrapped_key_tbl (...)
-    -- ... existing columns ...
-    -- nonce BLOB NOT NULL CHECK(length(nonce) = 12),
-    -- wrapped_key BLOB NOT NULL CHECK(length(wrapped_key) >= 16),
-    -- Note: Current AES-GCM output is 32-byte key + 16-byte tag = 48 bytes.
-    -- However, we only enforce >= 16 bytes to avoid fixing algorithm-dependent length too rigidly in the schema.
+-- In wrapped_key_tbl
+    nonce BLOB NOT NULL CHECK(length(nonce) = 12),
+    wrapped_key BLOB NOT NULL CHECK(length(wrapped_key) >= 16),
 
--- To be added to: CREATE TABLE encrypted_object_tbl (...)
-    -- ... existing columns ...
-    -- nonce BLOB NOT NULL CHECK(length(nonce) = 12),
-    -- ciphertext BLOB NOT NULL CHECK(length(ciphertext) >= 16),
-    -- content_type TEXT NOT NULL CHECK(length(content_type) > 0 AND instr(content_type, '/') > 1),
+-- In encrypted_object_tbl
+    nonce BLOB NOT NULL CHECK(length(nonce) = 12),
+    ciphertext BLOB NOT NULL CHECK(length(ciphertext) >= 16),
+    content_type TEXT NOT NULL CHECK(length(content_type) > 0 AND instr(content_type, '/') > 1),
 ```
+*Note: Current AES-GCM output is 32-byte key + 16-byte tag = 48 bytes. However, we only enforce >= 16 bytes to avoid fixing algorithm-dependent length too rigidly in the schema.*
 
 ## 16. Known SQLite Profile Gaps
 A review of the current `docs/backend/sqlite/schema.sql` against the V1 draft reveals the following "decided but not implemented" gaps:
