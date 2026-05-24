@@ -21,20 +21,22 @@ To declare the V1 format stable, all required components must be fully specified
 | :--- | :--- | :--- | :--- |
 | Format identity is fixed | Satisfied | [`storage-format.md`](./storage-format.md) | No |
 | SQLite profile identity is fixed | Satisfied | [`storage-format-sqlite.md`](./storage-format-sqlite.md) | No |
-| `storage_metadata_tbl` is required and validated | Satisfied | [`schema.sql`](../backend/sqlite/schema.sql), backend validation | No |
-| `PRAGMA application_id` / `user_version` policy is defined | Satisfied | [`storage-format-sqlite.md`](./storage-format-sqlite.md) | No |
-| browser/sql.js PRAGMA exception is documented | Documented Exception | [`storage-format-sqlite.md`](./storage-format-sqlite.md) | No |
+| `storage_metadata_tbl` is required and validated | Satisfied | [`schema.sql`](../backend/sqlite/schema.sql), [`test_metadata.py`](../../python/tests/test_metadata.py), [`metadata.test.js`](../../nodejs/test/metadata.test.js) | No |
+| PRAGMA policy is defined and tested for Python / Node.js | Satisfied | [`storage-format-sqlite.md`](./storage-format-sqlite.md), [`test_metadata.py`](../../python/tests/test_metadata.py), [`metadata.test.js`](../../nodejs/test/metadata.test.js) | No |
+| browser/sql.js PRAGMA exception is documented and tested | Documented Exception | [`storage-format-sqlite.md`](./storage-format-sqlite.md), [`v1_metadata_pragma.test.js`](../../browser-test/test/v1_metadata_pragma.test.js) | No |
 | Required/optional feature handling is defined | Satisfied | [`storage-format.md`](./storage-format.md) | No |
 | Unknown features are rejected in V1 | Satisfied | [`storage-format.md`](./storage-format.md) | No |
 | JCS canonicality policy is defined and tested | Satisfied | [`terminology.md`](./terminology.md), [`test-vectors.md`](./test-vectors.md) | No |
-| `provider_config_json` is explicit and validated | Satisfied | [`api-contract.md`](./api-contract.md) | No |
-| Argon2id Profile V1 parameters are fixed | Satisfied | [`test-vectors.md`](./test-vectors.md), [`providers/passphrase-argon2id.md`](../providers/passphrase-argon2id.md) | No |
+| `provider_config_json` is explicit, JCS canonical, and strictly validated | Satisfied | [`api-contract.md`](./api-contract.md) | No |
+| Argon2id Profile V1 parameters are fixed | Satisfied | [`test-vectors.md`](./test-vectors.md), [`passphrase-argon2id.md`](../providers/passphrase-argon2id.md) | No |
 | AAD policy is fixed | Satisfied | [`aad-policy.md`](./aad-policy.md) | No |
 | Ciphertext format is fixed | Satisfied | [`envelope-format.md`](./envelope-format.md) | No |
 | Payload canonicalization and raw-buffer rejection are implemented | Satisfied | [`api-contract.md`](./api-contract.md) | No |
-| Python / Node.js / browser-test test vectors pass | Satisfied | CI runs, [`test-vectors.md`](./test-vectors.md) | No |
-| Python ↔ Node.js roundtrip is CI integrated | Satisfied | CI runs, `integration-tests/roundtrip` | No |
-| Coverage and CI visibility exist | Satisfied | CI runs, README badges | No |
+| Direct SQL CHECK constraints are implemented and tested for Python / Node.js | Satisfied | [`test_constraints.py`](../../python/tests/test_constraints.py), [`constraints.test.js`](../../nodejs/test/constraints.test.js) | No |
+| browser-test has representative sql.js constraint coverage and documented file-backed exceptions | Satisfied | [`storage-format-sqlite.md`](./storage-format-sqlite.md) | No |
+| Python / Node.js / browser-test test vectors pass | Satisfied | [`test-python.yml`](../../.github/workflows/test-python.yml), [`test-nodejs.yml`](../../.github/workflows/test-nodejs.yml), [`test-browser.yml`](../../.github/workflows/test-browser.yml), [`test-vectors.md`](./test-vectors.md) | No |
+| Python ↔ Node.js roundtrip is CI integrated | Satisfied | [`test_roundtrip.sh`](../../integration-tests/roundtrip/test_roundtrip.sh), [`test-integration.yml`](../../.github/workflows/test-integration.yml) | No |
+| Coverage and CI visibility exist | Satisfied | [`README.md`](../../README.md) | No |
 | V1-blocking storage-format gaps are none | Satisfied | [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md) | No |
 
 ## 4. Criteria Already Satisfied
@@ -45,9 +47,23 @@ All core stabilization criteria outlined in the table above have been satisfied.
 
 While V1 stabilization expects strict conformance, the following intentional exceptions have been documented and accepted for specific environments:
 
-- **Browser-test / sql.js file-header PRAGMAs**: `sql.js` does not validate SQLite file-header PRAGMAs. This exception is officially documented.
-- **Browser-test / sql.js corruption testing**: `browser-test / sql.js` does not require malformed-on-disk corruption testing via `PRAGMA ignore_check_constraints`.
-- **Browser-test coverage context**: Browser-test coverage is Jest JSDOM/sql.js harness coverage, not real browser runtime (WebCrypto) coverage.
+- **Browser-test / sql.js file-header PRAGMA validation exception**:
+  - **Exception:** `sql.js` in the browser-test environment bypasses `PRAGMA application_id` and `PRAGMA user_version` validations.
+  - **Reason:** `sql.js` operates purely in memory for this application layer, rendering standard file-backed SQLite header verification incompatible or unreliable.
+  - **Coverage:** This is explicitly tested and documented as an exception in [`v1_metadata_pragma.test.js`](../../browser-test/test/v1_metadata_pragma.test.js) and [`storage-format-sqlite.md`](./storage-format-sqlite.md).
+  - **Not a blocker:** The `storage_metadata_tbl` remains fully enforced as the primary identity source for the format. File-header metadata applies to the physical SQLite database file, which isn't standardly persisted or imported directly in the current browser architecture.
+
+- **Browser-test / sql.js malformed-on-disk corruption testing exception**:
+  - **Exception:** The `browser-test` environment skips direct SQL schema corruption tests using `PRAGMA ignore_check_constraints`.
+  - **Reason:** Testing malformed data directly on-disk via this PRAGMA is not supported by the strict `sql.js` constraints (`CHECK(json_valid(...))`).
+  - **Coverage:** Documented in [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md).
+  - **Not a blocker:** The validation policy and structural parity (API-layer validations and core semantics) are universally tested across all environments. The on-disk corruption tests are comprehensively handled by the Node.js and Python implementations.
+
+- **Browser-test coverage context**:
+  - **Exception:** Coverage reported for `browser-test` is generated from the Jest JSDOM/sql.js harness, not a real browser WebCrypto runtime.
+  - **Reason:** Setting up real browser runtime coverage (via Playwright or Puppeteer) is complex and not fully implemented yet.
+  - **Coverage:** Documented in [`README.md`](../../README.md) and [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md).
+  - **Not a blocker:** The `browser-test` harness achieves high logical coverage of the application and storage format logic. Real browser runtime paths are considered a future enhancement for operational confidence rather than a V1 format defect.
 
 ## 6. Non-Blocking Future Work
 
@@ -70,6 +86,15 @@ The following items are recognized as important future enhancements or active wo
 ## 7. Remaining Stabilization Items
 
 At this time, there are **no known blocking items** preventing a stable declaration. All necessary criteria have been verified, and the core documents correctly align with implementation status.
+
+Prior to declaring Storage Format V1 formally Stable, the following final review checklist must be verified:
+
+- [ ] Latest CI runs are green.
+- [ ] Codecov upload is working and README badge renders.
+- [ ] No stale “Draft only / pending coverage / not CI integrated” wording remains in core docs.
+- [ ] [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md) still reports no V1-blocking storage-format gaps.
+- [ ] Future work remains clearly non-blocking.
+- [ ] No implementation, schema, test vector, or workflow YAML changes were made during this final evidence-hardening step.
 
 ## 8. Decision Summary
 
