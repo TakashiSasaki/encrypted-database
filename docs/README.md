@@ -46,6 +46,7 @@ The documentation has been refactored into focused modules.
 - [`spec/blind-index.md`](./spec/blind-index.md): Searchability via HMAC blind indexing.
 - [`spec/security-model.md`](./spec/security-model.md): Threat model, in-scope protections, and material handling policies.
 - [`spec/test-vectors.md`](./spec/test-vectors.md): Requirements for cross-language compatibility testing.
+- [`spec/storage-format-v1-readiness.md`](./spec/storage-format-v1-readiness.md): Storage Format V1 Readiness Review.
 - [`spec/open-questions.md`](./spec/open-questions.md): Extracted unresolved design questions and ongoing considerations.
 
 ### Backend & Storage
