@@ -38,6 +38,36 @@ describe('V1 Metadata tests (Browser)', () => {
         }
     });
 
+    it('should throw InvalidStorageFormat on metadata value mismatch', async () => {
+        const mutations = [
+            { prop: "storage_format_id", value: "vault.moukaeritai.work.storage.invalid" },
+            { prop: "format_major", value: "2" },
+            { prop: "format_minor", value: "1" },
+            { prop: "schema_version", value: "2" },
+            { prop: "sqlite_application_id", value: "1234567890" },
+            { prop: "sqlite_user_version", value: "2" }
+        ];
+
+        for (const mutation of mutations) {
+            let storage = new EncryptedStorage();
+            await storage.init();
+            await storage.initializeDatabase("pass", "web");
+
+            storage.db.run(`UPDATE storage_metadata_tbl SET value = ? WHERE property = ?`, [mutation.value, mutation.prop]);
+
+            const exported = storage.db.export();
+            await storage.close();
+
+            let storage2 = new EncryptedStorage();
+            await storage2.init(exported);
+            try {
+                await expect(storage2.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
+            } finally {
+                await storage2.close();
+            }
+        }
+    });
+
     it('should throw InvalidStorageFormat on invalid created_at_ms format', async () => {
         const invalidCases = ["", "-1", "+1", "1.0", "1e3", " 123", "123 ", "abc", "001", "00"];
 

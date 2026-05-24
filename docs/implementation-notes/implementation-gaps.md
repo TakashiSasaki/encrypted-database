@@ -135,7 +135,7 @@ None.
 
 **Status:** Resolved
 **Area:** Storage Format
-**Current state:** Python, Node.js, and browser-test implementations have unified validation policies for Storage Format V1. All strictly validate `storage_metadata_tbl` exactness, `database_uuid` canonical form, and `provider_config_json` JCS exactness and explicit parameters. Direct SQL `CHECK` constraints verify lengths and types dynamically on Python and Node.js.
+**Current state:** Python, Node.js, and browser-test implementations have unified validation policies for Storage Format V1. All strictly validate `storage_metadata_tbl` exactness, `database_uuid` canonical form, and `provider_config_json` JCS exactness and explicit parameters. Direct SQL `CHECK` constraint tests are primary coverage in Python / Node.js. Browser-test may have representative sql.js constraint tests, but it does not need to be described as full file-backed parity.
 **Expected or intended state:** Strict structural parity ensures cross-language implementation correctness. `created_by_library` and `created_by_version` are validated as diagnostic provenance metadata strings (not compatibility gates) to preserve interoperability.
 **Why it matters:** Parity ensures consistent data safety guarantees and bug-free interoperability.
 **Recommended next action:** None.
@@ -180,7 +180,7 @@ None.
 
 **Status:** Resolved
 **Area:** Storage Format
-**Current state:** `CHECK` constraints for 12-byte nonces, wrapped key minimum lengths, ciphertext minimum lengths, and non-empty content types have been added to `schema.sql`. Direct SQL constraint tests verify that SQLite actively enforces these on Python, Node.js, and browser-test backends. (For browser-test with sql.js, some tests are explicitly documented exceptions if they relate to disk-corruption features like ignoring constraints.)
+**Current state:** `CHECK` constraints for 12-byte nonces, wrapped key minimum lengths, ciphertext minimum lengths, and non-empty content types have been added to `schema.sql`. Direct SQL `CHECK` constraint tests are primary coverage in Python / Node.js. Browser-test has representative sql.js constraint tests, but intentionally skips full file-backed parity (e.g. malformed-on-disk corruption via `ignore_check_constraints` is a documented test-scope exception).
 **Expected or intended state:** The schema utilizes the proposed SQLite `CHECK` constraints to provide defense-in-depth for V1 invariants.
 **Why it matters:** DBMS-level enforcement prevents corruption from external tools or bugs in the application layer.
 **Recommended next action:** None.
