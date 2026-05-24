@@ -222,7 +222,7 @@ None.
 **Why it matters:** Interoperability is the core value proposition of the library.
 **Recommended next action:** Expand to include browser interoperability tests.
 
-### Coverage badge publication endpoint
+### Coverage badge publication endpoint pending
 
 **Status:** Resolved
 **Area:** Testing / CI
