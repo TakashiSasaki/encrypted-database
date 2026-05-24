@@ -3,12 +3,10 @@ name: Node.js Tests
 on:
   push:
     branches:
-      - encrypted-database
-      - main
+      - '**'
   pull_request:
     branches:
-      - encrypted-database
-      - main
+      - '**'
   workflow_dispatch:
 
 permissions:
@@ -29,14 +27,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'nodejs/package-lock.json'
 
-      - name: Install dependencies and run tests
+      - name: Install dependencies and run tests with coverage
         working-directory: ./nodejs
         run: |
           npm ci
-          npm test
+          npm run test:coverage
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
         with:
-          flags: nodejs
-          directory: ./nodejs
+          name: nodejs-coverage
+          path: nodejs/coverage/lcov.info
