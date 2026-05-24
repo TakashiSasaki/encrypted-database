@@ -9,10 +9,10 @@ echo "=== Running Python Coverage ==="
 
 echo "=== Running Node.js Coverage ==="
 # Ensure package.json has test:coverage, otherwise fallback to standard jest
-(cd "$ROOT_DIR/nodejs" && npm ci && (npm run test:coverage || npm test))
+(cd "$ROOT_DIR/nodejs" && npm ci && npm run test:coverage --if-present)
 
 echo "=== Running Browser-test Coverage ==="
-(cd "$ROOT_DIR/browser-test" && npm ci && (npm run test:coverage || npm test))
+(cd "$ROOT_DIR/browser-test" && npm ci && npm run test:coverage --if-present)
 
 echo "=== Coverage Generation Completed! ==="
 echo "Artifacts:"
