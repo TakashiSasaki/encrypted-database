@@ -3,10 +3,10 @@ name: Python Tests
 on:
   push:
     branches:
-      - '**'
+      - vault.moukaeritai.work
   pull_request:
     branches:
-      - '**'
+      - vault.moukaeritai.work
   workflow_dispatch:
 
 permissions:
