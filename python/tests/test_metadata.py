@@ -49,9 +49,11 @@ def test_invalid_metadata(tmp_path):
         conn.commit()
 
     storage2 = EncryptedStorage(db_path)
-    with pytest.raises(InvalidStorageFormat):
-        storage2.unlock_database("password")
-    storage2.close()
+    try:
+        with pytest.raises(InvalidStorageFormat):
+            storage2.unlock_database("password")
+    finally:
+        storage2.close()
 
 @pytest.mark.parametrize("property_name", [
     "storage_format_id",
@@ -79,9 +81,11 @@ def test_missing_metadata_property(tmp_path, property_name):
         conn.commit()
 
     storage2 = EncryptedStorage(db_path)
-    with pytest.raises(InvalidStorageFormat):
-        storage2.unlock_database("password")
-    storage2.close()
+    try:
+        with pytest.raises(InvalidStorageFormat):
+            storage2.unlock_database("password")
+    finally:
+        storage2.close()
 
 @pytest.mark.parametrize("invalid_val", [
     "", "-1", "+1", "1.0", "1e3", " 123", "123 ", "abc", "001", "00"
@@ -98,9 +102,11 @@ def test_invalid_created_at_ms(tmp_path, invalid_val):
         conn.commit()
 
     storage2 = EncryptedStorage(db_path)
-    with pytest.raises(InvalidStorageFormat):
-        storage2.unlock_database("password")
-    storage2.close()
+    try:
+        with pytest.raises(InvalidStorageFormat):
+            storage2.unlock_database("password")
+    finally:
+        storage2.close()
 
 @pytest.mark.parametrize("invalid_val", [
     "", "   ", "\t\n"
@@ -117,9 +123,11 @@ def test_invalid_created_by(tmp_path, invalid_val):
         conn.commit()
 
     storage2 = EncryptedStorage(db_path)
-    with pytest.raises(InvalidStorageFormat):
-        storage2.unlock_database("password")
-    storage2.close()
+    try:
+        with pytest.raises(InvalidStorageFormat):
+            storage2.unlock_database("password")
+    finally:
+        storage2.close()
 
     db_path = str(tmp_path / "test2.db")
     storage = EncryptedStorage(db_path)
@@ -132,9 +140,11 @@ def test_invalid_created_by(tmp_path, invalid_val):
         conn.commit()
 
     storage2 = EncryptedStorage(db_path)
-    with pytest.raises(InvalidStorageFormat):
-        storage2.unlock_database("password")
-    storage2.close()
+    try:
+        with pytest.raises(InvalidStorageFormat):
+            storage2.unlock_database("password")
+    finally:
+        storage2.close()
 
 def test_provenance_not_gate(tmp_path):
     db_path = str(tmp_path / "test.db")
@@ -149,9 +159,11 @@ def test_provenance_not_gate(tmp_path):
         conn.commit()
 
     storage2 = EncryptedStorage(db_path)
-    storage2.unlock_database("password")
-    assert storage2.is_unlocked()
-    storage2.close()
+    try:
+        storage2.unlock_database("password")
+        assert storage2.is_unlocked()
+    finally:
+        storage2.close()
 
 @pytest.mark.parametrize("invalid_val", [
     "{}", '""', '"[]"', "null", "123", "0", "true", "false", "[1]", "[\"unknown_feature\"]", "[ ]", "[\n]", "[ \n\t]", "invalid"
@@ -168,9 +180,11 @@ def test_invalid_feature_flags(tmp_path, invalid_val):
         conn.commit()
 
     storage2 = EncryptedStorage(db_path)
-    with pytest.raises(InvalidStorageFormat):
-        storage2.unlock_database("password")
-    storage2.close()
+    try:
+        with pytest.raises(InvalidStorageFormat):
+            storage2.unlock_database("password")
+    finally:
+        storage2.close()
 
     db_path2 = str(tmp_path / "test_opt.db")
     storage_opt = EncryptedStorage(db_path2)
@@ -205,9 +219,11 @@ def test_database_uuid_format(tmp_path):
             conn.commit()
 
         storage2 = EncryptedStorage(db_path)
-        with pytest.raises(InvalidStorageFormat):
-            storage2.unlock_database("password")
-        storage2.close()
+        try:
+            with pytest.raises(InvalidStorageFormat):
+                storage2.unlock_database("password")
+        finally:
+            storage2.close()
 
 def test_invalid_versions(tmp_path):
     cases = [
@@ -227,9 +243,11 @@ def test_invalid_versions(tmp_path):
             conn.commit()
 
         storage2 = EncryptedStorage(db_path)
-        with pytest.raises(InvalidStorageFormat):
-            storage2.unlock_database("password")
-        storage2.close()
+        try:
+            with pytest.raises(InvalidStorageFormat):
+                storage2.unlock_database("password")
+        finally:
+            storage2.close()
 
 def test_invalid_provider_config_combinations(tmp_path):
     modifiers = [
@@ -272,9 +290,11 @@ def test_invalid_provider_config_combinations(tmp_path):
             conn.commit()
 
         storage2 = EncryptedStorage(db_path)
-        with pytest.raises(InvalidStorageFormat):
-            storage2.unlock_database("password")
-        storage2.close()
+        try:
+            with pytest.raises(InvalidStorageFormat):
+                storage2.unlock_database("password")
+        finally:
+            storage2.close()
 
 def test_malformed_provider_config_json(tmp_path):
     db_path = str(tmp_path / "test_malformed_json.db")
@@ -290,9 +310,11 @@ def test_malformed_provider_config_json(tmp_path):
         conn.execute("PRAGMA ignore_check_constraints = OFF")
 
     storage2 = EncryptedStorage(db_path)
-    with pytest.raises(InvalidStorageFormat):
-        storage2.unlock_database("password")
-    storage2.close()
+    try:
+        with pytest.raises(InvalidStorageFormat):
+            storage2.unlock_database("password")
+    finally:
+        storage2.close()
 
 def test_pragma_validation(tmp_path):
     db_path = str(tmp_path / "test.db")
@@ -318,9 +340,11 @@ def test_pragma_validation(tmp_path):
         conn.commit()
 
     storage2 = EncryptedStorage(db_path2)
-    with pytest.raises(InvalidStorageFormat):
-        storage2.unlock_database("password")
-    storage2.close()
+    try:
+        with pytest.raises(InvalidStorageFormat):
+            storage2.unlock_database("password")
+    finally:
+        storage2.close()
 
     db_path3 = str(tmp_path / "test_user_version.db")
     storage = EncryptedStorage(db_path3)
@@ -333,9 +357,11 @@ def test_pragma_validation(tmp_path):
         conn.commit()
 
     storage3 = EncryptedStorage(db_path3)
-    with pytest.raises(InvalidStorageFormat):
-        storage3.unlock_database("password")
-    storage3.close()
+    try:
+        with pytest.raises(InvalidStorageFormat):
+            storage3.unlock_database("password")
+    finally:
+        storage3.close()
 
 
 def test_error_precedence(tmp_path):
@@ -365,6 +391,8 @@ def test_error_precedence(tmp_path):
         conn.commit()
 
     storage3 = EncryptedStorage(db_path)
-    with pytest.raises(InvalidStorageFormat):
-        storage3.unlock_database("password")
-    storage3.close()
+    try:
+        with pytest.raises(InvalidStorageFormat):
+            storage3.unlock_database("password")
+    finally:
+        storage3.close()
