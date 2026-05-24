@@ -226,7 +226,7 @@ None.
 
 **Status:** Active
 **Area:** Testing / CI
-**Current state:** Codecov upload workflow has been added to GitHub Actions, utilizing Codecov flags (`python`, `nodejs`, `browser-test`) to properly segment coverage. However, the README badge is pending Codecov project setup, first successful upload, and badge URL verification. Note that a `CODECOV_TOKEN` repository secret may be required for reliable uploads even for public repositories.
+**Current state:** Codecov upload steps have been added to the existing GitHub Actions test workflows, utilizing Codecov flags (`python`, `nodejs`, `browser-test`) to properly segment coverage. However, the README badge is pending Codecov project setup, first successful upload, and badge URL verification. Note that a `CODECOV_TOKEN` repository secret may be required for reliable uploads even for public repositories, though tokenless OIDC upload is prioritized.
 **Expected or intended state:** Coverage badges correctly display on the `README.md` using the verified Codecov badge URL.
 **Why it matters:** Good visibility into CI test coverage encourages maintainability and testing standards.
 **Recommended next action:** Verify Codecov setup, wait for a successful coverage upload, confirm the badge URL, and then add the overall coverage badge to `README.md`.
