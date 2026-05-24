@@ -217,7 +217,7 @@ None.
 
 **Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and ensure cross-platform database semantic equivalence. Note that these tests are not yet fully integrated into the standard CI workflows. Browser DB export/import interoperability remains future work.
+**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and are executed by the GitHub Actions integration workflow. Browser DB export/import interoperability and Go/Rust roundtrip coverage remain future work.
 **Expected or intended state:** Automated tests ensuring DB files created in one platform can be successfully read and decrypted in another.
 **Why it matters:** Interoperability is the core value proposition of the library.
 **Recommended next action:** Expand to include browser interoperability tests.
