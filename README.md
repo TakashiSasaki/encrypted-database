@@ -82,4 +82,4 @@ Our CI workflows run on standard `ubuntu-latest` environments and are split into
 
 Coverage results are generated during the test runs and uploaded to GitHub Actions artifacts as `python-coverage`, `nodejs-coverage`, and `browser-test-coverage`.
 
-*Note: Local coverage commands only generate reports. The actual upload to Codecov is performed during GitHub Actions CI runs. Python, Node.js, and Browser-test coverage are distinguished using Codecov flags (`python`, `nodejs`, `browser-test`). The coverage badge will be added to the top of this README once the Codecov project setup is complete and the badge URL is verified. Also note that the browser-test coverage measures execution in the Jest JSDOM/sql.js harness environment, and does not represent full browser real-runtime coverage.*
+*Note: Local coverage commands only generate reports. The actual upload to Codecov is performed during GitHub Actions CI runs. Python, Node.js, and Browser-test coverage are distinguished using Codecov flags (`python`, `nodejs`, `browser-test`). The coverage badge will be added to the top of this README once the Codecov project setup is complete and the badge URL is verified.*
