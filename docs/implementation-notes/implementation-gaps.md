@@ -180,7 +180,7 @@ None.
 
 **Status:** Resolved
 **Area:** Storage Format
-**Current state:** `CHECK` constraints for 12-byte nonces, wrapped key minimum lengths, ciphertext minimum lengths, and non-empty content types have been added to `schema.sql`. Direct SQL constraint tests verify that SQLite actively enforces these on Python, Node.js, and browser-test backends.
+**Current state:** `CHECK` constraints for 12-byte nonces, wrapped key minimum lengths, ciphertext minimum lengths, and non-empty content types have been added to `schema.sql`. Direct SQL constraint tests verify that SQLite actively enforces these on Python, Node.js, and browser-test backends. (For browser-test with sql.js, some tests are explicitly documented exceptions if they relate to disk-corruption features like ignoring constraints.)
 **Expected or intended state:** The schema utilizes the proposed SQLite `CHECK` constraints to provide defense-in-depth for V1 invariants.
 **Why it matters:** DBMS-level enforcement prevents corruption from external tools or bugs in the application layer.
 **Recommended next action:** None.
