@@ -12,6 +12,7 @@ on:
 permissions:
 
   contents: read
+  id-token: write
 
 jobs:
   test:
@@ -38,3 +39,12 @@ jobs:
         with:
           name: browser-test-coverage
           path: browser-test/coverage/lcov.info
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./browser-test/coverage/lcov.info
+          flags: browser-test
+          name: browser-test-coverage
+          fail_ci_if_error: false
+          use_oidc: true

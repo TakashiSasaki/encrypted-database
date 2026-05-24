@@ -12,6 +12,7 @@ on:
 permissions:
 
   contents: read
+  id-token: write
 
 jobs:
   test:
@@ -38,3 +39,12 @@ jobs:
         with:
           name: python-coverage
           path: python/coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./python/coverage.xml
+          flags: python
+          name: python-coverage
+          fail_ci_if_error: false
+          use_oidc: true
