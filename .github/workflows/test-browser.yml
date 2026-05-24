@@ -38,3 +38,12 @@ jobs:
         with:
           name: browser-test-coverage
           path: browser-test/coverage/lcov.info
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./browser-test/coverage/lcov.info
+          flags: browser-test
+          name: browser-test-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}

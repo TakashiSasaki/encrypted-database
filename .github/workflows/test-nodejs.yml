@@ -38,3 +38,12 @@ jobs:
         with:
           name: nodejs-coverage
           path: nodejs/coverage/lcov.info
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./nodejs/coverage/lcov.info
+          flags: nodejs
+          name: nodejs-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
