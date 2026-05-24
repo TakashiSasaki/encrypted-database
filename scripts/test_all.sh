@@ -5,7 +5,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(dirname "$DIR")"
 
 echo "=== Running Python Tests ==="
-(cd "$ROOT_DIR/python" && pip install -e .[test] && pytest)
+(cd "$ROOT_DIR/python" && python3 -m pip install -e ".[test]" && python3 -m pytest)
 
 echo "=== Running Node.js Tests ==="
 (cd "$ROOT_DIR/nodejs" && npm ci && npm test)

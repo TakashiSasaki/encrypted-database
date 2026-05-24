@@ -5,7 +5,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(dirname "$DIR")"
 
 echo "=== Running Python Coverage ==="
-(cd "$ROOT_DIR/python" && pip install -e .[test] && pytest --cov=src --cov-report=xml --cov-report=term)
+(cd "$ROOT_DIR/python" && python3 -m pip install -e ".[test]" && python3 -m pytest --cov=src --cov-report=xml --cov-report=term)
 
 echo "=== Running Node.js Coverage ==="
 # Ensure package.json has test:coverage, otherwise fallback to standard jest
