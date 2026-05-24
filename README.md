@@ -1,11 +1,9 @@
 # Encrypted Database Library
 
-[![Python Tests](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-python.yml/badge.svg)](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-python.yml)
-[![Python Coverage](https://codecov.io/gh/TakashiSasaki/encrypted-database/graph/badge.svg?flag=python)](https://codecov.io/gh/TakashiSasaki/encrypted-database)
-[![Node.js Tests](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-nodejs.yml/badge.svg)](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-nodejs.yml)
-[![Node.js Coverage](https://codecov.io/gh/TakashiSasaki/encrypted-database/graph/badge.svg?flag=nodejs)](https://codecov.io/gh/TakashiSasaki/encrypted-database)
-[![Browser Tests](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-browser.yml/badge.svg)](https://github.com/TakashiSasaki/encrypted-database/actions/workflows/test-browser.yml)
-[![Browser Coverage](https://codecov.io/gh/TakashiSasaki/encrypted-database/graph/badge.svg?flag=browser)](https://codecov.io/gh/TakashiSasaki/encrypted-database)
+[![Python Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-python.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-python.yml)
+[![Integration Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-integration.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-integration.yml)
+[![Node.js Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-nodejs.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-nodejs.yml)
+[![Browser Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-browser.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-browser.yml)
 
 これは新しく作成する暗号化データベース（暗号化ストレージ）のライブラリです。
 SQLite などのローカル永続化層に秘匿対象データを保存するアプリケーション向けに、アプリケーション層暗号化、鍵階層、鍵ラッピング、アンロック手段、復旧経路、検索用補助鍵を統一的に扱う機能を提供します。
@@ -40,3 +38,48 @@ Node.js 用の実装は `nodejs/` ディレクトリに配置されています�
 
 ## インストールと使い方
 各言語ディレクトリの README ファイルをご参照ください。
+
+## Testing and Coverage
+
+### Local Test Commands
+
+You can run the full suite of tests using the top-level orchestration script:
+
+```bash
+# Run all tests (Python, Node.js, Browser, and Roundtrip Integration)
+./scripts/test_all.sh
+```
+
+Alternatively, you can run individual tests manually for troubleshooting:
+- **Python**: `cd python && pytest`
+- **Node.js**: `cd nodejs && npm test`
+- **Browser**: `cd browser-test && npm test`
+- **Roundtrip**: `./integration-tests/roundtrip/test_roundtrip.sh`
+
+### Local Coverage Commands
+
+Coverage across all languages can be measured and reported by running:
+
+```bash
+# Measure and collect coverage artifacts
+./scripts/coverage_all.sh
+```
+
+You can also run coverage individually:
+- **Python**: `cd python && pytest --cov=src --cov-report=xml --cov-report=term`
+- **Node.js**: `cd nodejs && npm run test:coverage`
+- **Browser**: `cd browser-test && npm run test:coverage`
+
+*Note regarding Browser-test Coverage*: The browser-test coverage measures execution in the Jest JSDOM/sql.js harness environment. It does not represent full browser real-runtime (WebCrypto) coverage.
+
+### CI Workflows
+
+Our CI workflows run on standard `ubuntu-latest` environments and are split into independent jobs for stability and clarity:
+- Python Tests
+- Node.js Tests
+- Browser Tests
+- Integration Roundtrip Tests
+
+Coverage results are generated during the test runs and uploaded to GitHub Actions artifacts as `python-coverage`, `nodejs-coverage`, and `browser-test-coverage`.
+
+*Note: Coverage badges are currently pending a static publication endpoint, and configuration instructions are documented within our implementation notes.*

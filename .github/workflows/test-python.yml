@@ -3,16 +3,14 @@ name: Python Tests
 on:
   push:
     branches:
-      - encrypted-database
-      - main
+      - vault.moukaeritai.work
   pull_request:
     branches:
-      - encrypted-database
-      - main
+      - vault.moukaeritai.work
   workflow_dispatch:
 
 permissions:
-  id-token: write
+
   contents: read
 
 jobs:
@@ -29,14 +27,14 @@ jobs:
           cache: 'pip'
           cache-dependency-path: 'python/pyproject.toml'
 
-      - name: Install dependencies and run tests
+      - name: Install dependencies and run tests with coverage
         working-directory: ./python
         run: |
           pip install -e .[test]
-          pytest --cov=src --cov-report=xml
+          pytest --cov=src --cov-report=xml --cov-report=term
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
         with:
-          flags: python
-          directory: ./python
+          name: python-coverage
+          path: python/coverage.xml
