@@ -30,8 +30,11 @@ describe('V1 Metadata tests (Browser)', () => {
 
             let storage2 = new EncryptedStorage();
             await storage2.init(exported);
-            await expect(storage2.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
-            await storage2.close();
+            try {
+                await expect(storage2.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
+            } finally {
+                await storage2.close();
+            }
         }
     });
 
@@ -50,8 +53,11 @@ describe('V1 Metadata tests (Browser)', () => {
 
             let storage2 = new EncryptedStorage();
             await storage2.init(exported);
-            await expect(storage2.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
-            await storage2.close();
+            try {
+                await expect(storage2.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
+            } finally {
+                await storage2.close();
+            }
         }
     });
 
@@ -70,8 +76,11 @@ describe('V1 Metadata tests (Browser)', () => {
 
             let storage2 = new EncryptedStorage();
             await storage2.init(exported);
-            await expect(storage2.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
-            await storage2.close();
+            try {
+                await expect(storage2.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
+            } finally {
+                await storage2.close();
+            }
 
             let storage3 = new EncryptedStorage();
             await storage3.init();
@@ -84,8 +93,11 @@ describe('V1 Metadata tests (Browser)', () => {
 
             let storage4 = new EncryptedStorage();
             await storage4.init(exported3);
-            await expect(storage4.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
-            await storage4.close();
+            try {
+                await expect(storage4.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
+            } finally {
+                await storage4.close();
+            }
         }
     });
 
@@ -122,8 +134,11 @@ describe('V1 Metadata tests (Browser)', () => {
 
             let storage2 = new EncryptedStorage();
             await storage2.init(exported);
-            await expect(storage2.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
-            await storage2.close();
+            try {
+                await expect(storage2.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
+            } finally {
+                await storage2.close();
+            }
 
             let storage3 = new EncryptedStorage();
             await storage3.init();
@@ -136,8 +151,11 @@ describe('V1 Metadata tests (Browser)', () => {
 
             let storage4 = new EncryptedStorage();
             await storage4.init(exported3);
-            await expect(storage4.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
-            await storage4.close();
+            try {
+                await expect(storage4.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
+            } finally {
+                await storage4.close();
+            }
         }
     });
 
@@ -181,8 +199,11 @@ describe('V1 Metadata tests (Browser)', () => {
 
             let storage2 = new EncryptedStorage();
             await storage2.init(exported);
-            await expect(storage2.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
-            await storage2.close();
+            try {
+                await expect(storage2.unlockDatabase("pass")).rejects.toThrow(errors.InvalidStorageFormat);
+            } finally {
+                await storage2.close();
+            }
         }
     });
 
