@@ -4,6 +4,7 @@
 [![Integration Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-integration.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-integration.yml)
 [![Node.js Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-nodejs.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-nodejs.yml)
 [![Browser Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-browser.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-browser.yml)
+[![Coverage](https://codecov.io/gh/TakashiSasaki/vault.moukaeritai.work/branch/vault.moukaeritai.work/graph/badge.svg)](https://codecov.io/gh/TakashiSasaki/vault.moukaeritai.work)
 
 これは新しく作成する暗号化データベース（暗号化ストレージ）のライブラリです。
 SQLite などのローカル永続化層に秘匿対象データを保存するアプリケーション向けに、アプリケーション層暗号化、鍵階層、鍵ラッピング、アンロック手段、復旧経路、検索用補助鍵を統一的に扱う機能を提供します。
@@ -82,4 +83,4 @@ Our CI workflows run on standard `ubuntu-latest` environments and are split into
 
 Coverage results are generated during the test runs and uploaded to GitHub Actions artifacts as `python-coverage`, `nodejs-coverage`, and `browser-test-coverage`.
 
-*Note: Local coverage commands only generate reports. The actual upload to Codecov is performed during GitHub Actions CI runs. Python, Node.js, and Browser-test coverage are distinguished using Codecov flags (`python`, `nodejs`, `browser-test`). The coverage badge will be added to the top of this README once the Codecov project setup is complete and the badge URL is verified.*
+*Note: Local coverage commands only generate reports. The actual upload to Codecov is performed during GitHub Actions CI runs using tokenless OIDC authentication (`use_oidc: true`). Python, Node.js, and Browser-test coverage are segmented using Codecov flags (`python`, `nodejs`, `browser-test`). The top-level README shows an overall Codecov coverage badge. As previously noted, the browser-test coverage is generated via the Jest JSDOM/sql.js harness and does not represent real browser runtime coverage.*
