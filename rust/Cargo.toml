@@ -10,9 +10,9 @@ rusqlite = { version = "0.39.0", features = ["bundled"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
 thiserror = "1.0"
+argon2 = "0.5.3"
+aes-gcm = "0.10.3"
 
 [dev-dependencies]
-argon2 = "0.5.3"
 hex = "0.4.3"
-aes-gcm = "0.10.3"
 tempfile = "3.27.0"

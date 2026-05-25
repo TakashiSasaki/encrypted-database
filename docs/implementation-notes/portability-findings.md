@@ -15,6 +15,14 @@ Go/Rust portability validation is performed relative to the `tag-1.z.z` Storage 
 | FINDING-006 | 2026-05-25 | SQLite | Go/Rust | `modernc.org/sqlite` in Go and `rusqlite` in Rust successfully read `PRAGMA application_id` and `PRAGMA user_version`. In both languages, we use `file:<path>?mode=ro` (or equivalent `SQLITE_OPEN_READ_ONLY | SQLITE_OPEN_URI` flags) to ensure strict read-only operation. No critical divergence observed for simple reads. | implementation-note | Low | File-backed Go/Rust implementations apply standard PRAGMA checks and do not use the browser `sql.js` exception. | Active | `go/internal/sqlitev1/validator.go`, `rust/src/sqlitev1.rs` |
 | FINDING-007 | 2026-05-25 | SQLite | Go/Rust | `database_uuid` validation requires strict enforcement of the RFC4122/RFC9562-compatible variant layout (version 1-8, variant 8/9/a/b) rather than just allowing any canonical 8-4-4-4-12 hex shape. This prevents cross-language portability divergence by ensuring invalid versions and variants are rejected explicitly across all implementations. | clarification | Low | Ensured the strict regex pattern (`^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`) is used and explicitly documented in Rust and Go to validate UUID version and variant bits. | Active | `go/internal/sqlitev1/validator.go`, `rust/src/sqlitev1.rs` |
 
+## FINDING-008: Strict "active" key status requirement for database_kek during unlock
+
+- **Tag:** `clarification`
+- **Area:** Storage Format / API Implementation
+- **Description:** During the implementation of the read-only unlock/decrypt reader in Go and Rust, the reader must find a `database_kek` to unwrap. The current implementation strictly enforces `status = 'active'` during the query. While `decrypt_only` might be logically sound for a read-only compatibility scenario (e.g., during key rotation or migrations), it is currently not permitted.
+- **Impact:** `decrypt_only`, `disabled`, and `destroyed` states are unsupported for the initial database unlock operation, causing a failure to find an active key. This matches the current Python baseline.
+- **Resolution:** No immediate changes to the schema or current code. The Go and Rust reader implementations explicitly require `status = 'active'`. The semantics and test coverage for `decrypt_only` require further clarification before being implemented.
+
 ## Expected Watch Areas
 The following areas are anticipated points of divergence and should be monitored closely during the Go and Rust implementations:
 
