@@ -23,7 +23,7 @@ fn create_valid_db(path: &PathBuf) {
         ("format_major", "1"),
         ("format_minor", "0"),
         ("schema_version", "1"),
-        ("database_uuid", "12345678-1234-1234-1234-123456789abc"),
+        ("database_uuid", "12345678-1234-4234-8234-123456789abc"),
         ("created_at_ms", "1600000000000"),
         ("created_by_library", "test"),
         ("created_by_version", "1.0"),
@@ -49,7 +49,7 @@ fn test_validate_read_only_valid() {
     create_valid_db(&db_path);
 
     let res = validate_read_only(&db_path).expect("expected valid db to pass");
-    assert_eq!(res.database_uuid, "12345678-1234-1234-1234-123456789abc");
+    assert_eq!(res.database_uuid, "12345678-1234-4234-8234-123456789abc");
 }
 
 #[test]

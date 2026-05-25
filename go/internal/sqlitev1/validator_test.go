@@ -43,7 +43,7 @@ func createValidDb(t *testing.T, path string) {
 		"format_major":          "1",
 		"format_minor":          "0",
 		"schema_version":        "1",
-		"database_uuid":         "12345678-1234-1234-1234-123456789abc",
+		"database_uuid":         "12345678-1234-4234-8234-123456789abc",
 		"created_at_ms":         "1600000000000",
 		"created_by_library":    "test",
 		"created_by_version":    "1.0",
@@ -69,7 +69,7 @@ func TestValidateReadOnly_Valid(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected valid db to pass, got: %v", err)
 	}
-	if res.DatabaseUUID != "12345678-1234-1234-1234-123456789abc" {
+	if res.DatabaseUUID != "12345678-1234-4234-8234-123456789abc" {
 		t.Errorf("unexpected database_uuid: %s", res.DatabaseUUID)
 	}
 }
