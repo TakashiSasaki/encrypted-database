@@ -1,9 +1,6 @@
 use serde::Deserialize;
 use serde_json::Value;
-use vault_moukaeritai_work::{
-    jcs::canonicalize,
-    vectors::test_vector_path,
-};
+use vault_moukaeritai_work::{jcs::canonicalize, vectors::test_vector_path};
 
 #[derive(Debug, Deserialize)]
 struct JCSVector {
@@ -17,14 +14,13 @@ struct JCSVector {
 
 #[test]
 fn test_jcs_conformance() {
-    let path = test_vector_path("jcs/rfc8785-basic.json")
-        .expect("Failed to locate JCS vector file");
+    let path =
+        test_vector_path("jcs/rfc8785-basic.json").expect("Failed to locate JCS vector file");
 
-    let content = std::fs::read_to_string(&path)
-        .expect("Failed to read JCS vector file");
+    let content = std::fs::read_to_string(&path).expect("Failed to read JCS vector file");
 
-    let vectors: Vec<JCSVector> = serde_json::from_str(&content)
-        .expect("Failed to parse JCS JSON array");
+    let vectors: Vec<JCSVector> =
+        serde_json::from_str(&content).expect("Failed to parse JCS JSON array");
 
     for tc in vectors {
         match canonicalize(&tc.input) {

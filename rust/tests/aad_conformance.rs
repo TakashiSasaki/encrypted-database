@@ -1,9 +1,6 @@
 use serde::Deserialize;
-use serde_json::{json, Value};
-use vault_moukaeritai_work::{
-    jcs::canonicalize,
-    vectors::{test_vector_path},
-};
+use serde_json::{Value, json};
+use vault_moukaeritai_work::{jcs::canonicalize, vectors::test_vector_path};
 
 #[derive(Debug, Deserialize)]
 struct AADVectorInput {
@@ -29,14 +26,13 @@ struct AADVector {
 
 #[test]
 fn test_aad_conformance() {
-    let path = test_vector_path("aad/aad-policies-v1.json")
-        .expect("Failed to locate AAD vector file");
+    let path =
+        test_vector_path("aad/aad-policies-v1.json").expect("Failed to locate AAD vector file");
 
-    let content = std::fs::read_to_string(&path)
-        .expect("Failed to read AAD vector file");
+    let content = std::fs::read_to_string(&path).expect("Failed to read AAD vector file");
 
-    let vectors: Vec<AADVector> = serde_json::from_str(&content)
-        .expect("Failed to parse AAD JSON array");
+    let vectors: Vec<AADVector> =
+        serde_json::from_str(&content).expect("Failed to parse AAD JSON array");
 
     for tc in vectors {
         let mut context_map = serde_json::Map::new();

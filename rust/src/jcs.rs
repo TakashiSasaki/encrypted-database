@@ -15,7 +15,11 @@ pub enum JcsError {
 pub fn canonicalize(val: &Value) -> Result<String, JcsError> {
     match val {
         Value::Null => Ok("null".to_string()),
-        Value::Bool(b) => Ok(if *b { "true".to_string() } else { "false".to_string() }),
+        Value::Bool(b) => Ok(if *b {
+            "true".to_string()
+        } else {
+            "false".to_string()
+        }),
         Value::String(s) => serialize_string(s),
         Value::Number(n) => {
             if let Some(i) = n.as_i64() {
@@ -27,10 +31,14 @@ pub fn canonicalize(val: &Value) -> Result<String, JcsError> {
                 if f.fract() == 0.0 {
                     Ok(format!("{:.0}", f))
                 } else {
-                    Err(JcsError::UnsupportedValue("fractional float formatting not fully implemented".to_string()))
+                    Err(JcsError::UnsupportedValue(
+                        "fractional float formatting not fully implemented".to_string(),
+                    ))
                 }
             } else {
-                Err(JcsError::UnsupportedValue("unknown number format".to_string()))
+                Err(JcsError::UnsupportedValue(
+                    "unknown number format".to_string(),
+                ))
             }
         }
         Value::Array(arr) => {
@@ -77,7 +85,9 @@ fn serialize_string(s: &str) -> Result<String, JcsError> {
     out.push('"');
     for c in s.chars() {
         if c == std::char::REPLACEMENT_CHARACTER {
-            return Err(JcsError::UnsupportedValue("invalid UTF-8 in string".to_string()));
+            return Err(JcsError::UnsupportedValue(
+                "invalid UTF-8 in string".to_string(),
+            ));
         }
         match c {
             '"' => out.push_str("\\\""),

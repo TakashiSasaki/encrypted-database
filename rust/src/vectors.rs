@@ -10,7 +10,10 @@ pub fn test_vectors_dir() -> Result<PathBuf, String> {
 
     let path = PathBuf::from(&dir);
     if !path.exists() {
-        return Err(format!("Test vectors directory does not exist at {:?}", path));
+        return Err(format!(
+            "Test vectors directory does not exist at {:?}",
+            path
+        ));
     }
     if !path.is_dir() {
         return Err(format!("Path {:?} is not a directory", path));
@@ -25,7 +28,10 @@ pub fn test_vector_path(rel_path: impl AsRef<Path>) -> Result<PathBuf, String> {
     let full_path = base_dir.join(rel_path);
 
     if !full_path.exists() {
-        return Err(format!("Test vector file does not exist at {:?}", full_path));
+        return Err(format!(
+            "Test vector file does not exist at {:?}",
+            full_path
+        ));
     }
 
     Ok(full_path)
