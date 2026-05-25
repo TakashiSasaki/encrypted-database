@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use serde_json::Value;
 use vault_moukaeritai_work::{
-    jcs::{canonicalize, JcsError},
+    jcs::canonicalize,
     vectors::test_vector_path,
 };
 
@@ -42,12 +42,7 @@ fn test_jcs_conformance() {
                     tc.name
                 );
             }
-            Err(e) => match e {
-                JcsError::UnsupportedValue(msg) => {
-                    println!("Expected limitation encountered for {}: {}", tc.name, msg);
-                    // Pass test due to explicit limitation
-                }
-            },
+            Err(e) => panic!("Unexpected canonicalization error for {}: {:?}", tc.name, e),
         }
     }
 }

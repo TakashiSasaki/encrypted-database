@@ -2,7 +2,6 @@ package vault
 
 import (
 	"encoding/hex"
-	"errors"
 	"path/filepath"
 	"testing"
 
@@ -29,11 +28,6 @@ func TestJCSConformance(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			canonicalString, err := jcs.Canonicalize(tc.Input)
 			if err != nil {
-				// Handle expected limitations
-				if errors.Is(err, jcs.ErrUnsupportedJCSValue) {
-					t.Logf("Expected limitation encountered for %s: %v", tc.Name, err)
-					return // Mark test as passed because it correctly rejected unsupported value
-				}
 				t.Fatalf("Unexpected canonicalization error: %v", err)
 			}
 
