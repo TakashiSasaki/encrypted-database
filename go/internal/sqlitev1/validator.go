@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	// uuidRegex enforces strict UUID shape: lowercase canonical text with accepted version (1-8) and RFC4122/RFC9562-compatible variant (8,9,a,b).
 	uuidRegex      = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
 	timestampRegex = regexp.MustCompile(`^(0|[1-9][0-9]*)$`)
 )

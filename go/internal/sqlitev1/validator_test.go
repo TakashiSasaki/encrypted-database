@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"fmt"
 	"github.com/TakashiSasaki/vault.moukaeritai.work/go/internal/sqlitev1"
 	_ "modernc.org/sqlite"
 )
@@ -62,15 +63,37 @@ func createValidDb(t *testing.T, path string) {
 
 func TestValidateReadOnly_Valid(t *testing.T) {
 	tmpDir := t.TempDir()
-	dbPath := filepath.Join(tmpDir, "valid.db")
-	createValidDb(t, dbPath)
 
-	res, err := sqlitev1.ValidateReadOnly(dbPath)
-	if err != nil {
-		t.Fatalf("expected valid db to pass, got: %v", err)
+	validUUIDs := []string{
+		"12345678-1234-4234-8234-123456789abc", // version 4, variant 8
+		"12345678-1234-7234-9234-123456789abc", // version 7, variant 9
+		"12345678-1234-8234-a234-123456789abc", // version 8, variant a
+		"12345678-1234-1234-b234-123456789abc", // version 1, variant b
 	}
-	if res.DatabaseUUID != "12345678-1234-4234-8234-123456789abc" {
-		t.Errorf("unexpected database_uuid: %s", res.DatabaseUUID)
+
+	for i, uuid := range validUUIDs {
+		t.Run(fmt.Sprintf("valid_%d", i), func(t *testing.T) {
+			dbPath := filepath.Join(tmpDir, fmt.Sprintf("valid_%d.db", i))
+			createValidDb(t, dbPath)
+
+			// Update to a specific valid UUID
+			db, err := sql.Open("sqlite", dbPath)
+			if err != nil {
+				t.Fatalf("setup open: %v", err)
+			}
+			if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = ? WHERE property = 'database_uuid'", uuid); err != nil {
+				t.Fatalf("setup exec: %v", err)
+			}
+			db.Close()
+
+			res, err := sqlitev1.ValidateReadOnly(dbPath)
+			if err != nil {
+				t.Fatalf("expected valid db to pass with UUID %s, got: %v", uuid, err)
+			}
+			if res.DatabaseUUID != uuid {
+				t.Errorf("unexpected database_uuid: got %s, want %s", res.DatabaseUUID, uuid)
+			}
+		})
 	}
 }
 
@@ -146,9 +169,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid format_minor = 1",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '1' WHERE property = 'format_minor'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '1' WHERE property = 'format_minor'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid format_minor",
 		},
@@ -186,9 +214,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid database_uuid uppercase",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-8234-123456789ABC' WHERE property = 'database_uuid'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-8234-123456789ABC' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid database_uuid",
 		},
@@ -196,9 +229,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid database_uuid leading whitespace",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = ' 12345678-1234-4234-8234-123456789abc' WHERE property = 'database_uuid'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = ' 12345678-1234-4234-8234-123456789abc' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid database_uuid",
 		},
@@ -206,9 +244,74 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid database_uuid trailing whitespace",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-8234-123456789abc ' WHERE property = 'database_uuid'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-8234-123456789abc ' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
+			},
+			errCheck: "invalid database_uuid",
+		},
+		{
+			name: "invalid database_uuid version 0",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
+				defer db.Close()
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-0234-8234-123456789abc' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
+			},
+			errCheck: "invalid database_uuid",
+		},
+		{
+			name: "invalid database_uuid version 9",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
+				defer db.Close()
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-9234-8234-123456789abc' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
+			},
+			errCheck: "invalid database_uuid",
+		},
+		{
+			name: "invalid database_uuid variant 7",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
+				defer db.Close()
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-7234-123456789abc' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
+			},
+			errCheck: "invalid database_uuid",
+		},
+		{
+			name: "invalid database_uuid variant c",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
+				defer db.Close()
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-c234-123456789abc' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid database_uuid",
 		},
@@ -231,9 +334,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid created_at_ms negative",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '-1' WHERE property = 'created_at_ms'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '-1' WHERE property = 'created_at_ms'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid created_at_ms",
 		},
@@ -241,9 +349,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid created_at_ms plus sign",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '+1' WHERE property = 'created_at_ms'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '+1' WHERE property = 'created_at_ms'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid created_at_ms",
 		},
@@ -251,9 +364,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid created_at_ms float",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '1.0' WHERE property = 'created_at_ms'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '1.0' WHERE property = 'created_at_ms'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid created_at_ms",
 		},
@@ -261,9 +379,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid created_at_ms whitespace",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = ' 123' WHERE property = 'created_at_ms'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = ' 123' WHERE property = 'created_at_ms'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid created_at_ms",
 		},
@@ -271,9 +394,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "non-empty required_features",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '[\"something\"]' WHERE property = 'required_features'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '[\"something\"]' WHERE property = 'required_features'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid required_features",
 		},
@@ -281,9 +409,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid required_features spacing",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '[ ]' WHERE property = 'required_features'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '[ ]' WHERE property = 'required_features'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid required_features",
 		},
@@ -291,9 +424,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid optional_features spacing",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '[ ]' WHERE property = 'optional_features'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '[ ]' WHERE property = 'optional_features'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid optional_features",
 		},
@@ -301,9 +439,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "non-empty optional_features",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '[\"x\"]' WHERE property = 'optional_features'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '[\"x\"]' WHERE property = 'optional_features'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid optional_features",
 		},
@@ -311,9 +454,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid created_by_library whitespace-only",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '   ' WHERE property = 'created_by_library'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '   ' WHERE property = 'created_by_library'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid created_by_library",
 		},
@@ -321,9 +469,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid created_by_version whitespace-only",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '\t' WHERE property = 'created_by_version'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '\t' WHERE property = 'created_by_version'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid created_by_version",
 		},

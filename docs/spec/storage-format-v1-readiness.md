@@ -52,7 +52,7 @@ To declare the V1 format stable, all required components must be fully specified
 | :--- | :--- | :--- | :--- |
 | Format identity is fixed | Satisfied | [`storage-format.md`](./storage-format.md) | No |
 | SQLite profile identity is fixed | Satisfied | [`storage-format-sqlite.md`](./storage-format-sqlite.md) | No |
-| `storage_metadata_tbl` is required and validated | Satisfied | [`schema.sql`](../backend/sqlite/schema.sql), [`test_metadata.py`](../../python/tests/test_metadata.py), [`metadata.test.js`](../../nodejs/test/metadata.test.js) | No |
+| `storage_metadata_tbl` is required and validated (including strict UUID policy) | Satisfied | [`schema.sql`](../backend/sqlite/schema.sql), [`test_metadata.py`](../../python/tests/test_metadata.py), [`metadata.test.js`](../../nodejs/test/metadata.test.js) | No |
 | PRAGMA policy is defined and tested for Python / Node.js | Satisfied | [`storage-format-sqlite.md`](./storage-format-sqlite.md), [`test_metadata.py`](../../python/tests/test_metadata.py), [`metadata.test.js`](../../nodejs/test/metadata.test.js) | No |
 | browser/sql.js PRAGMA exception is documented and tested | Documented Exception | [`storage-format-sqlite.md`](./storage-format-sqlite.md), [`v1_metadata_pragma.test.js`](../../browser-test/test/v1_metadata_pragma.test.js) | No |
 | Required/optional feature handling is defined | Satisfied | [`storage-format.md`](./storage-format.md) | No |

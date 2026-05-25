@@ -32,7 +32,7 @@ Components for Storage Format Identity include:
 *   **`format_major`**: Major version number (e.g., 1). Changes indicate logical storage format compatibility breaks. (Separated from `schema_version`).
 *   **`format_minor`**: Minor version number (e.g., 0). Changes indicate backward-compatible logical additions, combined with feature flags.
 *   **`schema_version`**: An integer representing the specific underlying schema layout (e.g., SQLite DDL / migration step). The `PRAGMA user_version` should generally synchronize with this value.
-*   **`database_uuid`**: A canonical UUID uniquely identifying this specific database instance. Initialized via UUIDv4.
+*   **`database_uuid`**: A canonical UUID uniquely identifying this specific database instance. Initialized via UUIDv4. `database_uuid` MUST be a lowercase canonical UUID string using the RFC4122/RFC9562-compatible variant layout. Implementations MUST reject uppercase UUIDs, hyphenless UUIDs, brace-wrapped UUIDs, whitespace-padded UUIDs, UUID strings with an unsupported version nibble, and UUID strings with a non-RFC4122/RFC9562-compatible variant nibble. This policy is explicitly required for `database_uuid` in Storage Format V1 metadata. Other UUID-bearing fields SHOULD follow the same canonical UUID policy unless a narrower field-specific rule is defined.
 *   **`created_at_ms`**: Unix timestamp in milliseconds indicating when the database was created.
 *   **`created_by_library`**: A string indicating the library implementation that created the database (e.g., `"python"`, `"nodejs"`). Note that the library version and storage format version are fundamentally separate.
 *   **`created_by_version`**: A string indicating the version of the library that created the database.
