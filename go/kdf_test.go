@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"golang.org/x/crypto/argon2"
 	"github.com/TakashiSasaki/vault.moukaeritai.work/go/internal/base64url"
 	"github.com/TakashiSasaki/vault.moukaeritai.work/go/internal/vectors"
+	"golang.org/x/crypto/argon2"
 )
 
 type Argon2idParameters struct {

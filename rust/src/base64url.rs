@@ -1,4 +1,4 @@
-use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 
 /// Decodes a base64url encoded string strictly without padding.
 /// It rejects strings containing '=' padding characters or invalid URL-safe characters.
