@@ -1,0 +1,22 @@
+name: Go Tests
+
+on:
+  push:
+    branches: [ vault.moukaeritai.work ]
+  pull_request:
+    branches: [ vault.moukaeritai.work ]
+
+jobs:
+  test-go:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go/go.mod'
+
+      - name: Run Go Tests
+        run: cd go && go test -v ./...

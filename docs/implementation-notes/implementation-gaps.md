@@ -52,19 +52,19 @@ None.
 
 **Status:** Active
 **Area:** Implementation
-**Current state:** Python, Node.js, and browser-test implementations exist. Go and Rust implementations are planned to prove the portability of the storage format but do not yet exist. (Note: These are not V1-blocking for the Python/JS core).
+**Current state:** The Go/Rust portability validation phase has begun. Initial testing scaffolding is present to parse conformance test vectors. Python, Node.js, and browser-test implementations exist as the tested V1 baseline. Controlled V1 amendments may be considered before public compatibility commitments if blockers are found during this validation.
 **Expected or intended state:** Native Go and Rust packages exist and pass all cross-language test vectors.
-**Why it matters:** The storage format core is designed for multi-language support. While proving it in strictly-typed, compiled languages (Go/Rust) provides strong confidence, it is not strictly required for declaring the V1 specification stable.
-**Recommended next action:** Create initial scaffolding for the Go module and Rust crate as future enhancements.
+**Why it matters:** The storage format core is designed for multi-language support. Proving it in stricter compiled languages (Go/Rust) provides strong confidence.
+**Recommended next action:** Progress the Go/Rust scaffolding from simple test vector discovery to full primitive and operational coverage.
 
 ### Roundtrip matrix does not yet include Go/Rust
 
 **Status:** Active
 **Area:** Interoperability
-**Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js.
+**Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js. Go/Rust portability validation infrastructure has been added but lacks full integration in roundtrip matrix tests.
 **Expected or intended state:** The roundtrip test matrix tests database creation, unlocking, reading, and writing across all supported languages (Python, Node.js, Go, Rust) and browser exports.
 **Why it matters:** To guarantee true V1 interoperability.
-**Recommended next action:** Expand the `test_roundtrip.sh` harness once Go/Rust implementations are viable.
+**Recommended next action:** Expand the `test_roundtrip.sh` harness once Go/Rust full library read/write implementations are viable.
 
 ### JWE/JOSE compatibility is not implemented
 
