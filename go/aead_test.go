@@ -98,8 +98,9 @@ func TestAEADConformance(t *testing.T) {
 
 			if tc.Valid {
 				// Positive case: Encrypt and verify byte-for-byte match.
-				if hex.EncodeToString(sealed) != tc.ExpectedCiphertextAndTagHex {
-					t.Errorf("Encryption mismatch. Expected %s, got %s", tc.ExpectedCiphertextAndTagHex, hex.EncodeToString(sealed))
+				sealedHex := hex.EncodeToString(sealed)
+				if sealedHex != tc.ExpectedCiphertextAndTagHex {
+					t.Errorf("Encryption mismatch. Expected %s, got %s", tc.ExpectedCiphertextAndTagHex, sealedHex)
 				}
 
 				// Also try to decrypt to verify correctness
@@ -107,8 +108,9 @@ func TestAEADConformance(t *testing.T) {
 				if err != nil {
 					t.Errorf("Decryption failed for valid case: %v", err)
 				}
-				if hex.EncodeToString(opened) != tc.PlaintextHex {
-					t.Errorf("Decrypted plaintext mismatch. Expected %s, got %s", tc.PlaintextHex, hex.EncodeToString(opened))
+				openedHex := hex.EncodeToString(opened)
+				if openedHex != tc.PlaintextHex {
+					t.Errorf("Decrypted plaintext mismatch. Expected %s, got %s", tc.PlaintextHex, openedHex)
 				}
 			} else {
 				// Negative case: The vector includes modified parameters (like altered tag/AAD).
