@@ -54,7 +54,7 @@ fn test_argon2id_kdf_vectors() {
             unreachable!()
         };
 
-        assert_eq!(salt_bytes.len(), tc.parameters.salt_bytes, "Decoded salt length does not match expected length");
+        assert_eq!(salt_bytes.len(), tc.parameters.salt_bytes, "Decoded salt length does not match expected length in test case {}", i);
 
         // Map params:
         // argon2::Params::new takes (m_cost, t_cost, p_cost, output_len)
@@ -76,7 +76,7 @@ fn test_argon2id_kdf_vectors() {
         argon2.hash_password_into(tc.input.passphrase.as_bytes(), &salt_bytes, &mut derived_key)
             .expect("Argon2 hashing failed");
 
-        assert_eq!(derived_key.len(), output_len, "Derived key length does not match expected length");
+        assert_eq!(derived_key.len(), output_len, "Derived key length does not match expected length in test case {}", i);
 
         let derived_hex = hex::encode(derived_key);
         assert_eq!(derived_hex, tc.expected_output_hex, "Derived key does not match expected output in test case {}", i);
