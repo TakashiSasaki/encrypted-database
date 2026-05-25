@@ -2,7 +2,7 @@
 
 This directory is currently a portability-validation scaffold. It is intended to consume shared conformance vectors and uncover portability issues before full read/write implementations are developed.
 
-The Go implementation is not a full, production-ready library.
+The Go implementation is not a full, production-ready library. Currently, a minimal JCS canonicalizer is implemented solely to satisfy the basic AAD test vectors. Full storage database features, including SQLite validation, unlock, decrypt, and writer functionality, are future tasks.
 
 ## Testing
 
@@ -11,4 +11,9 @@ Run tests against the shared conformance vectors:
 ```bash
 cd go
 go test ./...
+```
+
+You can optionally override the test vectors directory:
+```bash
+VAULT_TEST_VECTORS_DIR=/path/to/vectors go test ./...
 ```

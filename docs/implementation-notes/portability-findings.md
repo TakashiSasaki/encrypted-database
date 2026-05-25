@@ -7,7 +7,7 @@ Go/Rust portability validation is performed relative to the `tag-1.z.z` Storage 
 
 | ID | Date | Area | Observed in | Issue | Classification | Impact | Decision | Status | Related files/tests |
 |---|---|---|---|---|---|---|---|---|---|
-| | | | | | | | | | |
+| FINDING-001 | 2024-05-25 | JCS | Go/Rust | Go `encoding/json` and Rust `serde_json` standard marshalling do not strictly conform to RFC 8785 (JCS) regarding float formatting and map key ordering without explicit `BTreeMap` or custom sorting implementations. | driver-or-library-limitation | Moderate | Developed minimal custom JCS canonicalizer targeting basic JSON shapes for AAD/JCS vectors. Full JCS support may require finding reliable 3rd-party libs or completing the custom implementations. | Active | `go/internal/jcs`, `rust/src/jcs.rs` |
 
 ## Expected Watch Areas
 The following areas are anticipated points of divergence and should be monitored closely during the Go and Rust implementations:
