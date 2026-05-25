@@ -83,10 +83,17 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 		{
 			name: "missing storage_metadata_tbl",
 			setup: func(t *testing.T, path string) {
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("PRAGMA application_id = 1447906135")
-				db.Exec("PRAGMA user_version = 1")
+				if _, err := db.Exec("PRAGMA application_id = 1447906135"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
+				if _, err := db.Exec("PRAGMA user_version = 1"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "missing storage_metadata_tbl",
 		},
@@ -94,9 +101,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "wrong PRAGMA application_id",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("PRAGMA application_id = 12345")
+				if _, err := db.Exec("PRAGMA application_id = 12345"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid PRAGMA application_id",
 		},
@@ -104,9 +116,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "wrong storage_format_id",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = 'wrong' WHERE property = 'storage_format_id'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = 'wrong' WHERE property = 'storage_format_id'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid storage_format_id",
 		},
@@ -114,9 +131,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "missing format_major",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("DELETE FROM storage_metadata_tbl WHERE property = 'format_major'")
+				if _, err := db.Exec("DELETE FROM storage_metadata_tbl WHERE property = 'format_major'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid format_major",
 		},
@@ -124,9 +146,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "wrong format_major",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '2' WHERE property = 'format_major'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '2' WHERE property = 'format_major'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid format_major",
 		},
@@ -134,9 +161,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid database_uuid",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = 'invalid-uuid' WHERE property = 'database_uuid'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = 'invalid-uuid' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid database_uuid",
 		},
@@ -144,9 +176,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid created_at_ms",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = 'not-a-number' WHERE property = 'created_at_ms'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = 'not-a-number' WHERE property = 'created_at_ms'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid created_at_ms",
 		},
@@ -164,9 +201,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "PRAGMA mismatch",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '123' WHERE property = 'sqlite_application_id'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '123' WHERE property = 'sqlite_application_id'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "metadata sqlite_application_id mismatch",
 		},
