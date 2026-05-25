@@ -1,6 +1,5 @@
 use serde::Deserialize;
-use serde_json::{Value, json};
-use vault_moukaeritai_work::{jcs::canonicalize, vectors::test_vector_path};
+use vault_moukaeritai_work::{aad::{build_record_payload_v1, build_wrap_key_v1}, vectors::test_vector_path};
 
 #[derive(Debug, Deserialize)]
 struct AADVectorInput {
@@ -35,36 +34,24 @@ fn test_aad_conformance() {
         serde_json::from_str(&content).expect("Failed to parse AAD JSON array");
 
     for tc in vectors {
-        let mut context_map = serde_json::Map::new();
-        context_map.insert("v".to_string(), json!(1));
-        context_map.insert("aad_policy".to_string(), json!(&tc.policy));
-
-        match tc.policy.as_str() {
+        let canonical_bytes = match tc.policy.as_str() {
             "record-payload-v1" => {
                 let obj = tc.input.object_uuid.expect("Missing object_uuid");
                 let sch = tc.input.schema_uuid.expect("Missing schema_uuid");
                 let ctype = tc.input.content_type.expect("Missing content_type");
                 let kid = tc.input.kid.expect("Missing kid");
                 let alg = tc.input.alg.expect("Missing alg");
-
-                context_map.insert("object_uuid".to_string(), json!(obj));
-                context_map.insert("schema_uuid".to_string(), json!(sch));
-                context_map.insert("content_type".to_string(), json!(ctype));
-                context_map.insert("kid".to_string(), json!(kid));
-                context_map.insert("alg".to_string(), json!(alg));
+                build_record_payload_v1(&obj, &sch, &ctype, &kid, &alg).expect("AAD builder failed")
             }
             "wrap-database-key-v1" | "wrap-record-key-v1" => {
                 let wkid = tc.input.wrapped_kid.expect("Missing wrapped_kid");
                 let wgkid = tc.input.wrapping_kid.expect("Missing wrapping_kid");
-
-                context_map.insert("wrapped_kid".to_string(), json!(wkid));
-                context_map.insert("wrapping_kid".to_string(), json!(wgkid));
+                build_wrap_key_v1(&tc.policy, &wkid, &wgkid).expect("AAD builder failed")
             }
             _ => panic!("Unknown or unsupported policy: {}", tc.policy),
-        }
+        };
 
-        let context_val = Value::Object(context_map);
-        let canonical_string = canonicalize(&context_val).expect("JCS canonicalization failed");
+        let canonical_string = String::from_utf8(canonical_bytes.clone()).expect("Invalid UTF-8");
 
         if let Some(expected_string) = &tc.expected_string {
             assert_eq!(
@@ -74,7 +61,7 @@ fn test_aad_conformance() {
             );
         }
 
-        let canonical_hex = hex::encode(canonical_string.as_bytes());
+        let canonical_hex = hex::encode(&canonical_bytes);
         assert_eq!(
             canonical_hex, tc.expected_hex,
             "Expected hex mismatch for {}",
