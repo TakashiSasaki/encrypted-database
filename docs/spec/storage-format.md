@@ -3,7 +3,7 @@
 ```text
 Status: Stable
 Compatibility: V1 backward compatibility guaranteed
-Implementation status: Python implemented, Node.js implemented, browser-test implemented, Go planned, Rust planned
+Implementation status: Python implemented, Node.js implemented, browser-test implemented, Go/Rust portability validation in progress
 Normative status: Storage Format V1 Stable
 ```
 
