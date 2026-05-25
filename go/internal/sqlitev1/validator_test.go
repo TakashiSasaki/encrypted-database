@@ -198,6 +198,36 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			errCheck: "invalid required_features",
 		},
 		{
+			name: "missing sqlite_application_id metadata",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
+				defer db.Close()
+				if _, err := db.Exec("DELETE FROM storage_metadata_tbl WHERE property = 'sqlite_application_id'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
+			},
+			errCheck: "invalid or missing metadata sqlite_application_id",
+		},
+		{
+			name: "missing sqlite_user_version metadata",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
+				defer db.Close()
+				if _, err := db.Exec("DELETE FROM storage_metadata_tbl WHERE property = 'sqlite_user_version'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
+			},
+			errCheck: "invalid or missing metadata sqlite_user_version",
+		},
+		{
 			name: "PRAGMA mismatch",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
@@ -210,7 +240,7 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 					t.Fatalf("setup exec: %v", err)
 				}
 			},
-			errCheck: "metadata sqlite_application_id mismatch",
+			errCheck: "invalid or missing metadata sqlite_application_id",
 		},
 	}
 

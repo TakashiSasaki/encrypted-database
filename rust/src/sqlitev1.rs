@@ -145,19 +145,15 @@ pub fn validate_read_only(path: &Path) -> Result<ValidationResult, SqliteV1Error
         ));
     }
 
-    if let Some(sqlite_app_id) = metadata.get("sqlite_application_id") {
-        if sqlite_app_id != "1447906135" {
-            return Err(SqliteV1Error::InvalidMetadataProperty(
-                "sqlite_application_id".into(),
-            ));
-        }
+    if get_req("sqlite_application_id")? != "1447906135" {
+        return Err(SqliteV1Error::InvalidMetadataProperty(
+            "sqlite_application_id".into(),
+        ));
     }
-    if let Some(sqlite_user_ver) = metadata.get("sqlite_user_version") {
-        if sqlite_user_ver != "1" {
-            return Err(SqliteV1Error::InvalidMetadataProperty(
-                "sqlite_user_version".into(),
-            ));
-        }
+    if get_req("sqlite_user_version")? != "1" {
+        return Err(SqliteV1Error::InvalidMetadataProperty(
+            "sqlite_user_version".into(),
+        ));
     }
 
     Ok(ValidationResult {

@@ -116,16 +116,12 @@ func ValidateReadOnly(path string) (*ValidationResult, error) {
 		return nil, fmt.Errorf("invalid created_by_version")
 	}
 
-	// PRAGMA matches against metadata if they exist
-	if val, ok := metadata["sqlite_application_id"]; ok {
-		if val != "1447906135" {
-			return nil, fmt.Errorf("metadata sqlite_application_id mismatch: %v", val)
-		}
+	// PRAGMA matches against metadata
+	if val, ok := metadata["sqlite_application_id"]; !ok || val != "1447906135" {
+		return nil, fmt.Errorf("invalid or missing metadata sqlite_application_id: %v", val)
 	}
-	if val, ok := metadata["sqlite_user_version"]; ok {
-		if val != "1" {
-			return nil, fmt.Errorf("metadata sqlite_user_version mismatch: %v", val)
-		}
+	if val, ok := metadata["sqlite_user_version"]; !ok || val != "1" {
+		return nil, fmt.Errorf("invalid or missing metadata sqlite_user_version: %v", val)
 	}
 
 	return &ValidationResult{

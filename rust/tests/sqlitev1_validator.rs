@@ -124,6 +124,24 @@ fn test_validate_read_only_invalid_cases() {
             "Invalid property in metadata: required_features",
         ),
         (
+            "missing sqlite_application_id metadata",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("DELETE FROM storage_metadata_tbl WHERE property = 'sqlite_application_id'", []).unwrap();
+            },
+            "Missing property in metadata: sqlite_application_id",
+        ),
+        (
+            "missing sqlite_user_version metadata",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("DELETE FROM storage_metadata_tbl WHERE property = 'sqlite_user_version'", []).unwrap();
+            },
+            "Missing property in metadata: sqlite_user_version",
+        ),
+        (
             "PRAGMA mismatch",
             |path: &PathBuf| {
                 create_valid_db(path);
