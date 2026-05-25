@@ -241,3 +241,13 @@ None.
 **Expected or intended state:** Coverage metrics that accurately reflect real browser environments (e.g. via Playwright or Puppeteer).
 **Why it matters:** Logical coverage in Node.js does not guarantee compatibility or execution safety inside a restricted Web Worker or browser environment.
 **Recommended next action:** Expand `browser-test` tooling to incorporate headless browser tests for coverage metrics.
+
+
+### Go and Rust portability implementation gaps
+
+**Status:** Active
+**Area:** Cryptography / Interoperability
+**Current state:** Go and Rust implementations now include cryptographic conformance validation against shared vectors, and a SQLite V1 read-only metadata validator. However, they are still portability validation scaffolds and lack full storage library implementation, database unlock/decrypt readers, writers, and cross-language roundtrip integration.
+**Expected or intended state:** Go and Rust implementations are complete, production-ready storage libraries integrated into the cross-language roundtrip matrix.
+**Why it matters:** Required to establish true portability and multi-language support.
+**Recommended next action:** Implement database unlock and decrypt reader for Go and Rust.

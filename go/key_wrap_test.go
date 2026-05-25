@@ -12,21 +12,21 @@ import (
 )
 
 type KeyWrapVector struct {
-	Name                                   string  `json:"name"`
-	Description                            string  `json:"description"`
-	AADPolicy                              string  `json:"aad_policy"`
-	WrappedKeyClass                        string  `json:"wrapped_key_class"`
-	WrappedKid                             string  `json:"wrapped_kid"`
-	WrappingKid                            string  `json:"wrapping_kid"`
-	WrappingKeyHex                         string  `json:"wrapping_key_hex"`
-	WrappedKeyPlaintextHex                 string  `json:"wrapped_key_plaintext_hex"`
-	NonceHex                               string  `json:"nonce_hex"`
-	ExpectedAADHex                         string  `json:"expected_aad_hex"`
-	ExpectedWrappedKeyCiphertextHex        string  `json:"expected_wrapped_key_ciphertext_hex"`
-	ExpectedWrappedKeyTagHex               string  `json:"expected_wrapped_key_tag_hex"`
-	ExpectedWrappedKeyCiphertextAndTagHex  string  `json:"expected_wrapped_key_ciphertext_and_tag_hex"`
-	Valid                                  bool    `json:"valid"`
-	Algorithm                              *string `json:"algorithm,omitempty"` // Assuming missing means A256GCM
+	Name                                  string  `json:"name"`
+	Description                           string  `json:"description"`
+	AADPolicy                             string  `json:"aad_policy"`
+	WrappedKeyClass                       string  `json:"wrapped_key_class"`
+	WrappedKid                            string  `json:"wrapped_kid"`
+	WrappingKid                           string  `json:"wrapping_kid"`
+	WrappingKeyHex                        string  `json:"wrapping_key_hex"`
+	WrappedKeyPlaintextHex                string  `json:"wrapped_key_plaintext_hex"`
+	NonceHex                              string  `json:"nonce_hex"`
+	ExpectedAADHex                        string  `json:"expected_aad_hex"`
+	ExpectedWrappedKeyCiphertextHex       string  `json:"expected_wrapped_key_ciphertext_hex"`
+	ExpectedWrappedKeyTagHex              string  `json:"expected_wrapped_key_tag_hex"`
+	ExpectedWrappedKeyCiphertextAndTagHex string  `json:"expected_wrapped_key_ciphertext_and_tag_hex"`
+	Valid                                 bool    `json:"valid"`
+	Algorithm                             *string `json:"algorithm,omitempty"` // Assuming missing means A256GCM
 }
 
 func decodeHex(t *testing.T, s string) []byte {
@@ -78,23 +78,23 @@ func TestKeyWrapConformance(t *testing.T) {
 
 			var expectedCiphertextAndTag []byte
 			if tc.ExpectedWrappedKeyCiphertextAndTagHex != "" {
-			    expectedCiphertextAndTag = decodeHex(t, tc.ExpectedWrappedKeyCiphertextAndTagHex)
+				expectedCiphertextAndTag = decodeHex(t, tc.ExpectedWrappedKeyCiphertextAndTagHex)
 			}
 
 			if tc.ExpectedWrappedKeyCiphertextHex != "" && tc.ExpectedWrappedKeyTagHex != "" {
-			    expectedCiphertext := decodeHex(t, tc.ExpectedWrappedKeyCiphertextHex)
-			    expectedTag := decodeHex(t, tc.ExpectedWrappedKeyTagHex)
-			    if len(expectedTag) != 16 {
-			        t.Fatalf("Expected tag length 16, got %d", len(expectedTag))
-			    }
-			    combined := append(expectedCiphertext, expectedTag...)
-			    if expectedCiphertextAndTag != nil {
-			        if hex.EncodeToString(combined) != hex.EncodeToString(expectedCiphertextAndTag) {
-			            t.Fatalf("Separated ciphertext+tag do not match concatenated ciphertext_and_tag")
-			        }
-			    } else {
-			        expectedCiphertextAndTag = combined
-			    }
+				expectedCiphertext := decodeHex(t, tc.ExpectedWrappedKeyCiphertextHex)
+				expectedTag := decodeHex(t, tc.ExpectedWrappedKeyTagHex)
+				if len(expectedTag) != 16 {
+					t.Fatalf("Expected tag length 16, got %d", len(expectedTag))
+				}
+				combined := append(expectedCiphertext, expectedTag...)
+				if expectedCiphertextAndTag != nil {
+					if hex.EncodeToString(combined) != hex.EncodeToString(expectedCiphertextAndTag) {
+						t.Fatalf("Separated ciphertext+tag do not match concatenated ciphertext_and_tag")
+					}
+				} else {
+					expectedCiphertextAndTag = combined
+				}
 			}
 
 			// AAD Reconstruction
@@ -125,26 +125,26 @@ func TestKeyWrapConformance(t *testing.T) {
 			sealed := aesgcm.Seal(nil, nonce, plaintext, aadBytes)
 
 			if tc.Valid {
-			    if expectedCiphertextAndTag != nil && hex.EncodeToString(sealed) != hex.EncodeToString(expectedCiphertextAndTag) {
-			        t.Errorf("Sealed output does not match expected.\nGot: %x\nExp: %x", sealed, expectedCiphertextAndTag)
-			    }
+				if expectedCiphertextAndTag != nil && hex.EncodeToString(sealed) != hex.EncodeToString(expectedCiphertextAndTag) {
+					t.Errorf("Sealed output does not match expected.\nGot: %x\nExp: %x", sealed, expectedCiphertextAndTag)
+				}
 
-			    // Decrypt
-			    opened, err := aesgcm.Open(nil, nonce, expectedCiphertextAndTag, aadBytes)
-			    if err != nil {
-			        t.Errorf("Failed to open valid key-wrap: %v", err)
-			    }
-			    if hex.EncodeToString(opened) != hex.EncodeToString(plaintext) {
-			        t.Errorf("Opened plaintext does not match expected.\nGot: %x\nExp: %x", opened, plaintext)
-			    }
+				// Decrypt
+				opened, err := aesgcm.Open(nil, nonce, expectedCiphertextAndTag, aadBytes)
+				if err != nil {
+					t.Errorf("Failed to open valid key-wrap: %v", err)
+				}
+				if hex.EncodeToString(opened) != hex.EncodeToString(plaintext) {
+					t.Errorf("Opened plaintext does not match expected.\nGot: %x\nExp: %x", opened, plaintext)
+				}
 			} else {
-			    // For negative test vectors, opening should fail
-			    if expectedCiphertextAndTag != nil {
-			        _, err := aesgcm.Open(nil, nonce, expectedCiphertextAndTag, aadBytes)
-			        if err == nil {
-			            t.Errorf("Expected failure to open negative key-wrap, but it succeeded")
-			        }
-			    }
+				// For negative test vectors, opening should fail
+				if expectedCiphertextAndTag != nil {
+					_, err := aesgcm.Open(nil, nonce, expectedCiphertextAndTag, aadBytes)
+					if err == nil {
+						t.Errorf("Expected failure to open negative key-wrap, but it succeeded")
+					}
+				}
 			}
 		})
 	}

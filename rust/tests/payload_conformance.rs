@@ -178,8 +178,12 @@ fn test_payload_conformance() {
                     name
                 );
             } else {
-                if reconstructed_aad != expected_aad {
-                    // Mismatched AAD intentionally
+                if name.contains("invalid-aad") {
+                    assert_ne!(
+                        reconstructed_aad, expected_aad,
+                        "test '{}': expected reconstructed AAD to differ from expected_aad_hex for AAD tampering test",
+                        name
+                    );
                 }
             }
         }
