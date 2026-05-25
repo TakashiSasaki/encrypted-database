@@ -41,7 +41,7 @@ fn test_aad_conformance() {
     for tc in vectors {
         let mut context_map = serde_json::Map::new();
         context_map.insert("v".to_string(), json!(1));
-        context_map.insert("aad_policy".to_string(), json!(tc.policy));
+        context_map.insert("aad_policy".to_string(), json!(&tc.policy));
 
         match tc.policy.as_str() {
             "record-payload-v1" => {
