@@ -43,5 +43,8 @@ func TestLoadAADVectors(t *testing.T) {
 		if tc.Policy == "" {
 			t.Errorf("Test case %d is missing a policy", i)
 		}
+		if tc.ExpectedHex == "" {
+			t.Errorf("Test case %d is missing expected_hex", i)
+		}
 	}
 }
