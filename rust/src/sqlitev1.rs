@@ -31,8 +31,7 @@ static TIMESTAMP_REGEX: OnceLock<Regex> = OnceLock::new();
 
 fn uuid_regex() -> &'static Regex {
     UUID_REGEX.get_or_init(|| {
-        Regex::new(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
-            .unwrap()
+        Regex::new(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$").unwrap()
     })
 }
 

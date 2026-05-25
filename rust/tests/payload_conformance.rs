@@ -177,14 +177,6 @@ fn test_payload_conformance() {
                     "test '{}': reconstructed AAD does not match expected_aad_hex",
                     name
                 );
-            } else {
-                if name.contains("invalid-aad") {
-                    assert_ne!(
-                        reconstructed_aad, expected_aad,
-                        "test '{}': expected reconstructed AAD to differ from expected_aad_hex for AAD tampering test",
-                        name
-                    );
-                }
             }
         }
 

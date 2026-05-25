@@ -5,12 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
 
 var (
-	uuidRegex      = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+	uuidRegex      = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 	timestampRegex = regexp.MustCompile(`^(0|[1-9][0-9]*)$`)
 )
 
@@ -108,11 +109,11 @@ func ValidateReadOnly(path string) (*ValidationResult, error) {
 	}
 
 	createdByLib, ok := metadata["created_by_library"]
-	if !ok || createdByLib == "" {
+	if !ok || strings.TrimSpace(createdByLib) == "" {
 		return nil, fmt.Errorf("invalid created_by_library")
 	}
 	createdByVer, ok := metadata["created_by_version"]
-	if !ok || createdByVer == "" {
+	if !ok || strings.TrimSpace(createdByVer) == "" {
 		return nil, fmt.Errorf("invalid created_by_version")
 	}
 
