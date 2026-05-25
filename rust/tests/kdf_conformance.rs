@@ -32,9 +32,12 @@ struct Argon2idTestCase {
 
 #[test]
 fn test_argon2id_kdf_vectors() {
-    let vector_path = vectors::test_vector_path("kdf/argon2id-v1.json").unwrap();
-    let data = std::fs::read_to_string(vector_path).unwrap();
-    let cases: Vec<Argon2idTestCase> = serde_json::from_str(&data).unwrap();
+    let vector_path = vectors::test_vector_path("kdf/argon2id-v1.json")
+        .expect("Failed to locate KDF vector file");
+    let data = std::fs::read_to_string(vector_path)
+        .expect("Failed to read KDF vector file");
+    let cases: Vec<Argon2idTestCase> = serde_json::from_str(&data)
+        .expect("Failed to parse KDF vector file as JSON");
 
     for (i, tc) in cases.iter().enumerate() {
         assert_eq!(tc.profile, "argon2id-profile-v1", "Unsupported profile in test case {}", i);
