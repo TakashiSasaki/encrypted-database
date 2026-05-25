@@ -234,9 +234,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid database_uuid version 0",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-0234-8234-123456789abc' WHERE property = 'database_uuid'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-0234-8234-123456789abc' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid database_uuid",
 		},
@@ -244,9 +249,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid database_uuid version 9",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-9234-8234-123456789abc' WHERE property = 'database_uuid'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-9234-8234-123456789abc' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid database_uuid",
 		},
@@ -254,9 +264,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid database_uuid variant 7",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-7234-123456789abc' WHERE property = 'database_uuid'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-7234-123456789abc' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid database_uuid",
 		},
@@ -264,9 +279,14 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			name: "invalid database_uuid variant c",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
-				db, _ := sql.Open("sqlite", path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
 				defer db.Close()
-				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-c234-123456789abc' WHERE property = 'database_uuid'")
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-c234-123456789abc' WHERE property = 'database_uuid'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
 			},
 			errCheck: "invalid database_uuid",
 		},
