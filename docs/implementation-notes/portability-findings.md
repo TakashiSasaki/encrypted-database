@@ -30,3 +30,4 @@ The following areas are anticipated points of divergence and should be monitored
 - file locking / close semantics
 - content_type / MIME validation
 - browser/sql.js exception boundaries
+| FINDING-004 | 2026-05-25 | Key-Wrap | Go/Rust | `test-vectors/key-wrap/key-wrap-v1.json` provides AAD explicitly via `expected_aad_hex` and reconstruction fields (`aad_policy`, `wrapped_kid`, `wrapping_kid`). We reconstruct AAD using the policy fields and verify it matches the explicit `expected_aad_hex`. It's slightly ambiguous which is authoritative if they differ, but we expect both to match. | clarification | Low | Go/Rust key-wrap validation tests will verify both the reconstructed AAD and compare against `expected_aad_hex`. No vector changes required. | Active | `test-vectors/key-wrap/key-wrap-v1.json`, `go/key_wrap_test.go`, `rust/tests/key_wrap_conformance.rs` |

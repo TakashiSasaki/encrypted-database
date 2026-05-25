@@ -1,11 +1,10 @@
-package vault
+package aad
 
 import (
 	"encoding/hex"
 	"path/filepath"
 	"testing"
 
-	"github.com/TakashiSasaki/vault.moukaeritai.work/go/internal/jcs"
 	"github.com/TakashiSasaki/vault.moukaeritai.work/go/internal/vectors"
 )
 
@@ -37,43 +36,34 @@ func TestAADConformance(t *testing.T) {
 
 	for _, tc := range v {
 		t.Run(tc.Name, func(t *testing.T) {
-			// Build Context Map depending on policy
-			contextMap := make(map[string]interface{})
-			contextMap["v"] = 1
-			contextMap["aad_policy"] = tc.Policy
+			var canonicalBytes []byte
+			var err error
 
 			switch tc.Policy {
 			case "record-payload-v1":
 				if tc.Input.ObjectUUID == nil || tc.Input.SchemaUUID == nil || tc.Input.ContentType == nil || tc.Input.Kid == nil || tc.Input.Alg == nil {
 					t.Fatalf("Missing required fields for policy record-payload-v1")
 				}
-				contextMap["object_uuid"] = *tc.Input.ObjectUUID
-				contextMap["schema_uuid"] = *tc.Input.SchemaUUID
-				contextMap["content_type"] = *tc.Input.ContentType
-				contextMap["kid"] = *tc.Input.Kid
-				contextMap["alg"] = *tc.Input.Alg
+				canonicalBytes, err = BuildRecordPayloadV1(*tc.Input.ObjectUUID, *tc.Input.SchemaUUID, *tc.Input.ContentType, *tc.Input.Kid, *tc.Input.Alg)
 			case "wrap-database-key-v1", "wrap-record-key-v1":
 				if tc.Input.WrappedKid == nil || tc.Input.WrappingKid == nil {
 					t.Fatalf("Missing required fields for policy %s", tc.Policy)
 				}
-				contextMap["wrapped_kid"] = *tc.Input.WrappedKid
-				contextMap["wrapping_kid"] = *tc.Input.WrappingKid
+				canonicalBytes, err = BuildWrapKeyV1(tc.Policy, *tc.Input.WrappedKid, *tc.Input.WrappingKid)
 			default:
 				t.Fatalf("Unknown or unsupported policy: %s", tc.Policy)
 			}
 
-			// Convert to JSON and then generic interface{} to reuse Canonicalize
-			// We can pass contextMap directly to Canonicalize
-			canonicalString, err := jcs.Canonicalize(contextMap)
 			if err != nil {
-				t.Fatalf("JCS canonicalization failed: %v", err)
+				t.Fatalf("AAD builder failed: %v", err)
 			}
+			canonicalString := string(canonicalBytes)
 
 			if tc.ExpectedString != nil && canonicalString != *tc.ExpectedString {
 				t.Errorf("Expected string %q, got %q", *tc.ExpectedString, canonicalString)
 			}
 
-			canonicalHex := hex.EncodeToString([]byte(canonicalString))
+			canonicalHex := hex.EncodeToString(canonicalBytes)
 			if canonicalHex != tc.ExpectedHex {
 				t.Errorf("Expected hex %q, got %q", tc.ExpectedHex, canonicalHex)
 			}
