@@ -2,7 +2,6 @@ package vault
 
 import (
 	"encoding/hex"
-	"math"
 	"testing"
 
 	"golang.org/x/crypto/argon2"
@@ -74,17 +73,17 @@ func TestArgon2idKdfVectors(t *testing.T) {
 			}
 
 			// Parameter validation
-			if tc.Parameters.Parallelism > math.MaxUint8 {
-				t.Fatalf("Parallelism %d exceeds max uint8", tc.Parameters.Parallelism)
+			if tc.Parameters.Parallelism > int(^uint8(0)) || tc.Parameters.Parallelism < 0 {
+				t.Fatalf("Parallelism %d exceeds max uint8 or is negative", tc.Parameters.Parallelism)
 			}
-			if tc.Parameters.OutputBytes > math.MaxUint32 {
-				t.Fatalf("Output bytes %d exceeds max uint32", tc.Parameters.OutputBytes)
+			if tc.Parameters.OutputBytes > int(^uint32(0)) || tc.Parameters.OutputBytes < 0 {
+				t.Fatalf("Output bytes %d exceeds max uint32 or is negative", tc.Parameters.OutputBytes)
 			}
-			if tc.Parameters.Iterations > math.MaxUint32 {
-				t.Fatalf("Iterations %d exceeds max uint32", tc.Parameters.Iterations)
+			if tc.Parameters.Iterations > int(^uint32(0)) || tc.Parameters.Iterations < 0 {
+				t.Fatalf("Iterations %d exceeds max uint32 or is negative", tc.Parameters.Iterations)
 			}
-			if tc.Parameters.MemoryKiB > math.MaxUint32 {
-				t.Fatalf("MemoryKiB %d exceeds max uint32", tc.Parameters.MemoryKiB)
+			if tc.Parameters.MemoryKiB > int(^uint32(0)) || tc.Parameters.MemoryKiB < 0 {
+				t.Fatalf("MemoryKiB %d exceeds max uint32 or is negative", tc.Parameters.MemoryKiB)
 			}
 
 			passphraseBytes := []byte(tc.Input.Passphrase)
