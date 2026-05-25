@@ -1,10 +1,10 @@
-# Storage Format V1 SQLite Profile (Draft)
+# Storage Format V1 SQLite Profile
 
 ```text
-Status: Draft
-Compatibility: pre-v1 SQLite storage profile
+Status: Stable
+Compatibility: V1 SQLite storage profile backward compatibility guaranteed
 Implementation status: Python implemented, Node.js implemented, browser-test implemented, Go planned, Rust planned
-Normative status: Proposed SQLite profile for storage-format-v1
+Normative status: Storage Format V1 SQLite Profile Stable
 ```
 
 ## 1. Purpose and Scope
@@ -136,6 +136,6 @@ The following column-level CHECK constraints have been added to the respective t
 *Note: Current AES-GCM output is 32-byte key + 16-byte tag = 48 bytes. However, we only enforce >= 16 bytes to avoid fixing algorithm-dependent length too rigidly in the schema.*
 
 ## 16. Known SQLite Profile Gaps
-A review of the current `docs/backend/sqlite/schema.sql` against the V1 draft reveals the following "decided but not implemented" gaps:
+A review of the current `docs/backend/sqlite/schema.sql` against the V1 format reveals the following "decided but not implemented" gaps:
 
-None. The schema now includes `storage_metadata_tbl`, PRAGMA checks, and the necessary `CHECK` constraints for `nonce`, `wrapped_key`, `ciphertext`, and `content_type`. (Note: Browser-test environments using `sql.js` bypass PRAGMA application_id / user_version validations and skip the file-backed malformed-on-disk corruption scenarios that require `ignore_check_constraints` as documented testing exceptions, but fully enforce storage-format metadata, feature flags, provider_config semantics, and JCS canonicality at the application layer).
+None. The schema includes `storage_metadata_tbl`, PRAGMA checks, and the necessary `CHECK` constraints for `nonce`, `wrapped_key`, `ciphertext`, and `content_type`. (Note: Browser-test environments using `sql.js` bypass PRAGMA application_id / user_version validations and skip the file-backed malformed-on-disk corruption scenarios that require `ignore_check_constraints` as documented testing exceptions, but fully enforce storage-format metadata, feature flags, provider_config semantics, and JCS canonicality at the application layer).

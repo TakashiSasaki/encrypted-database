@@ -1,19 +1,50 @@
-# Storage Format V1 Readiness Review
+# Storage Format V1 Stable Declaration Review
 
 ## 1. Purpose
 
-The purpose of this document is to evaluate the current readiness of the Encrypted Database Storage Format V1 to be declared "Stable." It outlines the criteria for stabilization, the status of current implementations across different environments (Python, Node.js, browser-test), documented exceptions, and non-blocking future work.
+The purpose of this document is to serve as the foundation and justification for declaring the Encrypted Database Storage Format V1 as "Stable." It outlines the criteria for stabilization, the status of current implementations across different environments (Python, Node.js, browser-test), documented exceptions, and non-blocking future work.
 
-This is a readiness review document and does not serve as the formal Stable declaration itself. Instead, it provides the required context and justification for why the V1 format is a stable candidate.
+This document serves as the formal Stable declaration review for the V1 format. It clarifies that the stable status applies strictly to the Storage Format V1 and does not represent a production readiness declaration for the entire library.
 
 ## 2. Current Status
 
-**Status:** Ready for final review / Stable candidate
+**Status:** Stable
 **V1-blocking storage-format gaps:** None known.
 
 Implementations for Python, Node.js, and browser-test have been successfully implemented, and cross-language equivalence is guaranteed by a comprehensive test suite of cryptographic primitives and roundtrip integration tests.
 
-## 3. Stable Declaration Criteria and Status
+## 3. Stable Declaration Scope
+
+The Stable declaration applies **strictly to the Storage Format V1**.
+
+**Included in the Stable Scope:**
+- Format identity
+- SQLite storage profile identity
+- `storage_metadata_tbl`
+- Version / feature handling
+- JCS canonicality requirements
+- `provider_config_json` explicitness
+- Argon2id Profile V1 parameters
+- AAD policy
+- Ciphertext / envelope format
+- Payload canonicalization requirements
+- SQLite CHECK constraints relevant to V1 invariants
+- Python / Node.js / browser-test conformance expectations
+
+**Excluded from the Stable Scope (Future Work/Not Stable Blockers):**
+- Library production readiness
+- Packaging/distribution maturity
+- Go / Rust implementations
+- Browser real-runtime coverage
+- Browser export/import roundtrip
+- Key rotation public APIs
+- Additional unlock providers
+- Blind index implementation
+- Optional feature read-only fallback
+- Schema fingerprint / hash
+- Safe integer policy
+
+## 4. Stable Declaration Criteria and Status
 
 To declare the V1 format stable, all required components must be fully specified, correctly implemented, and validated.
 
@@ -39,11 +70,11 @@ To declare the V1 format stable, all required components must be fully specified
 | Coverage and CI visibility exist | Satisfied | [`README.md`](../../README.md) | No |
 | V1-blocking storage-format gaps are none | Satisfied | [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md) | No |
 
-## 4. Criteria Already Satisfied
+## 5. Criteria Already Satisfied
 
 All core stabilization criteria outlined in the table above have been satisfied. The V1 format semantics and exact physical storage profile definitions are stable. The implementation matrix effectively tests and verifies compliance via static cryptographic primitives and dynamic semantic interoperability testing.
 
-## 5. Documented Exceptions
+## 6. Documented Exceptions
 
 While V1 stabilization expects strict conformance, the following intentional exceptions have been documented and accepted for specific environments:
 
@@ -65,7 +96,7 @@ While V1 stabilization expects strict conformance, the following intentional exc
   - **Coverage:** Documented in [`README.md`](../../README.md) and [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md).
   - **Not a blocker:** The `browser-test` harness achieves high logical coverage of the application and storage format logic. Real browser runtime paths are considered a future enhancement for operational confidence rather than a V1 format defect.
 
-## 6. Non-Blocking Future Work
+## 7. Non-Blocking Future Work
 
 The following items are recognized as important future enhancements or active work items but are explicitly classified as **non-blocking** for declaring Storage Format V1 stable. See [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md) for more details.
 
@@ -83,21 +114,20 @@ The following items are recognized as important future enhancements or active wo
 - Blind index searchability
 - Packaging/distribution maturity
 
-## 7. Remaining Stabilization Items
+## 8. Post-Declaration Monitoring
 
 At this time, there are **no known blocking items** preventing a stable declaration. All necessary criteria have been verified, and the core documents correctly align with implementation status.
 
-Prior to declaring Storage Format V1 formally Stable, the following final review checklist must be verified:
+The following items have been verified prior to the formal Stable declaration and will continue to be monitored:
 
-- [ ] Latest CI runs are green.
-- [ ] Codecov upload is working and README badge renders.
-- [ ] No stale “Draft only / pending coverage / not CI integrated” wording remains in core docs.
-- [ ] [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md) still reports no V1-blocking storage-format gaps.
-- [ ] Future work remains clearly non-blocking.
-- [ ] No implementation, schema, test vector, or workflow YAML changes were made during this final evidence-hardening step.
+- [x] Latest CI runs are green.
+- [x] Codecov upload is working and README badge renders.
+- [x] No stale “Draft only / pending coverage / not CI integrated” wording remains in core docs.
+- [x] [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md) still reports no V1-blocking storage-format gaps.
+- [x] Future work remains clearly non-blocking.
 
-## 8. Decision Summary
+## 9. Decision Summary
 
-Based on this readiness review, Storage Format V1 has met all stability criteria across multiple implementations (Python, Node.js, and browser-test). The cross-language compatibility guarantees are solid, backed by comprehensive testing and CI workflows. The remaining work is correctly scoped as non-blocking enhancements or language ports that do not require changes to the fundamental V1 storage format.
+Based on this declaration review, Storage Format V1 has met all stability criteria across multiple implementations (Python, Node.js, and browser-test). The cross-language compatibility guarantees are solid, backed by comprehensive testing and CI workflows. The remaining work is correctly scoped as non-blocking enhancements or language ports that do not require changes to the fundamental V1 storage format.
 
-The format is a stable candidate and is ready for final review leading up to a formal stable declaration.
+Storage Format V1 is Declared Stable as of this review.

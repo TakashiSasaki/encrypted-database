@@ -1,10 +1,10 @@
-# Storage Format V1 Core (Draft)
+# Storage Format V1 Core
 
 ```text
-Status: Draft
-Compatibility: pre-v1, no production compatibility guarantee
+Status: Stable
+Compatibility: V1 backward compatibility guaranteed
 Implementation status: Python implemented, Node.js implemented, browser-test implemented, Go planned, Rust planned
-Normative status: Proposed storage-format-v1 candidate
+Normative status: Storage Format V1 Stable
 ```
 
 ## 1. Purpose and Scope
@@ -19,9 +19,8 @@ To maintain a clean separation of concerns, the boundaries are strictly defined:
 *   **SQLite Storage Profile**: Defines the physical tables, columns, column types, CHECK constraints, PRAGMAs, `json_valid` usage, foreign keys, transaction behavior, and the canonical `schema.sql`. (e.g., "SQLite uses GLOB CHECK to help enforce UUID shape").
 
 ## 2. Format Stability Model
-Before the V1 stabilization is officially declared, this format is considered **experimental (pre-v1)**. Destructive schema changes, backwards-incompatible cryptographic modifications, and structural alterations are permitted without migration pathways.
 
-After V1 stabilization, the format guarantees backward compatibility. Any structural or cryptographic changes must conform to the Versioning and Compatibility Policy and Migration Policy defined below.
+This format (Storage Format V1) is **Stable**. The format guarantees backward compatibility. Any structural or cryptographic changes must conform to the Versioning and Compatibility Policy and Migration Policy defined below.
 
 ## 3. Storage Format Identity
 A storage file must contain metadata to identify its format, version, and origin. This ensures that implementations can correctly identify and read the structure. The identity is managed via both database metadata and PRAGMAs (in SQLite).
@@ -150,7 +149,7 @@ The storage format imposes strict constraints on the shape of payload records.
     *   Null
 *   **Binary Rejection**: Raw binary representations (e.g., `Buffer`, `bytes`, `ArrayBuffer`) are explicitly rejected at any depth. Consumers wishing to store binary data must encode it as a string (e.g., base64url).
 *   **Non-JSON Rejection**: Types outside the strict JSON specification (e.g., `NaN`, `Infinity`, `Set`, `Map`, `Date`) are explicitly rejected.
-*   **Numeric Portability**: Numeric types present known portability issues between 64-bit IEEE 754 floats (JavaScript), arbitrary precision integers (Python), and strict typing (Go/Rust). (Draft Gap: A "safe integer policy" is not yet finalized for V1).
+*   **Numeric Portability**: Numeric types present known portability issues between 64-bit IEEE 754 floats (JavaScript), arbitrary precision integers (Python), and strict typing (Go/Rust). (Future Work: A "safe integer policy" is not yet finalized).
 
 ## 14. Feature Flags
 To support safe, backward-compatible upgrades, the format uses a feature flag array system stored in the metadata.
@@ -167,7 +166,7 @@ In the post-V1 stable era, any change to the storage format requires an explicit
 *   Downgrades are not generally supported, and newer library versions operating on older formats may require one-way migrations.
 
 ## 16. Conformance Requirements
-Before declaring V1 stable, implementations of this storage format MUST pass a comprehensive suite of cross-language test vectors to guarantee interoperability:
+Implementations of this storage format MUST pass a comprehensive suite of cross-language test vectors to guarantee interoperability:
 
 *   JCS Canonicalization Vectors
 *   AAD Reconstruction Vectors
@@ -178,32 +177,10 @@ Before declaring V1 stable, implementations of this storage format MUST pass a c
 *   Semantic Interoperability (Roundtrip) Tests across SQLite profiles (Python ↔ Node.js).
 *   **V1 Metadata/Version Tests**: Automated tests proving metadata writing/reading, and strict rejection of unknown formats and unknown required/optional features.
 
-*Note: While Go and Rust implementations are planned to prove broader portability, they are NOT strictly required to declare the Python, Node.js, and browser-test implementations of V1 stable.*
+*Note: While Go and Rust implementations are planned to prove broader portability, they were NOT strictly required to declare the Python, Node.js, and browser-test implementations of V1 stable.*
 
-## 17. V1 Stabilization Criteria
-The following criteria must be met before transitioning this document from Draft to Stable:
-
-1.  `storage-format.md` and `storage-format-sqlite.md` are updated from Draft to Stable.
-2.  `schema.sql` contains V1 metadata/versioning structures and required SQLite constraints.
-3.  Python, Node.js, and browser-test implementations can initialize and open V1 databases.
-4.  Python ↔ Node.js roundtrip integration tests pass.
-5.  All shared test vectors (JCS, AAD, KDF, AEAD, Key-Wrap, Payload) pass.
-6.  Unknown `format_major` values are properly rejected.
-7.  Any unknown feature (required or optional) is properly rejected.
-8.  `provider_config_json` explicitly includes `kdf`, `profile`, `output_bytes`, etc., and passes strict validation against the V1 profile parameters.
-9.  No `aad_context_json` is stored anywhere in the schema.
-10. `implementation-gaps.md` has exactly zero remaining "v1-blocking storage-format gaps".
-
-## 18. Known Draft Gaps (V1-Blocking vs. Future Hardening)
-The following issues track the difference between the decisions written above and current implementation state:
-
-**V1-Blocking Implementation Gaps:**
-None. All V1-blocking gaps have been resolved.
-
-
-
-
-**Future Hardening (Post-V1):**
+## 17. Future Hardening (Post-V1)
+The following issues track ongoing future enhancements outside the strict V1 storage format requirements:
 1.  **Schema Fingerprint / Hash**: Calculating and verifying a canonical SQL `schema_hash` to guarantee exact DDL integrity is deferred.
 2.  **Optional Feature Fallback**: Implementing a strictly read-only mode for unknown optional features is deferred. V1 strictly rejects them.
 3.  **Migration Tracking Table**: A dedicated `storage_migration_tbl` is deferred.

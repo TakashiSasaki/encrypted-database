@@ -6,6 +6,8 @@
 [![Browser Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-browser.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-browser.yml)
 [![Coverage](https://codecov.io/gh/TakashiSasaki/vault.moukaeritai.work/branch/vault.moukaeritai.work/graph/badge.svg)](https://codecov.io/gh/TakashiSasaki/vault.moukaeritai.work/tree/vault.moukaeritai.work)
 
+**Status:** Storage Format V1 は Stable です。ただし、ライブラリの packaging、追加 unlock provider、key rotation、blind index、追加言語実装などは引き続き開発中です。
+
 これは新しく作成する暗号化データベース（暗号化ストレージ）のライブラリです。
 SQLite などのローカル永続化層に秘匿対象データを保存するアプリケーション向けに、アプリケーション層暗号化、鍵階層、鍵ラッピング、アンロック手段、復旧経路、検索用補助鍵を統一的に扱う機能を提供します。
 
