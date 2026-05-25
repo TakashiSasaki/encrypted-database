@@ -1,5 +1,5 @@
 use crate::jcs::canonicalize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[derive(Debug)]
 pub enum AADError {
@@ -15,11 +15,21 @@ pub fn build_record_payload_v1(
     kid: &str,
     alg: &str,
 ) -> Result<Vec<u8>, AADError> {
-    if object_uuid.is_empty() { return Err(AADError::MissingField("object_uuid")); }
-    if schema_uuid.is_empty() { return Err(AADError::MissingField("schema_uuid")); }
-    if content_type.is_empty() { return Err(AADError::MissingField("content_type")); }
-    if kid.is_empty() { return Err(AADError::MissingField("kid")); }
-    if alg.is_empty() { return Err(AADError::MissingField("alg")); }
+    if object_uuid.is_empty() {
+        return Err(AADError::MissingField("object_uuid"));
+    }
+    if schema_uuid.is_empty() {
+        return Err(AADError::MissingField("schema_uuid"));
+    }
+    if content_type.is_empty() {
+        return Err(AADError::MissingField("content_type"));
+    }
+    if kid.is_empty() {
+        return Err(AADError::MissingField("kid"));
+    }
+    if alg.is_empty() {
+        return Err(AADError::MissingField("alg"));
+    }
 
     let mut map = serde_json::Map::new();
     map.insert("v".to_string(), json!(1));
@@ -45,8 +55,12 @@ pub fn build_wrap_key_v1(
     if policy != "wrap-database-key-v1" && policy != "wrap-record-key-v1" {
         return Err(AADError::UnsupportedPolicy(policy.to_string()));
     }
-    if wrapped_kid.is_empty() { return Err(AADError::MissingField("wrapped_kid")); }
-    if wrapping_kid.is_empty() { return Err(AADError::MissingField("wrapping_kid")); }
+    if wrapped_kid.is_empty() {
+        return Err(AADError::MissingField("wrapped_kid"));
+    }
+    if wrapping_kid.is_empty() {
+        return Err(AADError::MissingField("wrapping_kid"));
+    }
 
     let mut map = serde_json::Map::new();
     map.insert("v".to_string(), json!(1));
