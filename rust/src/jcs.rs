@@ -16,7 +16,7 @@ pub fn canonicalize(val: &Value) -> Result<String, JcsError> {
     match val {
         Value::Null => Ok("null".to_string()),
         Value::Bool(b) => Ok(if *b { "true".to_string() } else { "false".to_string() }),
-        Value::String(s) => Ok(serialize_string(s)),
+        Value::String(s) => serialize_string(s),
         Value::Number(n) => {
             if let Some(i) = n.as_i64() {
                 Ok(i.to_string())
@@ -56,7 +56,7 @@ pub fn canonicalize(val: &Value) -> Result<String, JcsError> {
                 if i > 0 {
                     out.push(',');
                 }
-                out.push_str(&serialize_string(k));
+                out.push_str(&serialize_string(k)?);
                 out.push(':');
                 out.push_str(&canonicalize(obj.get(*k).unwrap())?);
             }
@@ -72,10 +72,13 @@ fn compare_utf16(s1: &str, s2: &str) -> std::cmp::Ordering {
     u1.cmp(&u2)
 }
 
-fn serialize_string(s: &str) -> String {
+fn serialize_string(s: &str) -> Result<String, JcsError> {
     let mut out = String::new();
     out.push('"');
     for c in s.chars() {
+        if c == std::char::REPLACEMENT_CHARACTER {
+            return Err(JcsError::UnsupportedValue("invalid UTF-8 in string".to_string()));
+        }
         match c {
             '"' => out.push_str("\\\""),
             '\\' => out.push_str("\\\\"),
@@ -91,5 +94,5 @@ fn serialize_string(s: &str) -> String {
         }
     }
     out.push('"');
-    out
+    Ok(out)
 }

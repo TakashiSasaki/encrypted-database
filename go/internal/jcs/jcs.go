@@ -30,7 +30,7 @@ func Canonicalize(v interface{}) (string, error) {
 		}
 		return "false", nil
 	case string:
-		return serializeString(val), nil
+		return serializeString(val)
 	case int:
 		return strconv.Itoa(val), nil
 	case int64:
@@ -78,7 +78,11 @@ func Canonicalize(v interface{}) (string, error) {
 			if i > 0 {
 				b.WriteByte(',')
 			}
-			b.WriteString(serializeString(k))
+			kStr, err := serializeString(k)
+			if err != nil {
+				return "", err
+			}
+			b.WriteString(kStr)
 			b.WriteByte(':')
 			itemStr, err := Canonicalize(val[k])
 			if err != nil {
@@ -116,17 +120,13 @@ func compareUTF16(s1, s2 string) int {
 	return 0
 }
 
-func serializeString(s string) string {
+func serializeString(s string) (string, error) {
 	var b strings.Builder
 	b.WriteByte('"')
 	for i := 0; i < len(s); {
 		r, size := utf8.DecodeRuneInString(s[i:])
 		if r == utf8.RuneError && size == 1 {
-			// Invalid UTF-8, ignore or handle?
-			// JCS expects valid unicode. We just append the raw byte for now or escape.
-			b.WriteByte(s[i])
-			i++
-			continue
+			return "", fmt.Errorf("%w: invalid UTF-8 in string", ErrUnsupportedJCSValue)
 		}
 		switch r {
 		case '"':
@@ -153,5 +153,5 @@ func serializeString(s string) string {
 		i += size
 	}
 	b.WriteByte('"')
-	return b.String()
+	return b.String(), nil
 }
