@@ -31,7 +31,8 @@ static TIMESTAMP_REGEX: OnceLock<Regex> = OnceLock::new();
 
 fn uuid_regex() -> &'static Regex {
     UUID_REGEX.get_or_init(|| {
-        Regex::new(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$").unwrap()
+        Regex::new(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
+            .unwrap()
     })
 }
 
@@ -63,9 +64,12 @@ pub fn validate_read_only(path: &Path) -> Result<ValidationResult, SqliteV1Error
     let mut stmt = conn.prepare(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='storage_metadata_tbl'",
     )?;
-    let exists: Option<String> = stmt.query_row([], |row| row.get(0)).ok();
-    if exists.is_none() {
-        return Err(SqliteV1Error::MissingMetadataTable);
+    match stmt.query_row([], |row| row.get::<_, String>(0)) {
+        Ok(_) => {} // Table exists
+        Err(rusqlite::Error::QueryReturnedNoRows) => {
+            return Err(SqliteV1Error::MissingMetadataTable);
+        }
+        Err(e) => return Err(SqliteV1Error::OpenError(e)),
     }
 
     // 4. Read metadata table
