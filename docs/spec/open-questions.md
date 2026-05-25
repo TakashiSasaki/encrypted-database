@@ -1,6 +1,6 @@
 # Open Questions and Ongoing Considerations
 
-This document tracks unresolved design questions, ongoing considerations, and future work items extracted from the main specification draft.
+This document tracks unresolved design questions, ongoing considerations, and future work items extracted from the main specifications.
 
 ## 1. Accepted Directions with Remaining Implementation Details
 

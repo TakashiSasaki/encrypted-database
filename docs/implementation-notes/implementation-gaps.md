@@ -6,7 +6,7 @@ This document tracks known discrepancies and gaps between the current specificat
 
 None.
 
-*See [`../spec/storage-format-v1-readiness.md`](../spec/storage-format-v1-readiness.md) for the current Storage Format V1 stable-readiness review and the rationale for treating known remaining work as non-blocking for the storage format.*
+*See [`../spec/storage-format-v1-readiness.md`](../spec/storage-format-v1-readiness.md) for the Storage Format V1 Stable Declaration Review and the rationale for treating known remaining work as non-blocking for the storage format.*
 
 ## Active Gaps (Future Hardening)
 

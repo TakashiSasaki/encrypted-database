@@ -2,7 +2,7 @@
 
 This document defines the formal public API contract and lifecycle states for the Encrypted Database implementations across Python, Node.js, and browser environments. The API contract operates as the high-level interface over the underlying Storage Format Core and SQLite Storage Profile.
 
-*(Note: While the Storage Format V1 is in the draft stage, there may be temporary divergences between this API contract, the actual implementations, and the V1 format rules. Future tasks will align the language binding matrix including Go and Rust).*
+*(Note: While the Storage Format V1 is now Stable, the language binding matrix including Go and Rust is planned as future work).*
 
 ## Lifecycle States
 
