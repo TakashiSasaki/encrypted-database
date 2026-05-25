@@ -4,7 +4,7 @@
 This document defines the approach and policy for validating the portability of Storage Format V1 as the Encrypted Database project expands its scope to native compiled languages, specifically Go and Rust. It outlines how portability issues discovered during this phase are tracked, classified, and resolved.
 
 ## 2. Stable Baseline Definition
-Storage Format V1 has been formally declared **Stable**. This stability designation is defined as a tested and verified baseline operating seamlessly across the Python, Node.js, and browser-test environments. The core format schema, metadata table constraints, strict JCS requirements, and cryptographic compatibility within these domains are considered a mature baseline.
+Storage Format V1 has been formally declared **Stable**. This stability designation is defined as a tested and verified baseline operating seamlessly across the Python, Node.js, and browser-test environments. The core format schema, metadata table constraints (including strict UUID policy enforcement), strict JCS requirements, and cryptographic compatibility within these domains are considered a mature baseline.
 
 The `tag-1.z.z` tag marks the Storage Format V1 stable baseline used for Go/Rust portability validation. Any findings, including controlled V1 amendments, are evaluated as deviations from this `tag-1.z.z` baseline.
 

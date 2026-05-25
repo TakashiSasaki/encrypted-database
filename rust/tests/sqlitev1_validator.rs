@@ -45,11 +45,29 @@ fn create_valid_db(path: &PathBuf) {
 #[test]
 fn test_validate_read_only_valid() {
     let dir = tempdir().unwrap();
-    let db_path = dir.path().join("valid.db");
-    create_valid_db(&db_path);
+    let valid_uuids = vec![
+        "12345678-1234-4234-8234-123456789abc", // version 4, variant 8
+        "12345678-1234-7234-9234-123456789abc", // version 7, variant 9
+        "12345678-1234-8234-a234-123456789abc", // version 8, variant a
+        "12345678-1234-1234-b234-123456789abc", // version 1, variant b
+    ];
 
-    let res = validate_read_only(&db_path).expect("expected valid db to pass");
-    assert_eq!(res.database_uuid, "12345678-1234-4234-8234-123456789abc");
+    for (i, uuid) in valid_uuids.iter().enumerate() {
+        let db_path = dir.path().join(format!("valid_{}.db", i));
+        create_valid_db(&db_path);
+
+        // Update to a specific valid UUID
+        let conn = Connection::open(&db_path).unwrap();
+        conn.execute(
+            "UPDATE storage_metadata_tbl SET value = ?1 WHERE property = 'database_uuid'",
+            rusqlite::params![uuid],
+        )
+        .unwrap();
+
+        let res = validate_read_only(&db_path)
+            .expect(&format!("expected valid db to pass with UUID {}", uuid));
+        assert_eq!(res.database_uuid, *uuid);
+    }
 }
 
 #[test]
@@ -142,6 +160,42 @@ fn test_validate_read_only_invalid_cases() {
                 create_valid_db(path);
                 let conn = Connection::open(path).unwrap();
                 conn.execute("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-8234-123456789abc ' WHERE property = 'database_uuid'", []).unwrap();
+            },
+            "Invalid property in metadata: database_uuid",
+        ),
+        (
+            "invalid database_uuid version 0",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '12345678-1234-0234-8234-123456789abc' WHERE property = 'database_uuid'", []).unwrap();
+            },
+            "Invalid property in metadata: database_uuid",
+        ),
+        (
+            "invalid database_uuid version 9",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '12345678-1234-9234-8234-123456789abc' WHERE property = 'database_uuid'", []).unwrap();
+            },
+            "Invalid property in metadata: database_uuid",
+        ),
+        (
+            "invalid database_uuid variant 7",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-7234-123456789abc' WHERE property = 'database_uuid'", []).unwrap();
+            },
+            "Invalid property in metadata: database_uuid",
+        ),
+        (
+            "invalid database_uuid variant c",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-c234-123456789abc' WHERE property = 'database_uuid'", []).unwrap();
             },
             "Invalid property in metadata: database_uuid",
         ),

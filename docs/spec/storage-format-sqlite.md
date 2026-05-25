@@ -94,7 +94,7 @@ Columns suffixed with `_json` (e.g., `provider_config_json`, `description_json`)
 *   Foreign Key checking must be enabled at the connection level to ensure the graph of keys remains structurally sound.
 
 ## 12. Storage Metadata Table
-The V1 schema introduces a dedicated `storage_metadata_tbl` to support the Storage Format Core identity model. It is designed as a strict key-value structure. The application layer handles parsing the `value` column (e.g., as strings, integers, or JCS JSON arrays).
+The V1 schema introduces a dedicated `storage_metadata_tbl` to support the Storage Format Core identity model. It is designed as a strict key-value structure. The application layer handles parsing the `value` column (e.g., as strings, integers, or JCS JSON arrays). The `database_uuid` property MUST strictly follow the canonical RFC4122/RFC9562-compatible UUID policy defined in the Core specification.
 
 ## 13. Migration Handling
 SQLite schema migrations will rely on structural changes utilizing standard SQLite DDL techniques (e.g., creating temporary tables, copying data, and renaming). In V1, migrations are tracked using `schema_version` in the metadata table and `PRAGMA user_version`. A dedicated `storage_migration_tbl` is reserved as a future enhancement.

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"fmt"
 	"github.com/TakashiSasaki/vault.moukaeritai.work/go/internal/sqlitev1"
 	_ "modernc.org/sqlite"
 )
@@ -62,15 +63,32 @@ func createValidDb(t *testing.T, path string) {
 
 func TestValidateReadOnly_Valid(t *testing.T) {
 	tmpDir := t.TempDir()
-	dbPath := filepath.Join(tmpDir, "valid.db")
-	createValidDb(t, dbPath)
 
-	res, err := sqlitev1.ValidateReadOnly(dbPath)
-	if err != nil {
-		t.Fatalf("expected valid db to pass, got: %v", err)
+	validUUIDs := []string{
+		"12345678-1234-4234-8234-123456789abc", // version 4, variant 8
+		"12345678-1234-7234-9234-123456789abc", // version 7, variant 9
+		"12345678-1234-8234-a234-123456789abc", // version 8, variant a
+		"12345678-1234-1234-b234-123456789abc", // version 1, variant b
 	}
-	if res.DatabaseUUID != "12345678-1234-4234-8234-123456789abc" {
-		t.Errorf("unexpected database_uuid: %s", res.DatabaseUUID)
+
+	for i, uuid := range validUUIDs {
+		t.Run(fmt.Sprintf("valid_%d", i), func(t *testing.T) {
+			dbPath := filepath.Join(tmpDir, fmt.Sprintf("valid_%d.db", i))
+			createValidDb(t, dbPath)
+
+			// Update to a specific valid UUID
+			db, _ := sql.Open("sqlite", dbPath)
+			db.Exec("UPDATE storage_metadata_tbl SET value = ? WHERE property = 'database_uuid'", uuid)
+			db.Close()
+
+			res, err := sqlitev1.ValidateReadOnly(dbPath)
+			if err != nil {
+				t.Fatalf("expected valid db to pass with UUID %s, got: %v", uuid, err)
+			}
+			if res.DatabaseUUID != uuid {
+				t.Errorf("unexpected database_uuid: got %s, want %s", res.DatabaseUUID, uuid)
+			}
+		})
 	}
 }
 
@@ -209,6 +227,46 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 				db, _ := sql.Open("sqlite", path)
 				defer db.Close()
 				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-8234-123456789abc ' WHERE property = 'database_uuid'")
+			},
+			errCheck: "invalid database_uuid",
+		},
+		{
+			name: "invalid database_uuid version 0",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-0234-8234-123456789abc' WHERE property = 'database_uuid'")
+			},
+			errCheck: "invalid database_uuid",
+		},
+		{
+			name: "invalid database_uuid version 9",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-9234-8234-123456789abc' WHERE property = 'database_uuid'")
+			},
+			errCheck: "invalid database_uuid",
+		},
+		{
+			name: "invalid database_uuid variant 7",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-7234-123456789abc' WHERE property = 'database_uuid'")
+			},
+			errCheck: "invalid database_uuid",
+		},
+		{
+			name: "invalid database_uuid variant c",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-c234-123456789abc' WHERE property = 'database_uuid'")
 			},
 			errCheck: "invalid database_uuid",
 		},
