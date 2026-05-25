@@ -1,3 +1,9 @@
+import re
+
+with open("rust/tests/payload_conformance.rs", "r") as f:
+    rust_content = f.read()
+
+replacement = """
 use serde::Deserialize;
 use serde_json::Value;
 
@@ -6,8 +12,8 @@ use vault_moukaeritai_work::jcs::canonicalize;
 use vault_moukaeritai_work::vectors::test_vector_path;
 
 use aes_gcm::{
-    Aes256Gcm, Nonce,
     aead::{Aead, KeyInit, Payload},
+    Aes256Gcm, Nonce,
 };
 
 #[derive(Debug, Deserialize)]
@@ -34,8 +40,7 @@ fn test_payload_conformance() {
     let path = test_vector_path("payload/payload-encryption-v1.json")
         .expect("Failed to locate payload vector file");
     let content = std::fs::read_to_string(path).expect("Failed to read payload vector file");
-    let vecs: Vec<PayloadVector> =
-        serde_json::from_str(&content).expect("Failed to parse vector JSON");
+    let vecs: Vec<PayloadVector> = serde_json::from_str(&content).expect("Failed to parse vector JSON");
 
     for vec in vecs {
         let valid = vec.valid;
@@ -44,19 +49,14 @@ fn test_payload_conformance() {
         let alg = match &vec.alg {
             Some(a) => a.as_str(),
             None => {
-                if valid {
-                    panic!("test '{}': missing alg", name);
-                }
+                if valid { panic!("test '{}': missing alg", name); }
                 continue;
             }
         };
 
         if alg != "A256GCM" {
             if valid {
-                panic!(
-                    "test '{}': unsupported algorithm {} in positive test",
-                    name, alg
-                );
+                panic!("test '{}': unsupported algorithm {} in positive test", name, alg);
             } else {
                 continue;
             }
@@ -65,9 +65,7 @@ fn test_payload_conformance() {
         let key_hex = match &vec.record_dek_hex {
             Some(h) => h.as_str(),
             None => {
-                if valid {
-                    panic!("test '{}': missing record_dek_hex", name);
-                }
+                if valid { panic!("test '{}': missing record_dek_hex", name); }
                 continue;
             }
         };
@@ -75,26 +73,20 @@ fn test_payload_conformance() {
         let key = match hex::decode(key_hex) {
             Ok(k) => k,
             Err(_) => {
-                if valid {
-                    panic!("test '{}': invalid key hex", name);
-                }
+                if valid { panic!("test '{}': invalid key hex", name); }
                 continue;
             }
         };
 
         if key.len() != 32 {
-            if valid {
-                panic!("test '{}': invalid key length", name);
-            }
+            if valid { panic!("test '{}': invalid key length", name); }
             continue;
         }
 
         let nonce_hex = match &vec.nonce_hex {
             Some(h) => h.as_str(),
             None => {
-                if valid {
-                    panic!("test '{}': missing nonce_hex", name);
-                }
+                if valid { panic!("test '{}': missing nonce_hex", name); }
                 continue;
             }
         };
@@ -102,17 +94,13 @@ fn test_payload_conformance() {
         let nonce = match hex::decode(nonce_hex) {
             Ok(n) => n,
             Err(_) => {
-                if valid {
-                    panic!("test '{}': invalid nonce hex", name);
-                }
+                if valid { panic!("test '{}': invalid nonce hex", name); }
                 continue;
             }
         };
 
         if nonce.len() != 12 {
-            if valid {
-                panic!("test '{}': invalid nonce length", name);
-            }
+            if valid { panic!("test '{}': invalid nonce length", name); }
             continue;
         }
 
@@ -120,28 +108,18 @@ fn test_payload_conformance() {
             let tag = match hex::decode(tag_hex) {
                 Ok(t) => t,
                 Err(_) => {
-                    if valid {
-                        panic!("test '{}': invalid expected_tag_hex", name);
-                    }
+                    if valid { panic!("test '{}': invalid expected_tag_hex", name); }
                     continue;
                 }
             };
             if tag.len() != 16 {
-                if valid {
-                    panic!("test '{}': invalid tag length", name);
-                }
+                if valid { panic!("test '{}': invalid tag length", name); }
                 continue;
             }
         }
 
-        if vec.object_uuid.is_none()
-            || vec.schema_uuid.is_none()
-            || vec.content_type.is_none()
-            || vec.kid.is_none()
-        {
-            if valid {
-                panic!("test '{}': missing AAD reconstruction fields", name);
-            }
+        if vec.object_uuid.is_none() || vec.schema_uuid.is_none() || vec.content_type.is_none() || vec.kid.is_none() {
+            if valid { panic!("test '{}': missing AAD reconstruction fields", name); }
             continue;
         }
 
@@ -154,9 +132,7 @@ fn test_payload_conformance() {
         ) {
             Ok(a) => a,
             Err(_) => {
-                if valid {
-                    panic!("test '{}': failed to reconstruct AAD", name);
-                }
+                if valid { panic!("test '{}': failed to reconstruct AAD", name); }
                 continue;
             }
         };
@@ -165,18 +141,12 @@ fn test_payload_conformance() {
             let expected_aad = match hex::decode(expected_aad_hex) {
                 Ok(a) => a,
                 Err(_) => {
-                    if valid {
-                        panic!("test '{}': invalid expected_aad_hex", name);
-                    }
+                    if valid { panic!("test '{}': invalid expected_aad_hex", name); }
                     continue;
                 }
             };
             if valid {
-                assert_eq!(
-                    reconstructed_aad, expected_aad,
-                    "test '{}': reconstructed AAD does not match expected_aad_hex",
-                    name
-                );
+                assert_eq!(reconstructed_aad, expected_aad, "test '{}': reconstructed AAD does not match expected_aad_hex", name);
             } else {
                 if reconstructed_aad != expected_aad {
                     // Mismatched AAD intentionally
@@ -187,9 +157,7 @@ fn test_payload_conformance() {
         let payload_json = match &vec.payload_json {
             Some(p) => p,
             None => {
-                if valid {
-                    panic!("test '{}': missing payload_json", name);
-                }
+                if valid { panic!("test '{}': missing payload_json", name); }
                 continue;
             }
         };
@@ -197,9 +165,7 @@ fn test_payload_conformance() {
         let canonical_payload_str = match canonicalize(payload_json) {
             Ok(s) => s,
             Err(_) => {
-                if valid {
-                    panic!("test '{}': failed to canonicalize", name);
-                }
+                if valid { panic!("test '{}': failed to canonicalize", name); }
                 continue;
             }
         };
@@ -209,18 +175,12 @@ fn test_payload_conformance() {
             let expected_payload_jcs = match hex::decode(expected_payload_jcs_hex) {
                 Ok(h) => h,
                 Err(_) => {
-                    if valid {
-                        panic!("test '{}': invalid expected_payload_jcs_hex", name);
-                    }
+                    if valid { panic!("test '{}': invalid expected_payload_jcs_hex", name); }
                     continue;
                 }
             };
             if valid {
-                assert_eq!(
-                    canonical_payload, expected_payload_jcs,
-                    "test '{}': canonical payload does not match expected_payload_jcs_hex",
-                    name
-                );
+                assert_eq!(canonical_payload, expected_payload_jcs, "test '{}': canonical payload does not match expected_payload_jcs_hex", name);
             }
         }
 
@@ -232,9 +192,7 @@ fn test_payload_conformance() {
             expected_ciphertext_and_tag = match hex::decode(ct_hex) {
                 Ok(c) => c,
                 Err(_) => {
-                    if valid {
-                        panic!("test '{}': invalid expected_ciphertext_and_tag_hex", name);
-                    }
+                    if valid { panic!("test '{}': invalid expected_ciphertext_and_tag_hex", name); }
                     continue;
                 }
             };
@@ -244,39 +202,27 @@ fn test_payload_conformance() {
         };
 
         if valid {
-            let encrypted = cipher
-                .encrypt(
-                    nonce_arr,
-                    Payload {
-                        msg: &canonical_payload,
-                        aad: &reconstructed_aad,
-                    },
-                )
-                .expect("encryption failed");
+            let encrypted = cipher.encrypt(
+                nonce_arr,
+                Payload {
+                    msg: &canonical_payload,
+                    aad: &reconstructed_aad,
+                },
+            ).expect("encryption failed");
 
             if has_expected_ct {
-                assert_eq!(
-                    encrypted, expected_ciphertext_and_tag,
-                    "test '{}': encrypted payload does not match expected_ciphertext_and_tag_hex",
-                    name
-                );
+                assert_eq!(encrypted, expected_ciphertext_and_tag, "test '{}': encrypted payload does not match expected_ciphertext_and_tag_hex", name);
             }
 
-            let decrypted = cipher
-                .decrypt(
-                    nonce_arr,
-                    Payload {
-                        msg: &expected_ciphertext_and_tag,
-                        aad: &reconstructed_aad,
-                    },
-                )
-                .expect("decryption failed");
+            let decrypted = cipher.decrypt(
+                nonce_arr,
+                Payload {
+                    msg: &expected_ciphertext_and_tag,
+                    aad: &reconstructed_aad,
+                },
+            ).expect("decryption failed");
 
-            assert_eq!(
-                decrypted, canonical_payload,
-                "test '{}': decrypted payload does not match original canonical payload",
-                name
-            );
+            assert_eq!(decrypted, canonical_payload, "test '{}': decrypted payload does not match original canonical payload", name);
         } else {
             if has_expected_ct {
                 let decrypt_result = cipher.decrypt(
@@ -286,12 +232,12 @@ fn test_payload_conformance() {
                         aad: &reconstructed_aad,
                     },
                 );
-                assert!(
-                    decrypt_result.is_err(),
-                    "test '{}': decryption succeeded on invalid vector, expected failure",
-                    name
-                );
+                assert!(decrypt_result.is_err(), "test '{}': decryption succeeded on invalid vector, expected failure", name);
             }
         }
     }
 }
+"""
+
+with open("rust/tests/payload_conformance.rs", "w") as f:
+    f.write(replacement.strip() + "\n")
