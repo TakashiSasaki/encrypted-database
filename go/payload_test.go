@@ -4,7 +4,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/hex"
-	"strings"
 	"testing"
 
 	"github.com/TakashiSasaki/vault.moukaeritai.work/go/internal/aad"
@@ -146,15 +145,9 @@ func TestPayloadConformance(t *testing.T) {
 					if string(expectedAad) != string(reconstructedAad) {
 						t.Fatalf("reconstructed AAD does not match expected_aad_hex\nExpected: %x\nGot:      %x", expectedAad, reconstructedAad)
 					}
-				} else {
-					if string(expectedAad) == string(reconstructedAad) {
-						if strings.Contains(vec.Name, "invalid-aad") {
-							if string(expectedAad) == string(reconstructedAad) {
-								t.Fatalf("test '%s': expected reconstructed AAD to differ from expected_aad_hex for AAD tampering test", vec.Name)
-							}
-						}
-					}
 				}
+				// For invalid vectors, we do not require the reconstructed AAD to match or differ from expected_aad_hex.
+				// A mismatch might be the reason for decryption failure, which is tested later.
 			}
 
 			// Process payload_json

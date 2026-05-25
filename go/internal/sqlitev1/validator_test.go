@@ -143,6 +143,16 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			errCheck: "invalid format_major",
 		},
 		{
+			name: "invalid format_minor = 1",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '1' WHERE property = 'format_minor'")
+			},
+			errCheck: "invalid format_minor",
+		},
+		{
 			name: "wrong format_major",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
@@ -173,6 +183,36 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			errCheck: "invalid database_uuid",
 		},
 		{
+			name: "invalid database_uuid uppercase",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-8234-123456789ABC' WHERE property = 'database_uuid'")
+			},
+			errCheck: "invalid database_uuid",
+		},
+		{
+			name: "invalid database_uuid leading whitespace",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = ' 12345678-1234-4234-8234-123456789abc' WHERE property = 'database_uuid'")
+			},
+			errCheck: "invalid database_uuid",
+		},
+		{
+			name: "invalid database_uuid trailing whitespace",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-8234-123456789abc ' WHERE property = 'database_uuid'")
+			},
+			errCheck: "invalid database_uuid",
+		},
+		{
 			name: "invalid created_at_ms",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
@@ -188,6 +228,46 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			errCheck: "invalid created_at_ms",
 		},
 		{
+			name: "invalid created_at_ms negative",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '-1' WHERE property = 'created_at_ms'")
+			},
+			errCheck: "invalid created_at_ms",
+		},
+		{
+			name: "invalid created_at_ms plus sign",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '+1' WHERE property = 'created_at_ms'")
+			},
+			errCheck: "invalid created_at_ms",
+		},
+		{
+			name: "invalid created_at_ms float",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '1.0' WHERE property = 'created_at_ms'")
+			},
+			errCheck: "invalid created_at_ms",
+		},
+		{
+			name: "invalid created_at_ms whitespace",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = ' 123' WHERE property = 'created_at_ms'")
+			},
+			errCheck: "invalid created_at_ms",
+		},
+		{
 			name: "non-empty required_features",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
@@ -196,6 +276,56 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 				db.Exec("UPDATE storage_metadata_tbl SET value = '[\"something\"]' WHERE property = 'required_features'")
 			},
 			errCheck: "invalid required_features",
+		},
+		{
+			name: "invalid required_features spacing",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '[ ]' WHERE property = 'required_features'")
+			},
+			errCheck: "invalid required_features",
+		},
+		{
+			name: "invalid optional_features spacing",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '[ ]' WHERE property = 'optional_features'")
+			},
+			errCheck: "invalid optional_features",
+		},
+		{
+			name: "non-empty optional_features",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '[\"x\"]' WHERE property = 'optional_features'")
+			},
+			errCheck: "invalid optional_features",
+		},
+		{
+			name: "invalid created_by_library whitespace-only",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '   ' WHERE property = 'created_by_library'")
+			},
+			errCheck: "invalid created_by_library",
+		},
+		{
+			name: "invalid created_by_version whitespace-only",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, _ := sql.Open("sqlite", path)
+				defer db.Close()
+				db.Exec("UPDATE storage_metadata_tbl SET value = '\t' WHERE property = 'created_by_version'")
+			},
+			errCheck: "invalid created_by_version",
 		},
 		{
 			name: "missing sqlite_application_id metadata",
@@ -228,7 +358,7 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 			errCheck: "invalid or missing metadata sqlite_user_version",
 		},
 		{
-			name: "PRAGMA mismatch",
+			name: "PRAGMA mismatch sqlite_application_id",
 			setup: func(t *testing.T, path string) {
 				createValidDb(t, path)
 				db, err := sql.Open("sqlite", path)
@@ -241,6 +371,21 @@ func TestValidateReadOnly_InvalidCases(t *testing.T) {
 				}
 			},
 			errCheck: "invalid or missing metadata sqlite_application_id",
+		},
+		{
+			name: "PRAGMA mismatch sqlite_user_version",
+			setup: func(t *testing.T, path string) {
+				createValidDb(t, path)
+				db, err := sql.Open("sqlite", path)
+				if err != nil {
+					t.Fatalf("setup open: %v", err)
+				}
+				defer db.Close()
+				if _, err := db.Exec("UPDATE storage_metadata_tbl SET value = '123' WHERE property = 'sqlite_user_version'"); err != nil {
+					t.Fatalf("setup exec: %v", err)
+				}
+			},
+			errCheck: "invalid or missing metadata sqlite_user_version",
 		},
 	}
 

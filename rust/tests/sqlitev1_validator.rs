@@ -97,11 +97,51 @@ fn test_validate_read_only_invalid_cases() {
             "Missing property in metadata: format_major",
         ),
         (
+            "wrong format_minor",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute(
+                    "UPDATE storage_metadata_tbl SET value = '1' WHERE property = 'format_minor'",
+                    [],
+                )
+                .unwrap();
+            },
+            "Invalid property in metadata: format_minor",
+        ),
+        (
             "invalid database_uuid",
             |path: &PathBuf| {
                 create_valid_db(path);
                 let conn = Connection::open(path).unwrap();
                 conn.execute("UPDATE storage_metadata_tbl SET value = 'invalid-uuid' WHERE property = 'database_uuid'", []).unwrap();
+            },
+            "Invalid property in metadata: database_uuid",
+        ),
+        (
+            "invalid database_uuid uppercase",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-8234-123456789ABC' WHERE property = 'database_uuid'", []).unwrap();
+            },
+            "Invalid property in metadata: database_uuid",
+        ),
+        (
+            "invalid database_uuid leading whitespace",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = ' 12345678-1234-4234-8234-123456789abc' WHERE property = 'database_uuid'", []).unwrap();
+            },
+            "Invalid property in metadata: database_uuid",
+        ),
+        (
+            "invalid database_uuid trailing whitespace",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '12345678-1234-4234-8234-123456789abc ' WHERE property = 'database_uuid'", []).unwrap();
             },
             "Invalid property in metadata: database_uuid",
         ),
@@ -115,6 +155,50 @@ fn test_validate_read_only_invalid_cases() {
             "Invalid property in metadata: created_at_ms",
         ),
         (
+            "invalid created_at_ms negative",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute(
+                    "UPDATE storage_metadata_tbl SET value = '-1' WHERE property = 'created_at_ms'",
+                    [],
+                )
+                .unwrap();
+            },
+            "Invalid property in metadata: created_at_ms",
+        ),
+        (
+            "invalid created_at_ms plus sign",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute(
+                    "UPDATE storage_metadata_tbl SET value = '+1' WHERE property = 'created_at_ms'",
+                    [],
+                )
+                .unwrap();
+            },
+            "Invalid property in metadata: created_at_ms",
+        ),
+        (
+            "invalid created_at_ms float",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '1.0' WHERE property = 'created_at_ms'", []).unwrap();
+            },
+            "Invalid property in metadata: created_at_ms",
+        ),
+        (
+            "invalid created_at_ms whitespace",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = ' 123' WHERE property = 'created_at_ms'", []).unwrap();
+            },
+            "Invalid property in metadata: created_at_ms",
+        ),
+        (
             "non-empty required_features",
             |path: &PathBuf| {
                 create_valid_db(path);
@@ -122,6 +206,51 @@ fn test_validate_read_only_invalid_cases() {
                 conn.execute("UPDATE storage_metadata_tbl SET value = '[\"something\"]' WHERE property = 'required_features'", []).unwrap();
             },
             "Invalid property in metadata: required_features",
+        ),
+        (
+            "invalid required_features spacing",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '[ ]' WHERE property = 'required_features'", []).unwrap();
+            },
+            "Invalid property in metadata: required_features",
+        ),
+        (
+            "invalid optional_features spacing",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '[ ]' WHERE property = 'optional_features'", []).unwrap();
+            },
+            "Invalid property in metadata: optional_features",
+        ),
+        (
+            "non-empty optional_features",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '[\"x\"]' WHERE property = 'optional_features'", []).unwrap();
+            },
+            "Invalid property in metadata: optional_features",
+        ),
+        (
+            "invalid created_by_library whitespace-only",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '   ' WHERE property = 'created_by_library'", []).unwrap();
+            },
+            "Invalid property in metadata: created_by_library",
+        ),
+        (
+            "invalid created_by_version whitespace-only",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '\t' WHERE property = 'created_by_version'", []).unwrap();
+            },
+            "Invalid property in metadata: created_by_version",
         ),
         (
             "missing sqlite_application_id metadata",
@@ -150,13 +279,22 @@ fn test_validate_read_only_invalid_cases() {
             "Missing property in metadata: sqlite_user_version",
         ),
         (
-            "PRAGMA mismatch",
+            "PRAGMA mismatch sqlite_application_id",
             |path: &PathBuf| {
                 create_valid_db(path);
                 let conn = Connection::open(path).unwrap();
                 conn.execute("UPDATE storage_metadata_tbl SET value = '123' WHERE property = 'sqlite_application_id'", []).unwrap();
             },
             "Invalid property in metadata: sqlite_application_id",
+        ),
+        (
+            "PRAGMA mismatch sqlite_user_version",
+            |path: &PathBuf| {
+                create_valid_db(path);
+                let conn = Connection::open(path).unwrap();
+                conn.execute("UPDATE storage_metadata_tbl SET value = '123' WHERE property = 'sqlite_user_version'", []).unwrap();
+            },
+            "Invalid property in metadata: sqlite_user_version",
         ),
     ];
 
