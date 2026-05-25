@@ -33,6 +33,8 @@ The documentation has been refactored into focused modules.
 
 ## Existing Documents
 
+*Note: Go and Rust directories are currently portability-validation scaffolds. They are intended to consume shared conformance vectors and uncover portability issues before full read/write implementations are developed. Storage Format V1 is Stable, but controlled amendments may be considered during this validation. The library as a whole is not yet declared production-ready.*
+
 ### Specifications
 - [`spec/overview.md`](./spec/overview.md): High-level system overview and principles.
 - [`spec/terminology.md`](./spec/terminology.md): Definitions, identifier rules (UUIDv4), and JSON Canonicalization rules.
@@ -47,6 +49,7 @@ The documentation has been refactored into focused modules.
 - [`spec/security-model.md`](./spec/security-model.md): Threat model, in-scope protections, and material handling policies.
 - [`spec/test-vectors.md`](./spec/test-vectors.md): Requirements for cross-language compatibility testing.
 - [`spec/storage-format-v1-readiness.md`](./spec/storage-format-v1-readiness.md): Storage Format V1 Stable Declaration Review.
+- [`spec/storage-format-v1-portability.md`](./spec/storage-format-v1-portability.md): Go/Rust Portability Validation Policy and Amendment rules.
 - [`spec/open-questions.md`](./spec/open-questions.md): Extracted unresolved design questions and ongoing considerations.
 
 ### Backend & Storage
@@ -68,6 +71,7 @@ The documentation has been refactored into focused modules.
 
 ### Implementation Notes
 - [`implementation-notes/implementation-gaps.md`](./implementation-notes/implementation-gaps.md): Known gaps between the canonical specifications and the current implementations, including implementation issue history.
+- [`implementation-notes/portability-findings.md`](./implementation-notes/portability-findings.md): Tracked issues discovered during the Go/Rust portability validation phase.
 
 ### Legacy
 - [`legacy/encrypted_storage_key_management_spec.md`](./legacy/encrypted_storage_key_management_spec.md): The original integrated draft specification (Archived for reference).
