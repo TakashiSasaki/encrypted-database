@@ -118,7 +118,7 @@ The following items are recognized as important future enhancements or active wo
 
 At this time, there are **no known blocking items** preventing a stable declaration. All necessary criteria have been verified, and the core documents correctly align with implementation status.
 
-The following items have been verified prior to the formal Stable declaration and will continue to be monitored:
+The following items were verified as part of the formal Stable declaration review and will continue to be monitored:
 
 - [x] Latest CI runs are green.
 - [x] Codecov upload is working and README badge renders.
