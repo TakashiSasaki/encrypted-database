@@ -163,6 +163,10 @@ fn test_payload_conformance() {
                     "test '{}': reconstructed AAD does not match expected_aad_hex",
                     name
                 );
+            } else {
+                if reconstructed_aad != expected_aad {
+                    // It explicitly mismatched, which is expected for AAD tampering!
+                }
             }
         }
 

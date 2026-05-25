@@ -1,5 +1,8 @@
 use serde::Deserialize;
-use vault_moukaeritai_work::{aad::{build_record_payload_v1, build_wrap_key_v1}, vectors::test_vector_path};
+use vault_moukaeritai_work::{
+    aad::{build_record_payload_v1, build_wrap_key_v1},
+    vectors::test_vector_path,
+};
 
 #[derive(Debug, Deserialize)]
 struct AADVectorInput {

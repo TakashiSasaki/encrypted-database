@@ -1,6 +1,6 @@
 use aes_gcm::{
-    aead::{Aead, KeyInit},
     Aes256Gcm, Key, Nonce,
+    aead::{Aead, KeyInit},
 };
 use serde::Deserialize;
 use vault_moukaeritai_work::{aad::build_wrap_key_v1, vectors::test_vector_path};
@@ -153,7 +153,9 @@ fn test_key_wrap_conformance() {
                 aad: &aad_bytes,
             };
 
-            let opened = cipher.decrypt(nonce, decrypt_payload).expect("Failed to decrypt valid key-wrap");
+            let opened = cipher
+                .decrypt(nonce, decrypt_payload)
+                .expect("Failed to decrypt valid key-wrap");
             assert_eq!(
                 hex::encode(&opened),
                 hex::encode(&plaintext),
