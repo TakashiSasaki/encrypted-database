@@ -2,7 +2,7 @@
 
 This directory is currently a portability-validation scaffold. It is intended to consume shared conformance vectors and uncover portability issues before full read/write implementations are developed.
 
-The Go implementation is not a full, production-ready library. Currently, a minimal JCS canonicalizer is implemented solely to satisfy the basic AAD test vectors. Full storage database features, including SQLite validation, unlock, decrypt, and writer functionality, are future tasks.
+The Go implementation is not a full, production-ready library. Currently, a minimal JCS canonicalizer and an Argon2id KDF test are implemented solely to satisfy the basic AAD and KDF test vectors. Full storage database features, including SQLite validation, unlock, decrypt, and writer functionality, are future tasks.
 
 ## Testing
 
