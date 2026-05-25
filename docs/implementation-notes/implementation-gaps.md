@@ -183,7 +183,7 @@ None.
 **Status:** Resolved
 **Area:** Storage Format
 **Current state:** `CHECK` constraints for 12-byte nonces, wrapped key minimum lengths, ciphertext minimum lengths, and non-empty content types have been added to `schema.sql`. Direct SQL `CHECK` constraint tests are primary coverage in Python / Node.js. Browser-test has representative sql.js constraint tests, but intentionally skips full file-backed parity (e.g. malformed-on-disk corruption via `ignore_check_constraints` is a documented test-scope exception).
-**Expected or intended state:** The schema utilizes the proposed SQLite `CHECK` constraints to provide defense-in-depth for V1 invariants.
+**Expected or intended state:** The schema uses implemented SQLite `CHECK` constraints to provide defense-in-depth for V1 invariants.
 **Why it matters:** DBMS-level enforcement prevents corruption from external tools or bugs in the application layer.
 **Recommended next action:** None.
 
@@ -224,7 +224,7 @@ None.
 **Why it matters:** Interoperability is the core value proposition of the library.
 **Recommended next action:** Expand to include browser interoperability tests.
 
-### Coverage badge publication endpoint pending
+### Coverage badge publication
 
 **Status:** Resolved
 **Area:** Testing / CI

@@ -93,7 +93,7 @@ Columns suffixed with `_json` (e.g., `provider_config_json`, `description_json`)
 *   All operations spanning multiple tables (e.g., generating a new `record_dek` in `key_tbl` and subsequently wrapping it in `wrapped_key_tbl`) MUST be performed within a single SQLite transaction (`BEGIN` / `COMMIT`).
 *   Foreign Key checking must be enabled at the connection level to ensure the graph of keys remains structurally sound.
 
-## 12. Metadata Table Candidates
+## 12. Storage Metadata Table
 The V1 schema introduces a dedicated `storage_metadata_tbl` to support the Storage Format Core identity model. It is designed as a strict key-value structure. The application layer handles parsing the `value` column (e.g., as strings, integers, or JCS JSON arrays).
 
 ## 13. Migration Handling
@@ -136,6 +136,6 @@ The following column-level CHECK constraints have been added to the respective t
 *Note: Current AES-GCM output is 32-byte key + 16-byte tag = 48 bytes. However, we only enforce >= 16 bytes to avoid fixing algorithm-dependent length too rigidly in the schema.*
 
 ## 16. Known SQLite Profile Gaps
-A review of the current `docs/backend/sqlite/schema.sql` against the V1 format reveals the following "decided but not implemented" gaps:
+A review of the current `docs/backend/sqlite/schema.sql` against the V1 format reveals the following gaps:
 
 None. The schema includes `storage_metadata_tbl`, PRAGMA checks, and the necessary `CHECK` constraints for `nonce`, `wrapped_key`, `ciphertext`, and `content_type`. (Note: Browser-test environments using `sql.js` bypass PRAGMA application_id / user_version validations and skip the file-backed malformed-on-disk corruption scenarios that require `ignore_check_constraints` as documented testing exceptions, but fully enforce storage-format metadata, feature flags, provider_config semantics, and JCS canonicality at the application layer).
