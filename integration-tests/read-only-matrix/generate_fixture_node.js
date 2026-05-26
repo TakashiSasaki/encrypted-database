@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { canonicalize } = require('../../nodejs/node_modules/json-canonicalize');
+const cryptoUtils = require('../../nodejs/src/crypto');
 
 const EncryptedStorage = require('../../nodejs/src/storage');
 
@@ -36,8 +36,8 @@ async function main() {
         const objUuid = await storage.storePayload(schemaUuid, contentType, payload);
 
         // Convert the object to JCS string then to bytes to hex
-        const jcsString = canonicalize(payload);
-        const expectedPayloadHex = Buffer.from(jcsString, 'utf8').toString('hex');
+        const jcsBytes = cryptoUtils.canonicalizeJson(payload);
+        const expectedPayloadHex = jcsBytes.toString('hex');
 
         const envContent = `VAULT_SQLITE_V1_FIXTURE_DB="${dbPath}"
 VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="${passphrase}"
