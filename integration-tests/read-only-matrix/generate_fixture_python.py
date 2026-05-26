@@ -37,7 +37,8 @@ def main():
 
         obj_uuid = storage.store_payload(schema_uuid, content_type, payload)
 
-        # We need the JCS canonical payload hex to pass to Go/Rust reader tests
+        # We need the JCS canonical payload hex to pass to Go/Rust reader tests.
+        # The expected_payload_hex MUST strictly be the lowercase hex of the JCS canonical payload bytes.
         import jcs
         canonical_bytes = jcs.canonicalize(payload)
         expected_payload_hex = canonical_bytes.hex()

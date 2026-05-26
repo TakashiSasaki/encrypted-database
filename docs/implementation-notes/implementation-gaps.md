@@ -219,10 +219,10 @@ None.
 
 **Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and are executed by the GitHub Actions integration workflow. Browser DB export/import interoperability and Go/Rust roundtrip coverage remain future work.
+**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and are executed by the GitHub Actions integration workflow. A read-only matrix harness also exists (`integration-tests/read-only-matrix`) for verifying Python and Node-generated DBs against Go and Rust readers, though it is not yet in CI. Browser DB export/import interoperability and Go/Rust full roundtrip coverage (which requires writer APIs) remain future work.
 **Expected or intended state:** Automated tests ensuring DB files created in one platform can be successfully read and decrypted in another.
 **Why it matters:** Interoperability is the core value proposition of the library.
-**Recommended next action:** Expand to include browser interoperability tests.
+**Recommended next action:** Decide whether to add the Go/Rust read-only matrix to CI, and expand to include browser interoperability tests. Implement Go/Rust full roundtrip coverage once writer APIs are added.
 
 ### Coverage badge publication
 
@@ -247,7 +247,7 @@ None.
 
 **Status:** Active
 **Area:** Cryptography / Interoperability
-**Current state:** Go and Rust read-only readers now include negative-case coverage (e.g., malformed/non-canonical `provider_config_json`, unsupported providers/algorithms/envelopes, inactive key status, tampered wrapped keys, tampered payloads, AAD metadata mismatch, and invalid envelope parameters). However, Go and Rust still do not implement writer APIs or database creation APIs.
+**Current state:** Go/Rust portability validation is active and materially implemented. The Go/Rust directories include shared-vector conformance validation for JCS, AAD, Argon2id KDF, AES-256-GCM AEAD primitives, key-wrap, and payload encryption; SQLite V1 read-only metadata validators; strict `database_uuid` validation; and initial read-only unlock/decrypt readers. The read-only readers include negative-case coverage for malformed provider configs, unsupported providers/algorithms/envelopes, inactive key status, tampered wrapped keys, tampered payloads, AAD metadata mismatch, and invalid envelope parameters. A read-only matrix harness now exists under `integration-tests/read-only-matrix/` to validate Python- and Node-generated SQLite V1 fixture databases against the Go and Rust read-only readers. Go/Rust are still not full storage libraries. Writer APIs, database creation APIs, key lifecycle operations, and full cross-language read/write roundtrip matrix coverage remain future work.
 **Expected or intended state:** Go and Rust implementations are complete, production-ready storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
-**Recommended next action:** Add Go/Rust read-only roundtrip matrix coverage for existing fixture databases before implementing writer APIs.
+**Recommended next action:** Stabilize the Go/Rust read-only matrix harness and decide whether to add it to CI before proceeding to writer APIs.

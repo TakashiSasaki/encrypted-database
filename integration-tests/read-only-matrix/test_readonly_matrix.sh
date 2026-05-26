@@ -17,8 +17,19 @@ echo "=== Testing Python-generated DB against Go/Rust readers ==="
 PY_DB="$TMP_DIR/py_fixture.db"
 PY_ENV="$TMP_DIR/py_fixture.env"
 
+# Generate Python fixture
 python3 "$DIR/generate_fixture_python.py" "$PY_DB" "$PY_ENV"
+if [ ! -f "$PY_ENV" ]; then
+  echo "Error: Python generator failed to create environment file."
+  exit 1
+fi
 source "$PY_ENV"
+
+# Validate required variables exist
+if [ -z "${VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX:-}" ]; then
+  echo "Error: Missing expected payload hex in Python env file."
+  exit 1
+fi
 
 echo "[Go] Testing against Python fixture..."
 export VAULT_SQLITE_V1_FIXTURE_DB
@@ -35,8 +46,19 @@ echo "=== Testing Node.js-generated DB against Go/Rust readers ==="
 NODE_DB="$TMP_DIR/node_fixture.db"
 NODE_ENV="$TMP_DIR/node_fixture.env"
 
+# Generate Node.js fixture
 node "$DIR/generate_fixture_node.js" "$NODE_DB" "$NODE_ENV"
+if [ ! -f "$NODE_ENV" ]; then
+  echo "Error: Node.js generator failed to create environment file."
+  exit 1
+fi
 source "$NODE_ENV"
+
+# Validate required variables exist
+if [ -z "${VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX:-}" ]; then
+  echo "Error: Missing expected payload hex in Node.js env file."
+  exit 1
+fi
 
 echo "[Go] Testing against Node.js fixture..."
 export VAULT_SQLITE_V1_FIXTURE_DB
