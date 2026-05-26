@@ -247,7 +247,7 @@ None.
 
 **Status:** Active
 **Area:** Cryptography / Interoperability
-**Current state:** Go and Rust implementations now include cryptographic conformance validation against shared vectors, a SQLite V1 read-only metadata validator, and a read-only unlock/decrypt reader initial implementation. The read-only readers include negative-case coverage for malformed provider_config_json, unsupported algorithms, inactive key status, tampered wrapped keys, tampered payloads, AAD metadata mismatch, and invalid envelope parameters. However, they are still portability validation scaffolds and lack full storage library implementations, writers, and cross-language roundtrip integration.
+**Current state:** Go and Rust read-only readers now include negative-case coverage (e.g., malformed/non-canonical `provider_config_json`, unsupported providers/algorithms/envelopes, inactive key status, tampered wrapped keys, tampered payloads, AAD metadata mismatch, and invalid envelope parameters). However, Go and Rust still do not implement writer APIs or database creation APIs.
 **Expected or intended state:** Go and Rust implementations are complete, production-ready storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
 **Recommended next action:** Add Go/Rust read-only roundtrip matrix coverage for existing fixture databases before implementing writer APIs.

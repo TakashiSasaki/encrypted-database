@@ -1,0 +1,52 @@
+#!/bin/bash
+set -euo pipefail
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(dirname "$(dirname "$DIR")")"
+
+echo "=== Setting up environments ==="
+(cd "$ROOT_DIR/python" && pip install -e .[test] > /dev/null)
+(cd "$ROOT_DIR/nodejs" && npm install > /dev/null)
+
+TMP_DIR="$(mktemp -d)"
+# Cleanup on exit
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+echo ""
+echo "=== Testing Python-generated DB against Go/Rust readers ==="
+PY_DB="$TMP_DIR/py_fixture.db"
+PY_ENV="$TMP_DIR/py_fixture.env"
+
+python3 "$DIR/generate_fixture_python.py" "$PY_DB" "$PY_ENV"
+source "$PY_ENV"
+
+echo "[Go] Testing against Python fixture..."
+export VAULT_SQLITE_V1_FIXTURE_DB
+export VAULT_SQLITE_V1_FIXTURE_PASSPHRASE
+export VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID
+export VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX
+(cd "$ROOT_DIR/go" && go test ./internal/sqlitev1 -run ExternalFixture -v -count=1)
+
+echo "[Rust] Testing against Python fixture..."
+(cd "$ROOT_DIR/rust" && cargo test --test sqlitev1_external_fixture)
+
+echo ""
+echo "=== Testing Node.js-generated DB against Go/Rust readers ==="
+NODE_DB="$TMP_DIR/node_fixture.db"
+NODE_ENV="$TMP_DIR/node_fixture.env"
+
+node "$DIR/generate_fixture_node.js" "$NODE_DB" "$NODE_ENV"
+source "$NODE_ENV"
+
+echo "[Go] Testing against Node.js fixture..."
+export VAULT_SQLITE_V1_FIXTURE_DB
+export VAULT_SQLITE_V1_FIXTURE_PASSPHRASE
+export VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID
+export VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX
+(cd "$ROOT_DIR/go" && go test ./internal/sqlitev1 -run ExternalFixture -v -count=1)
+
+echo "[Rust] Testing against Node.js fixture..."
+(cd "$ROOT_DIR/rust" && cargo test --test sqlitev1_external_fixture)
+
+echo ""
+echo "All read-only matrix tests passed successfully!"
