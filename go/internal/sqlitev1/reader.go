@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 
 	"github.com/TakashiSasaki/vault.moukaeritai.work/go/internal/aad"
 	"github.com/TakashiSasaki/vault.moukaeritai.work/go/internal/base64url"
@@ -27,8 +28,16 @@ func OpenReadOnly(path string, passphrase string) (*Reader, error) {
 	}
 	_ = valRes // For now we just need it to pass
 
-	dsn := fmt.Sprintf("file:%s?mode=ro", path)
-	db, err := sql.Open("sqlite", dsn)
+	// Properly escape path for SQLite URI to avoid injection or breaking on '#' / '?'
+	parsedURL := &url.URL{
+		Scheme: "file",
+		Opaque: url.PathEscape(path),
+	}
+	q := parsedURL.Query()
+	q.Set("mode", "ro")
+	parsedURL.RawQuery = q.Encode()
+
+	db, err := sql.Open("sqlite", parsedURL.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}

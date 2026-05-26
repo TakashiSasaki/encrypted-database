@@ -211,12 +211,16 @@ impl ReadOnlyReader {
             payload_aad_policy,
         ) = obj_row;
 
+        if alg != "A256GCM" {
+            return Err(ReaderError::Unsupported(format!("Unsupported algorithm: {}", alg)));
+        }
+
         if payload_aad_policy != "record-payload-v1" {
             return Err(ReaderError::Unsupported(format!("Unsupported payload AAD policy: {}", payload_aad_policy)));
         }
 
         let mut stmt = self.conn.prepare(
-            "SELECT nonce, wrapped_key, aad_policy \
+            "SELECT nonce, wrapped_key, aad_policy, wrap_alg, envelope_v, envelope_type \
              FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?",
         )?;
 
@@ -226,12 +230,25 @@ impl ReadOnlyReader {
                     row.get::<_, Vec<u8>>(0)?,
                     row.get::<_, Vec<u8>>(1)?,
                     row.get::<_, String>(2)?,
+                    row.get::<_, String>(3)?,
+                    row.get::<_, i64>(4)?,
+                    row.get::<_, String>(5)?,
                 ))
             })
             .optional()?
             .ok_or(ReaderError::WrapInfoNotFound)?;
 
-        let (nonce_wrap, wrapped_record_dek, wrap_aad_policy) = wrap_row;
+        let (nonce_wrap, wrapped_record_dek, wrap_aad_policy, wrap_alg, envelope_v, envelope_type) = wrap_row;
+
+        if wrap_alg != "A256GCM" {
+            return Err(ReaderError::Unsupported(format!("Unsupported wrap algorithm: {}", wrap_alg)));
+        }
+        if envelope_v != 1 {
+            return Err(ReaderError::Unsupported(format!("Unsupported envelope version: {}", envelope_v)));
+        }
+        if envelope_type != "key_wrap" {
+            return Err(ReaderError::Unsupported(format!("Unsupported envelope type: {}", envelope_type)));
+        }
 
         let wrap_aad_bytes = build_wrap_key_v1(&wrap_aad_policy, &record_kid, &self.active_db_kid)
             .map_err(|e| ReaderError::CryptoError(format!("Wrap AAD build: {:?}", e)))?;
