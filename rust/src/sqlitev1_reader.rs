@@ -76,12 +76,12 @@ fn validate_argon2id_config(config_json: &str) -> Result<Vec<u8>, ReaderError> {
         ));
     }
 
-    let kdf = config["kdf"].as_str().ok_or_else(|| {
-        ReaderError::InvalidProviderConfig("Missing kdf".to_string())
-    })?;
-    let profile = config["profile"].as_str().ok_or_else(|| {
-        ReaderError::InvalidProviderConfig("Missing profile".to_string())
-    })?;
+    let kdf = config["kdf"]
+        .as_str()
+        .ok_or_else(|| ReaderError::InvalidProviderConfig("Missing kdf".to_string()))?;
+    let profile = config["profile"]
+        .as_str()
+        .ok_or_else(|| ReaderError::InvalidProviderConfig("Missing profile".to_string()))?;
 
     if kdf != "argon2id" || profile != "argon2id-profile-v1" {
         return Err(ReaderError::Unsupported(
@@ -150,14 +150,38 @@ impl ReadOnlyReader {
             let envelope_v: i64 = row.get(5)?;
             let envelope_type: String = row.get(6)?;
 
+            // The initial read-only reader treats unsupported database_kek wrap metadata or unsupported unlock providers as explicit
+            // format/compatibility errors instead of silently skipping rows. Multi-provider fallback semantics can be revisited
+            // when additional unlock providers are implemented.
             if wrap_alg != "A256GCM" {
-                continue;
+                return Err(ReaderError::Unsupported(format!(
+                    "Unsupported wrap algorithm: {}",
+                    wrap_alg
+                )));
             }
             if envelope_v != 1 {
-                continue;
+                return Err(ReaderError::Unsupported(format!(
+                    "Unsupported envelope version: {}",
+                    envelope_v
+                )));
             }
             if envelope_type != "key_wrap" {
-                continue;
+                return Err(ReaderError::Unsupported(format!(
+                    "Unsupported envelope type: {}",
+                    envelope_type
+                )));
+            }
+            if nonce.len() != 12 {
+                return Err(ReaderError::InvalidEnvelope(format!(
+                    "Wrap nonce length {}",
+                    nonce.len()
+                )));
+            }
+            if wrapped_key.len() < 16 {
+                return Err(ReaderError::InvalidEnvelope(format!(
+                    "Wrapped key length {}",
+                    wrapped_key.len()
+                )));
             }
 
             let mut unlock_stmt = self.conn.prepare(
@@ -170,34 +194,42 @@ impl ReadOnlyReader {
                 .optional()?;
 
             if let Some((provider, config_json)) = unlock_row {
-                if provider == "passphrase_argon2id" {
-                    let salt = validate_argon2id_config(&config_json)?;
-
-                    let mut unlock_kek = vec![0u8; 32];
-                    let params = Params::new(65536, 3, 1, Some(32))
-                        .map_err(|e| ReaderError::CryptoError(format!("Argon2 params: {}", e)))?;
-                    let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
-
-                    argon2
-                        .hash_password_into(passphrase.as_bytes(), &salt, &mut unlock_kek)
-                        .map_err(|e| ReaderError::CryptoError(format!("Argon2 hash: {}", e)))?;
-
-                    if let Ok(wrap_aad) = build_wrap_key_v1(&aad_policy, &db_kid, &wrapping_kid) {
-                        if let Ok(db_kek_bytes) =
-                            self.decrypt_aead(&unlock_kek, &nonce, &wrapped_key, &wrap_aad)
-                        {
-                            if db_kek_bytes.len() != 32 {
-                                return Err(ReaderError::InvalidEnvelope(
-                                    "Unwrapped db_kek must be 32 bytes".to_string(),
-                                ));
-                            }
-                            self.active_db_kek = db_kek_bytes;
-                            self.active_db_kid = db_kid.clone();
-                            unwrapped = true;
-                            break;
-                        }
-                    }
+                if provider != "passphrase_argon2id" {
+                    return Err(ReaderError::Unsupported(format!(
+                        "Unsupported unlock provider: {}",
+                        provider
+                    )));
                 }
+
+                let salt = validate_argon2id_config(&config_json)?;
+
+                let mut unlock_kek = vec![0u8; 32];
+                let params = Params::new(65536, 3, 1, Some(32))
+                    .map_err(|e| ReaderError::CryptoError(format!("Argon2 params: {}", e)))?;
+                let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
+
+                argon2
+                    .hash_password_into(passphrase.as_bytes(), &salt, &mut unlock_kek)
+                    .map_err(|e| ReaderError::CryptoError(format!("Argon2 hash: {}", e)))?;
+
+                let wrap_aad = build_wrap_key_v1(&aad_policy, &db_kid, &wrapping_kid)
+                    .map_err(|e| ReaderError::Unsupported(format!("Wrap AAD build: {:?}", e)))?;
+
+                if let Ok(db_kek_bytes) =
+                    self.decrypt_aead(&unlock_kek, &nonce, &wrapped_key, &wrap_aad)
+                {
+                    if db_kek_bytes.len() != 32 {
+                        return Err(ReaderError::InvalidEnvelope(
+                            "Unwrapped db_kek must be 32 bytes".to_string(),
+                        ));
+                    }
+                    self.active_db_kek = db_kek_bytes;
+                    self.active_db_kid = db_kid.clone();
+                    unwrapped = true;
+                    break;
+                }
+            } else {
+                return Err(ReaderError::AuthenticationFailure);
             }
         }
 
