@@ -215,5 +215,8 @@ func (r *Reader) decryptAEAD(key []byte, nonce []byte, ciphertextAndTag []byte, 
 	if err != nil {
 		return nil, err
 	}
+	if len(nonce) != aesgcm.NonceSize() {
+		return nil, fmt.Errorf("invalid nonce size: expected %d, got %d", aesgcm.NonceSize(), len(nonce))
+	}
 	return aesgcm.Open(nil, nonce, ciphertextAndTag, aadData)
 }
