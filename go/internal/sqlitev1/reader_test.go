@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -229,7 +230,305 @@ func TestReader_ObjectNotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("Expected error for missing object, got nil")
 	}
-	if !strings.Contains(err.Error(), "object not found") {
-		t.Errorf("Expected not found error, got: %v", err)
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("Expected ErrNotFound error, got: %v", err)
+	}
+}
+
+func TestReader_NegativeCases(t *testing.T) {
+	passphrase := "my-secret-pass"
+	dbKid := "22222222-2222-4222-8222-222222222222"
+	unlockKid := "33333333-3333-4333-8333-333333333333"
+	recordKid := "44444444-4444-4444-8444-444444444444"
+	objectUuid := "55555555-5555-4555-8555-555555555555"
+
+	cases := []struct {
+		name    string
+		mutate  func(t *testing.T, db *sql.DB)
+		wantErr error
+	}{
+		{
+			name: "non-JCS provider_config_json",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?",
+					`{"kdf": "argon2id", "profile": "argon2id-profile-v1", "salt": "QUJDREVGR0hJSktMTU5PUA", "memory_kib": 65536, "iterations": 3, "parallelism": 1, "output_bytes": 32 }`, unlockKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrInvalidProviderConfig,
+		},
+		{
+			name: "profile mismatch",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?",
+					`{"iterations":3,"kdf":"argon2id","memory_kib":65536,"output_bytes":32,"parallelism":1,"profile":"argon2id-profile-v2","salt":"QUJDREVGR0hJSktMTU5PUA"}`, unlockKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrUnsupported,
+		},
+		{
+			name: "immutable parameter mismatch",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?",
+					`{"iterations":4,"kdf":"argon2id","memory_kib":65536,"output_bytes":32,"parallelism":1,"profile":"argon2id-profile-v1","salt":"QUJDREVGR0hJSktMTU5PUA"}`, unlockKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrInvalidProviderConfig,
+		},
+		{
+			name: "salt padding",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?",
+					`{"iterations":3,"kdf":"argon2id","memory_kib":65536,"output_bytes":32,"parallelism":1,"profile":"argon2id-profile-v1","salt":"QUJDREVGR0hJSktMTU5PUA=="}`, unlockKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrInvalidProviderConfig,
+		},
+		{
+			name: "salt invalid length",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?",
+					`{"iterations":3,"kdf":"argon2id","memory_kib":65536,"output_bytes":32,"parallelism":1,"profile":"argon2id-profile-v1","salt":"QUJD"}`, unlockKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrInvalidProviderConfig,
+		},
+		{
+			name: "unsupported unlock provider",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE unlock_kek_tbl SET unlock_provider = ? WHERE kid = ?",
+					"unsupported_provider", unlockKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrAuthFailure,
+		},
+		{
+			name: "tampered db wrapped key",
+			mutate: func(t *testing.T, db *sql.DB) {
+				var wrappedKey []byte
+				err := db.QueryRow("SELECT wrapped_key FROM wrapped_key_tbl WHERE wrapped_kid = ?", dbKid).Scan(&wrappedKey)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+				wrappedKey[0] ^= 0xff
+				_, err = db.Exec("UPDATE wrapped_key_tbl SET wrapped_key = ? WHERE wrapped_kid = ?", wrappedKey, dbKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrAuthFailure,
+		},
+		{
+			name: "tampered record wrapped key",
+			mutate: func(t *testing.T, db *sql.DB) {
+				var wrappedKey []byte
+				err := db.QueryRow("SELECT wrapped_key FROM wrapped_key_tbl WHERE wrapped_kid = ?", recordKid).Scan(&wrappedKey)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+				wrappedKey[0] ^= 0xff
+				_, err = db.Exec("UPDATE wrapped_key_tbl SET wrapped_key = ? WHERE wrapped_kid = ?", wrappedKey, recordKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrAuthFailure,
+		},
+		{
+			name: "tampered payload ciphertext",
+			mutate: func(t *testing.T, db *sql.DB) {
+				var ciphertext []byte
+				err := db.QueryRow("SELECT ciphertext FROM encrypted_object_tbl WHERE object_uuid = ?", objectUuid).Scan(&ciphertext)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+				ciphertext[0] ^= 0xff
+				_, err = db.Exec("UPDATE encrypted_object_tbl SET ciphertext = ? WHERE object_uuid = ?", ciphertext, objectUuid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrAuthFailure,
+		},
+		{
+			name: "tampered payload metadata (AAD mismatch)",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE encrypted_object_tbl SET content_type = ? WHERE object_uuid = ?",
+					"text/plain", objectUuid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrAuthFailure,
+		},
+		{
+			name: "unsupported payload algorithm",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE encrypted_object_tbl SET alg = ? WHERE object_uuid = ?",
+					"A128GCM", objectUuid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrUnsupported,
+		},
+		{
+			name: "unsupported payload aad policy",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE encrypted_object_tbl SET aad_policy = ? WHERE object_uuid = ?",
+					"unsupported-policy", objectUuid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrUnsupported,
+		},
+		{
+			name: "unsupported wrap algorithm db_kek",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE wrapped_key_tbl SET wrap_alg = ? WHERE wrapped_kid = ?",
+					"A128GCM", dbKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrAuthFailure,
+		},
+		{
+			name: "unsupported wrap algorithm record_dek",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE wrapped_key_tbl SET wrap_alg = ? WHERE wrapped_kid = ?",
+					"A128GCM", recordKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrUnsupported,
+		},
+		{
+			name: "unsupported envelope version db_kek",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE wrapped_key_tbl SET envelope_v = ? WHERE wrapped_kid = ?",
+					2, dbKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrAuthFailure,
+		},
+		{
+			name: "unsupported envelope type db_kek",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE wrapped_key_tbl SET envelope_type = ? WHERE wrapped_kid = ?",
+					"unsupported_type", dbKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrAuthFailure,
+		},
+		{
+			name: "inactive database_kek",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE key_tbl SET status = ? WHERE kid = ?",
+					"decrypt_only", dbKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrInvalidStatus,
+		},
+		{
+			name: "inactive record_dek",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE key_tbl SET status = ? WHERE kid = ?",
+					"disabled", recordKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrInvalidStatus,
+		},
+		{
+			name: "invalid db_kek wrap nonce length",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE wrapped_key_tbl SET nonce = ? WHERE wrapped_kid = ?",
+					bytesOf(11, 0xaa), dbKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrAuthFailure, // DB kek unwrap loops and then fails
+		},
+		{
+			name: "invalid record_dek wrap nonce length",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE wrapped_key_tbl SET nonce = ? WHERE wrapped_kid = ?",
+					bytesOf(11, 0xbb), recordKid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrInvalidEnvelope,
+		},
+		{
+			name: "invalid payload nonce length",
+			mutate: func(t *testing.T, db *sql.DB) {
+				_, err := db.Exec("UPDATE encrypted_object_tbl SET nonce = ? WHERE object_uuid = ?",
+					bytesOf(11, 0xcc), objectUuid)
+				if err != nil {
+					t.Fatalf("mutation failed: %v", err)
+				}
+			},
+			wantErr: ErrInvalidEnvelope,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			dbPath := filepath.Join(tmpDir, "test.db")
+			createTestDB(t, dbPath, passphrase)
+
+			db, err := sql.Open("sqlite", dbPath)
+			if err != nil {
+				t.Fatalf("failed to open test db: %v", err)
+			}
+			// disable check constraints for tests that create invalid lengths, unsupported types that are blocked by DB constraints otherwise
+			_, err = db.Exec("PRAGMA ignore_check_constraints = ON")
+			if err != nil {
+				t.Fatalf("failed to execute pragma: %v", err)
+			}
+			tc.mutate(t, db)
+			db.Close()
+
+			reader, err := OpenReadOnly(dbPath, passphrase)
+			if err != nil {
+				if !errors.Is(err, tc.wantErr) {
+					t.Errorf("Expected Open error to be %v, got: %v", tc.wantErr, err)
+				}
+				return // Expected error occurred during open, we're done
+			}
+			defer reader.Close()
+
+			_, err = reader.DecryptObject(objectUuid)
+			if err == nil {
+				t.Fatal("Expected error during DecryptObject, got nil")
+			}
+			if !errors.Is(err, tc.wantErr) {
+				t.Errorf("Expected DecryptObject error to be %v, got: %v", tc.wantErr, err)
+			}
+		})
 	}
 }

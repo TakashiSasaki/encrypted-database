@@ -52,16 +52,16 @@ None.
 
 **Status:** Active
 **Area:** Implementation
-**Current state:** Go/Rust portability validation is active and materially implemented. The Go/Rust directories now include shared-vector conformance validation for JCS, AAD, Argon2id KDF, AES-256-GCM AEAD primitives, key-wrap, and payload encryption. They also include SQLite V1 read-only metadata validators that check PRAGMA markers and `storage_metadata_tbl` logical identity, including strict `database_uuid` validation.
+**Current state:** Go/Rust portability validation is active and materially implemented. The Go/Rust directories now include shared-vector conformance validation for JCS, AAD, Argon2id KDF, AES-256-GCM AEAD primitives, key-wrap, and payload encryption. They also include SQLite V1 read-only metadata validators that check PRAGMA markers and `storage_metadata_tbl` logical identity, including strict `database_uuid` validation. A SQLite V1 read-only unlock/decrypt reader initial implementation exists. The reader performs metadata validation, passphrase_argon2id provider_config validation, Argon2id unlock_kek derivation, database_kek unwrap, record_dek unwrap, and payload decrypt. Go/Rust are still not full storage libraries. Writer APIs, database creation APIs, key lifecycle operations, and cross-language roundtrip matrix remain future work.
 **Expected or intended state:** Native Go and Rust packages expose full storage-library functionality, including database unlock/decrypt reader, writer APIs, lifecycle/key management operations, and cross-language roundtrip interoperability.
 **Why it matters:** The storage format core is designed for multi-language support. Proving it in stricter compiled languages (Go/Rust) provides strong confidence.
-**Recommended next action:** Implement Go/Rust database unlock/decrypt readers next, then add Go/Rust roundtrip matrix coverage before writer APIs.
+**Recommended next action:** Harden the Go/Rust read-only readers with negative-case coverage and then add Go/Rust roundtrip matrix coverage before implementing writer APIs.
 
 ### Roundtrip matrix does not yet include Go/Rust
 
 **Status:** Active
 **Area:** Interoperability
-**Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js. Go/Rust now have substantial portability-validation coverage and SQLite V1 read-only metadata validators, but they do not yet implement unlock/decrypt readers or writers and therefore are not yet part of the roundtrip matrix.
+**Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js. Go/Rust now have substantial portability-validation coverage, SQLite V1 read-only metadata validators, and initial read-only unlock/decrypt readers, but they do not yet implement writers and therefore are not yet part of the full roundtrip matrix.
 **Expected or intended state:** The roundtrip test matrix tests database creation, unlocking, reading, and writing across all supported languages (Python, Node.js, Go, Rust) and browser exports.
 **Why it matters:** To guarantee true V1 interoperability.
 **Recommended next action:** Expand the `test_roundtrip.sh` harness once Go/Rust full library read/write implementations are viable.
