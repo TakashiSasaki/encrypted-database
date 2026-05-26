@@ -52,19 +52,19 @@ None.
 
 **Status:** Active
 **Area:** Implementation
-**Current state:** Go/Rust portability validation is active and materially implemented. The Go/Rust directories now include shared-vector conformance validation for JCS, AAD, Argon2id KDF, AES-256-GCM AEAD primitives, key-wrap, and payload encryption. They also include SQLite V1 read-only metadata validators that check PRAGMA markers and `storage_metadata_tbl` logical identity, including strict `database_uuid` validation. A SQLite V1 read-only unlock/decrypt reader initial implementation exists. The reader performs metadata validation, passphrase_argon2id provider_config validation, Argon2id unlock_kek derivation, database_kek unwrap, record_dek unwrap, and payload decrypt. Go/Rust are still not full storage libraries. Writer APIs, database creation APIs, key lifecycle operations, and cross-language roundtrip matrix remain future work.
+**Current state:** Go/Rust portability validation is active and materially implemented. The Go/Rust directories include shared-vector conformance validation for JCS, AAD, Argon2id KDF, AES-256-GCM AEAD primitives, key-wrap, and payload encryption; SQLite V1 read-only metadata validators; strict `database_uuid` validation; and initial read-only unlock/decrypt readers. The read-only readers include negative-case coverage for malformed/non-canonical provider configs, unsupported providers/algorithms/envelopes, inactive key status, tampered wrapped keys, tampered payloads, AAD metadata mismatch, invalid envelope parameters, and database KEK unwrap error taxonomy. A read-only matrix harness now exists under `integration-tests/read-only-matrix/` and verifies Python- and Node-generated SQLite V1 fixture databases against the Go and Rust read-only readers. Go/Rust are still not full storage libraries. Writer APIs, database creation APIs, key lifecycle operations, and full cross-language read/write roundtrip matrix coverage remain future work.
 **Expected or intended state:** Native Go and Rust packages expose full storage-library functionality, including database unlock/decrypt reader, writer APIs, lifecycle/key management operations, and cross-language roundtrip interoperability.
 **Why it matters:** The storage format core is designed for multi-language support. Proving it in stricter compiled languages (Go/Rust) provides strong confidence.
-**Recommended next action:** Harden the Go/Rust read-only readers with negative-case coverage and then add Go/Rust roundtrip matrix coverage before implementing writer APIs.
+**Recommended next action:** Run and stabilize the read-only matrix harness regularly, decide whether CI integration is acceptable, and implement writer APIs only after read interoperability remains stable.
 
 ### Roundtrip matrix does not yet include Go/Rust
 
 **Status:** Active
 **Area:** Interoperability
-**Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js. Go/Rust now have substantial portability-validation coverage, SQLite V1 read-only metadata validators, and initial read-only unlock/decrypt readers, but they do not yet implement writers and therefore are not yet part of the full roundtrip matrix.
+**Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js. Go/Rust now have substantial portability-validation coverage, SQLite V1 read-only metadata validators, initial read-only unlock/decrypt readers, and a read-only matrix harness that validates Python- and Node-generated SQLite V1 fixture databases against the Go and Rust readers. Go/Rust still do not implement writers, so they are not yet part of the full read/write roundtrip matrix.
 **Expected or intended state:** The roundtrip test matrix tests database creation, unlocking, reading, and writing across all supported languages (Python, Node.js, Go, Rust) and browser exports.
 **Why it matters:** To guarantee true V1 interoperability.
-**Recommended next action:** Expand the `test_roundtrip.sh` harness once Go/Rust full library read/write implementations are viable.
+**Recommended next action:** Keep the read-only matrix harness stable and evaluate CI integration; expand to the full read/write roundtrip matrix after Go/Rust writer APIs exist.
 
 ### JWE/JOSE compatibility is not implemented
 
@@ -247,7 +247,7 @@ None.
 
 **Status:** Active
 **Area:** Cryptography / Interoperability
-**Current state:** Go/Rust portability validation is active and materially implemented. The Go/Rust directories include shared-vector conformance validation for JCS, AAD, Argon2id KDF, AES-256-GCM AEAD primitives, key-wrap, and payload encryption; SQLite V1 read-only metadata validators; strict `database_uuid` validation; and initial read-only unlock/decrypt readers. The read-only readers include negative-case coverage for malformed provider configs, unsupported providers/algorithms/envelopes, inactive key status, tampered wrapped keys, tampered payloads, AAD metadata mismatch, and invalid envelope parameters. A read-only matrix harness now exists under `integration-tests/read-only-matrix/` to validate Python- and Node-generated SQLite V1 fixture databases against the Go and Rust read-only readers. Go/Rust are still not full storage libraries. Writer APIs, database creation APIs, key lifecycle operations, and full cross-language read/write roundtrip matrix coverage remain future work.
+**Current state:** Go/Rust are no longer merely planned. They now provide portability-validation scaffolds with shared-vector conformance tests, SQLite V1 read-only metadata validators, initial read-only unlock/decrypt readers, hardened negative-case coverage, and a read-only matrix harness for Python/Node-generated fixture databases. Remaining gaps are writer APIs, database creation APIs, key lifecycle operations, production API maturity, and full read/write roundtrip matrix coverage.
 **Expected or intended state:** Go and Rust implementations are complete, production-ready storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
-**Recommended next action:** Stabilize the Go/Rust read-only matrix harness and decide whether to add it to CI before proceeding to writer APIs.
+**Recommended next action:** Stabilize the read-only matrix harness and decide whether to add it to CI before proceeding to Go/Rust writer APIs and full read/write roundtrip matrix coverage.
