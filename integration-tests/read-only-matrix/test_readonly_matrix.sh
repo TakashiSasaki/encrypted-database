@@ -6,7 +6,7 @@ ROOT_DIR="$(dirname "$(dirname "$DIR")")"
 
 echo "=== Setting up environments ==="
 (cd "$ROOT_DIR/python" && pip install -e .[test] > /dev/null)
-(cd "$ROOT_DIR/nodejs" && npm install > /dev/null)
+(cd "$ROOT_DIR/nodejs" && npm ci > /dev/null)
 
 TMP_DIR="$(mktemp -d)"
 # Cleanup on exit
