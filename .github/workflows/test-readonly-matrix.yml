@@ -3,6 +3,8 @@ name: Read-only Matrix
 on:
   workflow_dispatch:
   pull_request:
+    branches:
+      - vault.moukaeritai.work
     paths:
       - "python/**"
       - "nodejs/**"
