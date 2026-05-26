@@ -149,48 +149,62 @@ func (r *Reader) unlockDatabase(passphrase string) error {
 			return fmt.Errorf("failed to scan wrapped key row: %w", err)
 		}
 
+		// The initial read-only reader treats unsupported database_kek wrap metadata or unsupported unlock providers as explicit
+		// format/compatibility errors instead of silently skipping rows. Multi-provider fallback semantics can be revisited
+		// when additional unlock providers are implemented.
 		if wrapAlg != "A256GCM" {
-			continue // Or return ErrUnsupported, but we continue to try other wrap entries if any
+			return fmt.Errorf("%w: unsupported wrap algorithm %s", ErrUnsupported, wrapAlg)
 		}
 		if envelopeV != 1 {
-			continue
+			return fmt.Errorf("%w: unsupported envelope version %d", ErrUnsupported, envelopeV)
 		}
 		if envelopeType != "key_wrap" {
-			continue
+			return fmt.Errorf("%w: unsupported envelope type %s", ErrUnsupported, envelopeType)
+		}
+		if len(nonce) != 12 {
+			return fmt.Errorf("%w: wrap nonce length %d", ErrInvalidEnvelope, len(nonce))
+		}
+		if len(wrappedKey) < 16 {
+			return fmt.Errorf("%w: wrapped key length %d", ErrInvalidEnvelope, len(wrappedKey))
 		}
 
 		var unlockProvider, providerConfigJson string
 		err = r.db.QueryRow("SELECT unlock_provider, provider_config_json FROM unlock_kek_tbl WHERE kid = ?", wrappingKid).Scan(&unlockProvider, &providerConfigJson)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				continue
+				return fmt.Errorf("%w: missing unlock provider row", ErrAuthFailure)
 			}
 			return fmt.Errorf("failed to query unlock KEK: %w", err)
 		}
 
-		if unlockProvider == "passphrase_argon2id" {
-			salt, err := validateArgon2idConfig(providerConfigJson)
-			if err != nil {
-				return err // Return directly since validateArgon2idConfig already wraps properly
-			}
+		if unlockProvider != "passphrase_argon2id" {
+			return fmt.Errorf("%w: unsupported unlock provider %s", ErrUnsupported, unlockProvider)
+		}
 
-			unlockKek := argon2.IDKey([]byte(passphrase), salt, 3, 65536, 1, 32)
+		salt, err := validateArgon2idConfig(providerConfigJson)
+		if err != nil {
+			return err // Return directly since validateArgon2idConfig already wraps properly
+		}
 
-			wrapAad, err := aad.BuildWrapKeyV1(aadPolicyName, dbKid, wrappingKid)
-			if err != nil {
-				continue
-			}
+		unlockKek := argon2.IDKey([]byte(passphrase), salt, 3, 65536, 1, 32)
 
-			dbKekBytes, err := r.decryptAEAD(unlockKek, nonce, wrappedKey, wrapAad)
-			if err == nil {
-				if len(dbKekBytes) != 32 {
-					return fmt.Errorf("%w: unwrapped database KEK must be 32 bytes", ErrInvalidEnvelope)
-				}
-				r.activeDbKek = dbKekBytes
-				r.activeDbKid = dbKid
-				unwrapped = true
-				break
+		wrapAad, err := aad.BuildWrapKeyV1(aadPolicyName, dbKid, wrappingKid)
+		if err != nil {
+			// e.g. unsupported aad_policy returns ErrUnsupported from BuildWrapKeyV1 (which we might map or just return)
+			// Actually BuildWrapKeyV1 returns `fmt.Errorf("unsupported AAD policy: %s", policyName)` but doesn't wrap ErrUnsupported.
+			// Let's explicitly check and return ErrUnsupported.
+			return fmt.Errorf("%w: %v", ErrUnsupported, err)
+		}
+
+		dbKekBytes, err := r.decryptAEAD(unlockKek, nonce, wrappedKey, wrapAad)
+		if err == nil {
+			if len(dbKekBytes) != 32 {
+				return fmt.Errorf("%w: unwrapped database KEK must be 32 bytes", ErrInvalidEnvelope)
 			}
+			r.activeDbKek = dbKekBytes
+			r.activeDbKid = dbKid
+			unwrapped = true
+			break
 		}
 	}
 	if err := rows.Err(); err != nil {

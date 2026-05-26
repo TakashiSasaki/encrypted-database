@@ -254,7 +254,7 @@ fn test_reader_negative_cases() {
                 )
                 .unwrap();
             }),
-            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+            expected_error: |e| matches!(e, ReaderError::Unsupported(_)),
         },
         NegativeCase {
             name: "tampered db wrapped key",
@@ -355,7 +355,7 @@ fn test_reader_negative_cases() {
                 )
                 .unwrap();
             }),
-            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+            expected_error: |e| matches!(e, ReaderError::Unsupported(_)),
         },
         NegativeCase {
             name: "unsupported wrap algorithm record_dek",
@@ -377,7 +377,7 @@ fn test_reader_negative_cases() {
                 )
                 .unwrap();
             }),
-            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+            expected_error: |e| matches!(e, ReaderError::Unsupported(_)),
         },
         NegativeCase {
             name: "unsupported envelope type db_kek",
@@ -388,7 +388,7 @@ fn test_reader_negative_cases() {
                 )
                 .unwrap();
             }),
-            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+            expected_error: |e| matches!(e, ReaderError::Unsupported(_)),
         },
         NegativeCase {
             name: "inactive database_kek",
@@ -421,7 +421,7 @@ fn test_reader_negative_cases() {
                 )
                 .unwrap();
             }),
-            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+            expected_error: |e| matches!(e, ReaderError::InvalidEnvelope(_)),
         },
         NegativeCase {
             name: "invalid record_dek wrap nonce length",

@@ -311,7 +311,7 @@ func TestReader_NegativeCases(t *testing.T) {
 					t.Fatalf("mutation failed: %v", err)
 				}
 			},
-			wantErr: ErrAuthFailure,
+			wantErr: ErrUnsupported,
 		},
 		{
 			name: "tampered db wrapped key",
@@ -403,7 +403,7 @@ func TestReader_NegativeCases(t *testing.T) {
 					t.Fatalf("mutation failed: %v", err)
 				}
 			},
-			wantErr: ErrAuthFailure,
+			wantErr: ErrUnsupported,
 		},
 		{
 			name: "unsupported wrap algorithm record_dek",
@@ -425,7 +425,7 @@ func TestReader_NegativeCases(t *testing.T) {
 					t.Fatalf("mutation failed: %v", err)
 				}
 			},
-			wantErr: ErrAuthFailure,
+			wantErr: ErrUnsupported,
 		},
 		{
 			name: "unsupported envelope type db_kek",
@@ -436,7 +436,7 @@ func TestReader_NegativeCases(t *testing.T) {
 					t.Fatalf("mutation failed: %v", err)
 				}
 			},
-			wantErr: ErrAuthFailure,
+			wantErr: ErrUnsupported,
 		},
 		{
 			name: "inactive database_kek",
@@ -469,7 +469,7 @@ func TestReader_NegativeCases(t *testing.T) {
 					t.Fatalf("mutation failed: %v", err)
 				}
 			},
-			wantErr: ErrAuthFailure, // DB kek unwrap loops and then fails
+			wantErr: ErrInvalidEnvelope,
 		},
 		{
 			name: "invalid record_dek wrap nonce length",
