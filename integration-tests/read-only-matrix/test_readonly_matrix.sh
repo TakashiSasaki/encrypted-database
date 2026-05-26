@@ -26,8 +26,16 @@ fi
 source "$PY_ENV"
 
 # Validate required variables exist
-if [ -z "${VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX:-}" ]; then
-  echo "Error: Missing expected payload hex in Python env file."
+if [ -z "${VAULT_SQLITE_V1_FIXTURE_DB:-}" ] || \
+   [ -z "${VAULT_SQLITE_V1_FIXTURE_PASSPHRASE:-}" ] || \
+   [ -z "${VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID:-}" ] || \
+   [ -z "${VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX:-}" ]; then
+  echo "Error: Missing one or more VAULT_SQLITE_V1_FIXTURE_* environment variables in Python env file."
+  exit 1
+fi
+
+if [ ! -f "${VAULT_SQLITE_V1_FIXTURE_DB:-}" ]; then
+  echo "Error: Generated Python fixture DB file does not exist at ${VAULT_SQLITE_V1_FIXTURE_DB:-}"
   exit 1
 fi
 
@@ -55,8 +63,16 @@ fi
 source "$NODE_ENV"
 
 # Validate required variables exist
-if [ -z "${VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX:-}" ]; then
-  echo "Error: Missing expected payload hex in Node.js env file."
+if [ -z "${VAULT_SQLITE_V1_FIXTURE_DB:-}" ] || \
+   [ -z "${VAULT_SQLITE_V1_FIXTURE_PASSPHRASE:-}" ] || \
+   [ -z "${VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID:-}" ] || \
+   [ -z "${VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX:-}" ]; then
+  echo "Error: Missing one or more VAULT_SQLITE_V1_FIXTURE_* environment variables in Node.js env file."
+  exit 1
+fi
+
+if [ ! -f "${VAULT_SQLITE_V1_FIXTURE_DB:-}" ]; then
+  echo "Error: Generated Node.js fixture DB file does not exist at ${VAULT_SQLITE_V1_FIXTURE_DB:-}"
   exit 1
 fi
 
