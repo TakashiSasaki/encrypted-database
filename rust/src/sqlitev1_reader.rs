@@ -208,8 +208,12 @@ impl ReadOnlyReader {
             record_kid,
             nonce_payload,
             ciphertext,
-            _payload_aad_policy,
+            payload_aad_policy,
         ) = obj_row;
+
+        if payload_aad_policy != "record-payload-v1" {
+            return Err(ReaderError::Unsupported(format!("Unsupported payload AAD policy: {}", payload_aad_policy)));
+        }
 
         let mut stmt = self.conn.prepare(
             "SELECT nonce, wrapped_key, aad_policy \
@@ -263,6 +267,9 @@ impl ReadOnlyReader {
         let cipher = Aes256Gcm::new_from_slice(key)
             .map_err(|_| ReaderError::CryptoError("Invalid key length".to_string()))?;
 
+        if nonce.len() != 12 {
+            return Err(ReaderError::CryptoError(format!("Invalid nonce length: {}", nonce.len())));
+        }
         let nonce = aes_gcm::Nonce::from_slice(nonce);
 
         let payload = Payload {
