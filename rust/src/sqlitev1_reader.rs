@@ -76,7 +76,14 @@ fn validate_argon2id_config(config_json: &str) -> Result<Vec<u8>, ReaderError> {
         ));
     }
 
-    if config["kdf"] != "argon2id" || config["profile"] != "argon2id-profile-v1" {
+    let kdf = config["kdf"].as_str().ok_or_else(|| {
+        ReaderError::InvalidProviderConfig("Missing kdf".to_string())
+    })?;
+    let profile = config["profile"].as_str().ok_or_else(|| {
+        ReaderError::InvalidProviderConfig("Missing profile".to_string())
+    })?;
+
+    if kdf != "argon2id" || profile != "argon2id-profile-v1" {
         return Err(ReaderError::Unsupported(
             "Unsupported KDF or profile".to_string(),
         ));

@@ -88,7 +88,14 @@ func validateArgon2idConfig(providerConfigJson string) ([]byte, error) {
 		return nil, fmt.Errorf("%w: provider_config_json is not valid JCS canonical JSON", ErrInvalidProviderConfig)
 	}
 
-	if config["kdf"] != "argon2id" || config["profile"] != "argon2id-profile-v1" {
+	kdf, okKdf := config["kdf"].(string)
+	profile, okProfile := config["profile"].(string)
+
+	if !okKdf || !okProfile {
+		return nil, fmt.Errorf("%w: missing required provider config property or invalid type", ErrInvalidProviderConfig)
+	}
+
+	if kdf != "argon2id" || profile != "argon2id-profile-v1" {
 		return nil, fmt.Errorf("%w: unsupported provider or profile", ErrUnsupported)
 	}
 
