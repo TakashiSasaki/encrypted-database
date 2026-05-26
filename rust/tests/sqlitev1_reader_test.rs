@@ -174,7 +174,312 @@ fn test_reader_object_not_found() {
         .decrypt_object("99999999-9999-4999-8999-999999999999")
         .unwrap_err();
     match err {
-        ReaderError::ObjectNotFound => (),
-        _ => panic!("Expected ObjectNotFound, got {:?}", err),
+        ReaderError::NotFound(_) => (),
+        _ => panic!("Expected NotFound, got {:?}", err),
+    }
+}
+
+struct NegativeCase {
+    name: &'static str,
+    mutate: Box<dyn Fn(&Connection)>,
+    expected_error: fn(&ReaderError) -> bool,
+}
+
+#[test]
+fn test_reader_negative_cases() {
+    let passphrase = "my-secret-pass";
+    let db_kid = "22222222-2222-4222-8222-222222222222";
+    let unlock_kid = "33333333-3333-4333-8333-333333333333";
+    let record_kid = "44444444-4444-4444-8444-444444444444";
+    let object_uuid = "55555555-5555-4555-8555-555555555555";
+
+    let cases = vec![
+        NegativeCase {
+            name: "non-JCS provider_config_json",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?",
+                    (r#"{"kdf": "argon2id", "profile": "argon2id-profile-v1", "salt": "QUJDREVGR0hJSktMTU5PUA", "memory_kib": 65536, "iterations": 3, "parallelism": 1, "output_bytes": 32 }"#, unlock_kid),
+                ).unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::InvalidProviderConfig(_)),
+        },
+        NegativeCase {
+            name: "profile mismatch",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?",
+                    (r#"{"iterations":3,"kdf":"argon2id","memory_kib":65536,"output_bytes":32,"parallelism":1,"profile":"argon2id-profile-v2","salt":"QUJDREVGR0hJSktMTU5PUA"}"#, unlock_kid),
+                ).unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::Unsupported(_)),
+        },
+        NegativeCase {
+            name: "immutable parameter mismatch",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?",
+                    (r#"{"iterations":4,"kdf":"argon2id","memory_kib":65536,"output_bytes":32,"parallelism":1,"profile":"argon2id-profile-v1","salt":"QUJDREVGR0hJSktMTU5PUA"}"#, unlock_kid),
+                ).unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::InvalidProviderConfig(_)),
+        },
+        NegativeCase {
+            name: "salt padding",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?",
+                    (r#"{"iterations":3,"kdf":"argon2id","memory_kib":65536,"output_bytes":32,"parallelism":1,"profile":"argon2id-profile-v1","salt":"QUJDREVGR0hJSktMTU5PUA=="}"#, unlock_kid),
+                ).unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::InvalidProviderConfig(_)),
+        },
+        NegativeCase {
+            name: "salt invalid length",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE unlock_kek_tbl SET provider_config_json = ? WHERE kid = ?",
+                    (r#"{"iterations":3,"kdf":"argon2id","memory_kib":65536,"output_bytes":32,"parallelism":1,"profile":"argon2id-profile-v1","salt":"QUJD"}"#, unlock_kid),
+                ).unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::InvalidProviderConfig(_)),
+        },
+        NegativeCase {
+            name: "unsupported unlock provider",
+            mutate: Box::new(move |conn| {
+                conn.execute("PRAGMA foreign_keys = OFF", []).unwrap();
+                conn.execute(
+                    "UPDATE unlock_kek_tbl SET unlock_provider = ? WHERE kid = ?",
+                    ("unsupported_provider", unlock_kid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+        },
+        NegativeCase {
+            name: "tampered db wrapped key",
+            mutate: Box::new(move |conn| {
+                let mut wrapped_key: Vec<u8> = conn
+                    .query_row(
+                        "SELECT wrapped_key FROM wrapped_key_tbl WHERE wrapped_kid = ?",
+                        [db_kid],
+                        |row| row.get(0),
+                    )
+                    .unwrap();
+                wrapped_key[0] ^= 0xff;
+                conn.execute(
+                    "UPDATE wrapped_key_tbl SET wrapped_key = ? WHERE wrapped_kid = ?",
+                    (&wrapped_key, db_kid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+        },
+        NegativeCase {
+            name: "tampered record wrapped key",
+            mutate: Box::new(move |conn| {
+                let mut wrapped_key: Vec<u8> = conn
+                    .query_row(
+                        "SELECT wrapped_key FROM wrapped_key_tbl WHERE wrapped_kid = ?",
+                        [record_kid],
+                        |row| row.get(0),
+                    )
+                    .unwrap();
+                wrapped_key[0] ^= 0xff;
+                conn.execute(
+                    "UPDATE wrapped_key_tbl SET wrapped_key = ? WHERE wrapped_kid = ?",
+                    (&wrapped_key, record_kid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+        },
+        NegativeCase {
+            name: "tampered payload ciphertext",
+            mutate: Box::new(move |conn| {
+                let mut ciphertext: Vec<u8> = conn
+                    .query_row(
+                        "SELECT ciphertext FROM encrypted_object_tbl WHERE object_uuid = ?",
+                        [object_uuid],
+                        |row| row.get(0),
+                    )
+                    .unwrap();
+                ciphertext[0] ^= 0xff;
+                conn.execute(
+                    "UPDATE encrypted_object_tbl SET ciphertext = ? WHERE object_uuid = ?",
+                    (&ciphertext, object_uuid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+        },
+        NegativeCase {
+            name: "tampered payload metadata (AAD mismatch)",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE encrypted_object_tbl SET content_type = ? WHERE object_uuid = ?",
+                    ("text/plain", object_uuid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+        },
+        NegativeCase {
+            name: "unsupported payload algorithm",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE encrypted_object_tbl SET alg = ? WHERE object_uuid = ?",
+                    ("A128GCM", object_uuid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::Unsupported(_)),
+        },
+        NegativeCase {
+            name: "unsupported payload aad policy",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE encrypted_object_tbl SET aad_policy = ? WHERE object_uuid = ?",
+                    ("unsupported-policy", object_uuid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::Unsupported(_)),
+        },
+        NegativeCase {
+            name: "unsupported wrap algorithm db_kek",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE wrapped_key_tbl SET wrap_alg = ? WHERE wrapped_kid = ?",
+                    ("A128GCM", db_kid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+        },
+        NegativeCase {
+            name: "unsupported wrap algorithm record_dek",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE wrapped_key_tbl SET wrap_alg = ? WHERE wrapped_kid = ?",
+                    ("A128GCM", record_kid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::Unsupported(_)),
+        },
+        NegativeCase {
+            name: "unsupported envelope version db_kek",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE wrapped_key_tbl SET envelope_v = ? WHERE wrapped_kid = ?",
+                    (2, db_kid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+        },
+        NegativeCase {
+            name: "unsupported envelope type db_kek",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE wrapped_key_tbl SET envelope_type = ? WHERE wrapped_kid = ?",
+                    ("unsupported_type", db_kid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+        },
+        NegativeCase {
+            name: "inactive database_kek",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE key_tbl SET status = ? WHERE kid = ?",
+                    ("decrypt_only", db_kid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::InvalidStatus(_)),
+        },
+        NegativeCase {
+            name: "inactive record_dek",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE key_tbl SET status = ? WHERE kid = ?",
+                    ("disabled", record_kid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::InvalidStatus(_)),
+        },
+        NegativeCase {
+            name: "invalid db_kek wrap nonce length",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE wrapped_key_tbl SET nonce = ? WHERE wrapped_kid = ?",
+                    (vec![0xaa; 11], db_kid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::AuthenticationFailure),
+        },
+        NegativeCase {
+            name: "invalid record_dek wrap nonce length",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE wrapped_key_tbl SET nonce = ? WHERE wrapped_kid = ?",
+                    (vec![0xbb; 11], record_kid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::InvalidEnvelope(_)),
+        },
+        NegativeCase {
+            name: "invalid payload nonce length",
+            mutate: Box::new(move |conn| {
+                conn.execute(
+                    "UPDATE encrypted_object_tbl SET nonce = ? WHERE object_uuid = ?",
+                    (vec![0xcc; 11], object_uuid),
+                )
+                .unwrap();
+            }),
+            expected_error: |e| matches!(e, ReaderError::InvalidEnvelope(_)),
+        },
+    ];
+
+    for case in cases {
+        let dir = tempdir().unwrap();
+        let db_path = dir.path().join("test.db");
+        create_test_db(db_path.to_str().unwrap(), passphrase);
+
+        {
+            let conn = Connection::open(&db_path).unwrap();
+            conn.execute("PRAGMA ignore_check_constraints = ON", [])
+                .unwrap();
+            (case.mutate)(&conn);
+        }
+
+        match open_read_only(&db_path, passphrase) {
+            Err(e) => {
+                assert!(
+                    (case.expected_error)(&e),
+                    "Case '{}' failed during open: expected a certain error but got {:?}",
+                    case.name,
+                    e
+                );
+                continue;
+            }
+            Ok(reader) => match reader.decrypt_object(object_uuid) {
+                Err(e) => {
+                    assert!(
+                        (case.expected_error)(&e),
+                        "Case '{}' failed during decrypt: expected a certain error but got {:?}",
+                        case.name,
+                        e
+                    );
+                }
+                Ok(_) => panic!("Case '{}' unexpectedly succeeded", case.name),
+            },
+        }
     }
 }
