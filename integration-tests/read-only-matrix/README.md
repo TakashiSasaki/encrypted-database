@@ -38,7 +38,7 @@ Or from the repository root:
 
 ### Important Notes on Execution
 - The shell script will run `pip install -e .[test]` and `npm ci` for the Python and Node.js dependencies, which **may take some time** depending on your environment.
-- **Manual CI execution:** You can run this matrix on GitHub Actions by manually triggering the **Read-only Matrix** workflow via `workflow_dispatch`. It is **not yet automatic on push or pull_request** to avoid increasing CI runtime for all changes.
+- **CI execution:** The manual GitHub Actions workflow has been successfully verified. To provide better coverage without running heavy matrix tests on unrelated changes, this workflow is now automatically triggered on **path-filtered `pull_request` and `push`** (limited to relevant code and spec changes). Manual runs via `workflow_dispatch` are still supported.
 - This harness tests **read-only decrypt interoperability only**. Go/Rust writer APIs, database creation APIs, and the full read/write roundtrip matrix are still future work.
 - If you wish to run the Go or Rust tests manually against an existing fixture, you must export the following environment variables. The values must match the generated database connection details:
   - `VAULT_SQLITE_V1_FIXTURE_DB`: The path to the database.
