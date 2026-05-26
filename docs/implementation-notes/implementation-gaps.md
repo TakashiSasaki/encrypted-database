@@ -219,10 +219,10 @@ None.
 
 **Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and are executed by the GitHub Actions integration workflow. A read-only matrix harness also exists (`integration-tests/read-only-matrix`) for verifying Python and Node-generated DBs against Go and Rust readers, which can now be run manually via a GitHub Actions `workflow_dispatch` workflow. It is not yet automatically run on push or pull_request. Browser DB export/import interoperability and Go/Rust full roundtrip coverage (which requires writer APIs) remain future work.
+**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and are executed by the GitHub Actions integration workflow. A read-only matrix harness also exists (`integration-tests/read-only-matrix`) for verifying Python and Node-generated DBs against Go and Rust readers. Following successful manual verification, this workflow has been promoted to run automatically on path-filtered `pull_request` and `push` events to monitor stability without running on unrelated changes. Browser DB export/import interoperability and Go/Rust full roundtrip coverage (which requires writer APIs) remain future work.
 **Expected or intended state:** Automated tests ensuring DB files created in one platform can be successfully read and decrypted in another.
 **Why it matters:** Interoperability is the core value proposition of the library.
-**Recommended next action:** Observe and stabilize the manual read-only matrix CI runs, and decide whether to promote them to push/pull_request CI. Expand to include browser interoperability tests. Implement Go/Rust full roundtrip coverage once writer APIs are added.
+**Recommended next action:** Observe the CI stability of the path-filtered read-only matrix workflow. Expand to include browser interoperability tests. Implement Go/Rust full roundtrip coverage once writer APIs are added.
 
 ### Coverage badge publication
 
@@ -247,7 +247,7 @@ None.
 
 **Status:** Active
 **Area:** Cryptography / Interoperability
-**Current state:** Go/Rust are no longer merely planned. They now provide portability-validation scaffolds with shared-vector conformance tests, SQLite V1 read-only metadata validators, initial read-only unlock/decrypt readers, hardened negative-case coverage, and a read-only matrix harness for Python/Node-generated fixture databases. The read-only matrix can now be run manually via a GitHub Actions workflow, but full read/write matrix is still not implemented. Remaining gaps are writer APIs, database creation APIs, key lifecycle operations, production API maturity, and full read/write roundtrip matrix coverage.
+**Current state:** Go/Rust are no longer merely planned. They now provide portability-validation scaffolds with shared-vector conformance tests, SQLite V1 read-only metadata validators, initial read-only unlock/decrypt readers, hardened negative-case coverage, and a read-only matrix harness for Python/Node-generated fixture databases. The read-only matrix has been promoted to a path-filtered CI workflow for automated checking, but the full read/write matrix is still not implemented. Remaining gaps are writer APIs, database creation APIs, key lifecycle operations, production API maturity, and full read/write roundtrip matrix coverage.
 **Expected or intended state:** Go and Rust implementations are complete, production-ready storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
-**Recommended next action:** Observe the manual CI runs for the read-only matrix harness and decide whether to promote to push/pull_request CI before proceeding to Go/Rust writer APIs and full read/write roundtrip matrix coverage.
+**Recommended next action:** Observe the CI stability for the read-only matrix harness before proceeding to Go/Rust writer APIs and full read/write roundtrip matrix coverage.

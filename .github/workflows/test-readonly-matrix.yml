@@ -2,6 +2,34 @@ name: Read-only Matrix
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - vault.moukaeritai.work
+    paths:
+      - "python/**"
+      - "nodejs/**"
+      - "go/**"
+      - "rust/**"
+      - "integration-tests/read-only-matrix/**"
+      - "docs/backend/sqlite/schema.sql"
+      - "docs/spec/**"
+      - ".github/workflows/test-readonly-matrix.yml"
+  push:
+    branches:
+      - vault.moukaeritai.work
+    paths:
+      - "python/**"
+      - "nodejs/**"
+      - "go/**"
+      - "rust/**"
+      - "integration-tests/read-only-matrix/**"
+      - "docs/backend/sqlite/schema.sql"
+      - "docs/spec/**"
+      - ".github/workflows/test-readonly-matrix.yml"
+
+concurrency:
+  group: readonly-matrix-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
