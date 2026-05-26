@@ -247,7 +247,7 @@ None.
 
 **Status:** Active
 **Area:** Cryptography / Interoperability
-**Current state:** Go and Rust implementations now include cryptographic conformance validation against shared vectors, and a SQLite V1 read-only metadata validator. However, they are still portability validation scaffolds and lack full storage library implementation, database unlock/decrypt readers, writers, and cross-language roundtrip integration.
+**Current state:** Go and Rust implementations now include cryptographic conformance validation against shared vectors, a SQLite V1 read-only metadata validator, and a read-only unlock/decrypt reader initial implementation. However, they are still portability validation scaffolds and lack full storage library implementations, writers, and cross-language roundtrip integration.
 **Expected or intended state:** Go and Rust implementations are complete, production-ready storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
-**Recommended next action:** Implement database unlock and decrypt reader for Go and Rust.
+**Recommended next action:** Integrate Go and Rust into the cross-language roundtrip matrix and begin implementing writer APIs.

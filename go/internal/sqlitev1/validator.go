@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -22,9 +23,16 @@ type ValidationResult struct {
 
 func ValidateReadOnly(path string) (*ValidationResult, error) {
 	// Connect strictly read-only
-	// Also can disable foreign keys or just open standard URI
-	dsn := fmt.Sprintf("file:%s?mode=ro", path)
-	db, err := sql.Open("sqlite", dsn)
+	// Properly escape path for SQLite URI to avoid injection or breaking on '#' / '?'
+	parsedURL := &url.URL{
+		Scheme: "file",
+		Opaque: url.PathEscape(path),
+	}
+	q := parsedURL.Query()
+	q.Set("mode", "ro")
+	parsedURL.RawQuery = q.Encode()
+
+	db, err := sql.Open("sqlite", parsedURL.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
