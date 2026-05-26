@@ -35,7 +35,8 @@ async function main() {
 
         const objUuid = await storage.storePayload(schemaUuid, contentType, payload);
 
-        // Convert the object to JCS string then to bytes to hex
+        // Convert the object to JCS string then to bytes to hex.
+        // The expectedPayloadHex MUST strictly be the lowercase hex of the JCS canonical payload bytes.
         const jcsBytes = cryptoUtils.canonicalizeJson(payload);
         const expectedPayloadHex = jcsBytes.toString('hex');
 
