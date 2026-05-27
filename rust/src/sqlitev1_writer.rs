@@ -454,7 +454,6 @@ impl Writer {
                 },
             )
             .map_err(|e| WriterError::CryptoError(format!("Encrypt error: {}", e)))?;
-
         let now_ms = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
@@ -486,7 +485,6 @@ impl Writer {
         tx.commit()?;
         Ok(())
     }
-
     pub fn close(self) -> Result<(), WriterError> {
         self.conn
             .close()
