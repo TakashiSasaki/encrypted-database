@@ -248,6 +248,30 @@ sequenceDiagram
 
 **Note on Lifecycle Fields**: The minimal writer scaffolds intentionally leave complex key lifecycle fields (`activated_at_ms`, `deactivated_at_ms`, `destroyed_at_ms`, `description_json`, `device_id`) absent (NULL), as update/delete, key rotation, decrypt-only migrations, key destruction, and rewrap are not yet implemented.
 
+
+## SQLite Backend PRAGMA Profile (Writer)
+
+This section documents **writer defaults and required connection settings** for SQLite backends. It does not replace the normative requirements in [`docs/spec/storage-format-sqlite.md`](spec/storage-format-sqlite.md).
+
+### Required per-connection setting (normative)
+
+* `PRAGMA foreign_keys=ON`
+  * Required by the SQLite profile for V1 conformance.
+  * Must be executed immediately on each connection used for reads/writes.
+
+### Writer defaults during database creation
+
+* `PRAGMA page_size=4096`
+* `PRAGMA auto_vacuum=INCREMENTAL`
+* `PRAGMA synchronous=NORMAL`
+* `PRAGMA journal_mode=WAL` (**optional/recommended** for desktop/server file-backed SQLite; environments such as `sql.js` or some in-memory backends may differ per the SQLite profile exception notes).
+
+### Apply Timing Requirements
+
+* `page_size` and `auto_vacuum` **must be applied before schema creation** (before executing `docs/backend/sqlite/schema.sql`).
+* `journal_mode` and `synchronous` are connection-level durability/journaling configuration and must be set **outside an active transaction**.
+* Writers should set these PRAGMAs at initialization time before first write operations so subsequent schema/data writes follow the intended profile.
+
 ## Metadata and Compatibility
 
 *   **`PRAGMA application_id` and `PRAGMA user_version`**: SQLite-level magic numbers and schema versioning markers. These are the first checks performed by a reader to identify the file format before executing any queries.
@@ -263,6 +287,21 @@ Storage Format V1 uses Authenticated Encryption with Associated Data (AEAD), spe
 *   **Payload Envelope (`encrypted_object_tbl`)**: The `aad_policy` is `record-payload-v1`. The AAD is reconstructed using `object_uuid`, `schema_uuid`, `content_type`, `kid`, and `alg`. This cryptographically binds the encrypted payload to its surrounding metadata schema, preventing tampering or record-swapping attacks.
 
 *Note: The Go and Rust minimal writers populate these specific AAD policies during encryption, and read-only readers implement these policies strictly to validate integrity before returning plaintext.*
+
+
+## UpdatePayload / DeletePayload Behavior (Current Scaffold Scope)
+
+When update/delete APIs are present in a scaffold implementation, the expected Storage Format V1 behavior is:
+
+* **UpdatePayload**
+  * `object_uuid` is preserved (in-place logical record update).
+  * The existing `record_dek` (`kid`) is reused for that object.
+  * A **new nonce** and **new ciphertext** are generated for every update operation.
+  * `updated_at_ms` is refreshed while `created_at_ms` remains unchanged.
+* **DeletePayload**
+  * Delete removes only the row in `encrypted_object_tbl`.
+  * Related key rows are not immediately shredded by delete itself in the current model.
+  * Delete is a logical removal and is **not** a secure-erase guarantee at storage-medium level.
 
 ## Related Source Documents
 
