@@ -28,7 +28,7 @@ fn main() {
         }
     };
 
-    let writer = match create_new(db_path, passphrase, platform) {
+    let mut writer = match create_new(db_path, passphrase, platform) {
         Ok(w) => w,
         Err(e) => {
             eprintln!("Failed to create DB: {}", e);

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -18,6 +19,17 @@ import (
 	"golang.org/x/crypto/argon2"
 	_ "modernc.org/sqlite"
 )
+
+var (
+	// strictUUIDRegex enforces strict UUID shape: lowercase canonical text with accepted version (1-8) and RFC4122/RFC9562-compatible variant (8,9,a,b).
+	strictUUIDRegex = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+)
+
+func generateUUID() string {
+	u := uuid.New()
+	// google/uuid v4 produces canonical lowercase RFC4122 UUIDs (variant 8/9/a/b).
+	return u.String()
+}
 
 type Writer struct {
 	db          *sql.DB
@@ -73,107 +85,104 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	// Bootstrap schema
-	_, err = db.Exec(schemaSQL)
-	if err != nil {
-		db.Close()
-		return nil, fmt.Errorf("failed to execute schema: %w", err)
-	}
-	_, err = db.Exec("PRAGMA application_id = 1447906135")
-	if err != nil {
-		db.Close()
-		return nil, fmt.Errorf("failed to set PRAGMA application_id: %w", err)
-	}
-	_, err = db.Exec("PRAGMA user_version = 1")
-	if err != nil {
-		db.Close()
-		return nil, fmt.Errorf("failed to set PRAGMA user_version: %w", err)
-	}
+	// PRAGMA foreign_keys = ON should be set before any transactions
 	_, err = db.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
 		db.Close()
 		return nil, fmt.Errorf("failed to set PRAGMA foreign_keys: %w", err)
 	}
 
-	// Validate platform
-	var p string
-	err = db.QueryRow("SELECT platform FROM platform_tbl WHERE platform = ?", platform).Scan(&p)
-	if err != nil {
-		db.Close()
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("unsupported platform: %s", platform)
-		}
-		return nil, fmt.Errorf("failed to validate platform: %w", err)
-	}
-
-	dbKekBytes, err := generateRandomBytes(32)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-	dbKid := uuid.New().String()
-
-	salt, err := generateRandomBytes(16)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	unlockKekBytes := argon2.IDKey([]byte(passphrase), salt, 3, 65536, 1, 32)
-	unlockKid := uuid.New().String()
-
-	saltB64 := base64.RawURLEncoding.EncodeToString(salt)
-	providerConfig := map[string]interface{}{
-		"kdf":          "argon2id",
-		"profile":      "argon2id-profile-v1",
-		"salt":         saltB64,
-		"memory_kib":   65536,
-		"iterations":   3,
-		"parallelism":  1,
-		"output_bytes": 32,
-	}
-
-	providerConfigJson, err := jcs.Canonicalize(providerConfig)
-	if err != nil {
-		db.Close()
-		return nil, fmt.Errorf("failed to canonicalize provider config: %w", err)
-	}
-
-	wrapAlg := "A256GCM"
-	aadPolicyName := "wrap-database-key-v1"
-	aadBytes, err := aad.BuildWrapKeyV1(aadPolicyName, dbKid, unlockKid)
-	if err != nil {
-		db.Close()
-		return nil, fmt.Errorf("failed to build wrap key AAD: %w", err)
-	}
-
-	nonce, err := generateRandomBytes(12)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	block, err := aes.NewCipher(unlockKekBytes)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-	wrappedDbKek := aesgcm.Seal(nil, nonce, dbKekBytes, aadBytes)
-
 	tx, err := db.Begin()
 	if err != nil {
 		db.Close()
-		return nil, err
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
+
+	var activeDbKek []byte
+	var activeDbKid string
 
 	commitOrRollback := func() error {
 		defer tx.Rollback()
-		dbUuid := uuid.New().String()
+
+		// Bootstrap schema within transaction to ensure full cleanup on failure
+		_, err = tx.Exec(schemaSQL)
+		if err != nil {
+			return fmt.Errorf("failed to execute schema: %w", err)
+		}
+		_, err = tx.Exec("PRAGMA application_id = 1447906135")
+		if err != nil {
+			return fmt.Errorf("failed to set PRAGMA application_id: %w", err)
+		}
+		_, err = tx.Exec("PRAGMA user_version = 1")
+		if err != nil {
+			return fmt.Errorf("failed to set PRAGMA user_version: %w", err)
+		}
+
+		// Validate platform
+		var p string
+		err = tx.QueryRow("SELECT platform FROM platform_tbl WHERE platform = ?", platform).Scan(&p)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return fmt.Errorf("unsupported platform: %s", platform)
+			}
+			return fmt.Errorf("failed to validate platform: %w", err)
+		}
+
+		dbKekBytes, err := generateRandomBytes(32)
+		if err != nil {
+			return err
+		}
+		dbKid := generateUUID()
+		activeDbKek = dbKekBytes
+		activeDbKid = dbKid
+
+		salt, err := generateRandomBytes(16)
+		if err != nil {
+			return err
+		}
+
+		unlockKekBytes := argon2.IDKey([]byte(passphrase), salt, 3, 65536, 1, 32)
+		unlockKid := generateUUID()
+
+		saltB64 := base64.RawURLEncoding.EncodeToString(salt)
+		providerConfig := map[string]interface{}{
+			"kdf":          "argon2id",
+			"profile":      "argon2id-profile-v1",
+			"salt":         saltB64,
+			"memory_kib":   65536,
+			"iterations":   3,
+			"parallelism":  1,
+			"output_bytes": 32,
+		}
+
+		providerConfigJson, err := jcs.Canonicalize(providerConfig)
+		if err != nil {
+			return fmt.Errorf("failed to canonicalize provider config: %w", err)
+		}
+
+		wrapAlg := "A256GCM"
+		aadPolicyName := "wrap-database-key-v1"
+		aadBytes, err := aad.BuildWrapKeyV1(aadPolicyName, dbKid, unlockKid)
+		if err != nil {
+			return fmt.Errorf("failed to build wrap key AAD: %w", err)
+		}
+
+		nonce, err := generateRandomBytes(12)
+		if err != nil {
+			return err
+		}
+
+		block, err := aes.NewCipher(unlockKekBytes)
+		if err != nil {
+			return err
+		}
+		aesgcm, err := cipher.NewGCM(block)
+		if err != nil {
+			return err
+		}
+		wrappedDbKek := aesgcm.Seal(nil, nonce, dbKekBytes, aadBytes)
+
+		dbUuid := generateUUID()
 		nowMs := time.Now().UnixMilli()
 
 		metadata := map[string]string{
@@ -210,7 +219,7 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 		if err != nil {
 			return err
 		}
-		wrapId := uuid.New().String()
+		wrapId := generateUUID()
 		_, err = tx.Exec("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", wrapId, dbKid, unlockKid, 1, "key_wrap", wrapAlg, nonce, wrappedDbKek, aadPolicyName, nowMs)
 		if err != nil {
 			return err
@@ -226,8 +235,8 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 
 	return &Writer{
 		db:          db,
-		activeDbKek: dbKekBytes,
-		activeDbKid: dbKid,
+		activeDbKek: activeDbKek,
+		activeDbKid: activeDbKid,
 	}, nil
 }
 
@@ -242,16 +251,20 @@ func (w *Writer) StorePayload(schemaUUID string, contentType string, payload any
 	if w.activeDbKek == nil {
 		return "", errors.New("database is locked")
 	}
+	if !strictUUIDRegex.MatchString(schemaUUID) {
+		return "", errors.New("invalid schemaUUID")
+	}
+
 	if contentType == "" || !strings.Contains(contentType, "/") {
 		return "", errors.New("invalid content type")
 	}
 
-	objectUUID := uuid.New().String()
+	objectUUID := generateUUID()
 	recordDekBytes, err := generateRandomBytes(32)
 	if err != nil {
 		return "", err
 	}
-	recordKid := uuid.New().String()
+	recordKid := generateUUID()
 	alg := "A256GCM"
 
 	wrapAadPolicy := "wrap-record-key-v1"
@@ -276,7 +289,7 @@ func (w *Writer) StorePayload(schemaUUID string, contentType string, payload any
 
 	payloadStr, err := jcs.Canonicalize(payload)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to canonicalize payload: %w", err)
 	}
 	payloadBytes := []byte(payloadStr)
 
@@ -313,7 +326,7 @@ func (w *Writer) StorePayload(schemaUUID string, contentType string, payload any
 		return "", err
 	}
 
-	wrapId := uuid.New().String()
+	wrapId := generateUUID()
 	_, err = tx.Exec("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", wrapId, recordKid, w.activeDbKid, 1, "key_wrap", alg, nonceWrap, wrappedRecordDek, wrapAadPolicy, nowMs)
 	if err != nil {
 		return "", err

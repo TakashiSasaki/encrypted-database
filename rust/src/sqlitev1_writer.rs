@@ -94,15 +94,19 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
 
     let mut conn = Connection::open(path)?;
 
-    // Bootstrap schema
-    conn.execute_batch(&schema_sql)?;
-    conn.execute("PRAGMA application_id = 1447906135", [])?;
-    conn.execute("PRAGMA user_version = 1", [])?;
+    // Set PRAGMA foreign_keys = ON before transaction
     conn.execute("PRAGMA foreign_keys = ON", [])?;
+
+    let tx = conn.transaction()?;
+
+    // Bootstrap schema inside transaction
+    tx.execute_batch(&schema_sql)?;
+    tx.execute("PRAGMA application_id = 1447906135", [])?;
+    tx.execute("PRAGMA user_version = 1", [])?;
 
     // Validate platform
     {
-        let mut stmt = conn.prepare("SELECT platform FROM platform_tbl WHERE platform = ?1")?;
+        let mut stmt = tx.prepare("SELECT platform FROM platform_tbl WHERE platform = ?1")?;
         let platform_exists = stmt.exists([platform])?;
         if !platform_exists {
             return Err(WriterError::UnsupportedPlatform(platform.to_string()));
@@ -162,8 +166,6 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
         .unwrap()
         .as_millis() as i64;
 
-    let tx = conn.transaction()?;
-
     let now_ms_str = now_ms.to_string();
     let metadata = vec![
         ("storage_format_id", "vault.moukaeritai.work.storage"),
@@ -219,7 +221,7 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
 
 impl Writer {
     pub fn store_payload(
-        &self,
+        &mut self,
         schema_uuid: &str,
         content_type: &str,
         payload: &serde_json::Value,
@@ -227,6 +229,20 @@ impl Writer {
         if self.active_db_kek.is_empty() {
             return Err(WriterError::RequirementError("Database is locked".into()));
         }
+
+        // Validate schema_uuid manually to avoid pulling in regex dependency / LazyLock which requires newer Rust
+        let is_valid_uuid = schema_uuid.len() == 36
+            && schema_uuid.chars().enumerate().all(|(i, c)| match i {
+                8 | 13 | 18 | 23 => c == '-',
+                14 => ('1'..='8').contains(&c),
+                19 => ['8', '9', 'a', 'b'].contains(&c),
+                _ => c.is_ascii_hexdigit() && (c.is_ascii_lowercase() || c.is_ascii_digit()),
+            });
+
+        if !is_valid_uuid {
+            return Err(WriterError::RequirementError("Invalid schema_uuid".into()));
+        }
+
         if content_type.is_empty() || !content_type.contains('/') {
             return Err(WriterError::RequirementError("Invalid content type".into()));
         }
@@ -279,44 +295,28 @@ impl Writer {
             .unwrap()
             .as_millis() as i64;
 
-        // We use explicit `BEGIN TRANSACTION` and `COMMIT` previously.
-        // It is safer to use `transaction()` instead so it automatically rolls back on early return.
-        // However, we cannot use `self.conn.transaction()` without `&mut self`.
-        // We can just execute the BEGIN and map errors to explicit rollbacks if necessary, but
-        // since `Connection::transaction()` needs mutable reference, we'll manually ensure rollback on error.
-
-        self.conn.execute("BEGIN TRANSACTION", [])?;
-
         let wrap_id = generate_uuid()?;
 
-        let mut success = false;
-        let result = (|| -> Result<(), WriterError> {
-            self.conn.execute(
-                "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                (&record_kid, "record_dek", "encrypt_payload", alg, "active", now_ms),
-            )?;
+        let tx = self.conn.transaction()?;
 
-            self.conn.execute(
-                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
-                (&wrap_id, &record_kid, &self.active_db_kid, 1, "key_wrap", alg, &nonce_wrap, &wrapped_record_dek, wrap_aad_policy, now_ms),
-            )?;
+        tx.execute(
+            "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            (&record_kid, "record_dek", "encrypt_payload", alg, "active", now_ms),
+        )?;
 
-            self.conn.execute(
-                "INSERT INTO encrypted_object_tbl (object_uuid, envelope_v, envelope_type, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
-                (&object_uuid, 1, "aead", schema_uuid, content_type, alg, &record_kid, &nonce_payload, &ciphertext, payload_aad_policy, now_ms, now_ms),
-            )?;
+        tx.execute(
+            "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            (&wrap_id, &record_kid, &self.active_db_kid, 1, "key_wrap", alg, &nonce_wrap, &wrapped_record_dek, wrap_aad_policy, now_ms),
+        )?;
 
-            success = true;
-            Ok(())
-        })();
+        tx.execute(
+            "INSERT INTO encrypted_object_tbl (object_uuid, envelope_v, envelope_type, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+            (&object_uuid, 1, "aead", schema_uuid, content_type, alg, &record_kid, &nonce_payload, &ciphertext, payload_aad_policy, now_ms, now_ms),
+        )?;
 
-        if success {
-            self.conn.execute("COMMIT", [])?;
-            Ok(object_uuid)
-        } else {
-            let _ = self.conn.execute("ROLLBACK", []);
-            Err(result.unwrap_err())
-        }
+        tx.commit()?;
+
+        Ok(object_uuid)
     }
 
     pub fn close(self) -> Result<(), WriterError> {

@@ -192,6 +192,21 @@ The database utilizes an envelope encryption hierarchy to protect data while all
 4.  **`wrapped_key_tbl` (Record DEK Wrap)**: The unwrapped `database_kek` is then used to decrypt the Record Data-Encryption Key (`record_dek`). Here, `wrapping_kid` is the `database_kek`'s ID, and `wrapped_kid` is the `record_dek`'s ID.
 5.  **`encrypted_object_tbl`**: Finally, the unwrapped `record_dek` (`kid`) is used to decrypt the `ciphertext` payload of the requested object.
 
+## Database Initialization and Writer Population Flow
+
+When a new Storage Format V1 database is initialized by a writer (such as the Go or Rust scaffolds), the following sequence occurs to establish the cryptographic hierarchy and initial metadata:
+
+1.  **Schema Bootstrap**: The writer executes the canonical `docs/backend/sqlite/schema.sql`. This populates the database with **seed data** for static lookup tables (`key_class_tbl`, `key_profile_tbl`, `unlock_method_tbl`, `unlock_provider_tbl`, `platform_tbl`, `unlock_provider_platform_tbl`).
+2.  **Platform Validation**: The writer validates the caller-provided platform string against the populated `platform_tbl`.
+3.  **Root Key Generation**: The writer generates a new Database KEK (`database_kek`) and derives an Unlock KEK (`unlock_kek`) from the user's passphrase (e.g., via Argon2id).
+4.  **Metadata Insertion**: A new UUID is generated for the database, and the writer populates `storage_metadata_tbl` with format versions, library identifiers (e.g., `"vault-go"`, `"vault-rust"`), timestamps, and feature flags.
+5.  **Key and Wrap Insertion**:
+    - The `database_kek` and `unlock_kek` are inserted into `key_tbl` with a status of `active`.
+    - The `unlock_kek` configuration (like Argon2id salt and parameters) is canonicalized into JSON and stored in `unlock_kek_tbl.provider_config_json`.
+    - The `database_kek` is encrypted with the `unlock_kek`. The resulting ciphertext and envelope metadata are stored as a new row in `wrapped_key_tbl`, utilizing the `wrap-database-key-v1` AAD policy.
+
+**Note on Lifecycle Fields**: The minimal writer scaffolds intentionally leave complex key lifecycle fields (e.g., `activated_at_ms`, `deactivated_at_ms`, `destroyed_at_ms`, `device_id`) absent (NULL), as update/delete, key rotation, and decrypt-only migrations are not yet implemented.
+
 ## Metadata and Compatibility
 
 *   **`PRAGMA application_id` and `PRAGMA user_version`**: SQLite-level magic numbers and schema versioning markers. These are the first checks performed by a reader to identify the file format before executing any queries.
@@ -202,10 +217,11 @@ The database utilizes an envelope encryption hierarchy to protect data while all
 
 Storage Format V1 uses Authenticated Encryption with Associated Data (AEAD), specifically AES-256-GCM. The `aad_policy` column dictates how the Additional Authenticated Data (AAD) is constructed before decryption is attempted.
 
-*   **Key-Wrap Envelope (`wrapped_key_tbl`)**: The `aad_policy` (e.g., `key-wrap-v1`) indicates that the AAD is built using contextual fields such as `wrap_id`, `wrapped_kid`, `wrapping_kid`, `envelope_v`, `envelope_type`, and `wrap_alg`. This prevents a wrapped key from being maliciously transplanted to a different ID or context.
-*   **Payload Envelope (`encrypted_object_tbl`)**: The `aad_policy` (e.g., `record-payload-v1`) dictates that the AAD is reconstructed using `object_uuid`, `schema_uuid`, `content_type`, `kid`, and `alg`. This cryptographically binds the encrypted payload to its surrounding metadata schema, preventing tampering or record-swapping attacks.
+*   **Database Key-Wrap Envelope (`wrapped_key_tbl`)**: The `aad_policy` is `wrap-database-key-v1`. It binds the wrap context specifically for the database-level key.
+*   **Record Key-Wrap Envelope (`wrapped_key_tbl`)**: The `aad_policy` is `wrap-record-key-v1`. It binds the wrap context for individual record DEKs.
+*   **Payload Envelope (`encrypted_object_tbl`)**: The `aad_policy` is `record-payload-v1`. The AAD is reconstructed using `object_uuid`, `schema_uuid`, `content_type`, `kid`, and `alg`. This cryptographically binds the encrypted payload to its surrounding metadata schema, preventing tampering or record-swapping attacks.
 
-*Note: Read-only readers implement these policies strictly to validate integrity before returning plaintext. Full writer implementations will construct these envelopes during encryption.*
+*Note: The Go and Rust minimal writers populate these specific AAD policies during encryption, and read-only readers implement these policies strictly to validate integrity before returning plaintext.*
 
 ## Related Source Documents
 
