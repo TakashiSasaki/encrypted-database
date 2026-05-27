@@ -251,17 +251,23 @@ sequenceDiagram
 
 ## SQLite Backend PRAGMA Profile (Writer)
 
-For SQLite backend writers, the V1 profile uses the following PRAGMAs during database creation:
+This section documents **writer defaults and connection-setting guidance** for SQLite backends. It does not replace the normative requirements in [`docs/spec/storage-format-sqlite.md`](spec/storage-format-sqlite.md).
+
+### Normative requirement reference
+
+For normative per-connection PRAGMA requirements (including `PRAGMA foreign_keys=ON`), follow [`docs/spec/storage-format-sqlite.md` §4 Required PRAGMAs](spec/storage-format-sqlite.md).
+
+### Writer defaults during database creation
 
 * `PRAGMA page_size=4096`
 * `PRAGMA auto_vacuum=INCREMENTAL`
-* `PRAGMA journal_mode=WAL`
 * `PRAGMA synchronous=NORMAL`
+* `PRAGMA journal_mode=WAL` (**optional/recommended** for desktop/server file-backed SQLite; environments such as `sql.js` or some in-memory backends may differ per the SQLite profile exception notes).
 
-### Apply Timing Requirements
+### Apply Timing Guidance (Writer Defaults)
 
-* `page_size` and `auto_vacuum` **must be applied before schema creation** (before executing `docs/backend/sqlite/schema.sql`).
-* `journal_mode` and `synchronous` are connection-level durability/journaling configuration and must be set **outside an active transaction**.
+* If using these writer defaults, apply `page_size` and `auto_vacuum` **before schema creation** (before executing `docs/backend/sqlite/schema.sql`).
+* `journal_mode` and `synchronous` are connection-level durability/journaling settings and should be configured **outside an active transaction** during initialization.
 * Writers should set these PRAGMAs at initialization time before first write operations so subsequent schema/data writes follow the intended profile.
 
 ## Metadata and Compatibility
@@ -283,7 +289,7 @@ Storage Format V1 uses Authenticated Encryption with Associated Data (AEAD), spe
 
 ## UpdatePayload / DeletePayload Behavior (Current Scaffold Scope)
 
-When update/delete APIs are present in a scaffold implementation, the expected Storage Format V1 behavior is:
+When update/delete APIs are present in a scaffold implementation, the following is **non-normative guidance** describing current scaffold behavior (not a normative V1 requirement):
 
 * **UpdatePayload**
   * `object_uuid` is preserved (in-place logical record update).

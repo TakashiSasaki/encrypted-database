@@ -7,7 +7,8 @@ This document tracks how each field in the Storage Format V1 SQLite schema is ha
 *   **populated by writer**: Actively written by the implementation (with dynamic values).
 *   **derived by writer**: Computed from other values (e.g., AAD generated from context).
 *   **generated random value**: Created using a CSRNG (e.g., UUIDs, nonces, salt).
-*   **generated deterministic metadata**: Constant or context-specific values (e.g., library name).
+*   **generated deterministic metadata**: Constant or context-specific values (e.g., library name, fixed key-class labels).
+*   **generated runtime metadata**: Generated at runtime but not random (e.g., current timestamp in milliseconds).
 *   **copied from API input**: Directly taken from caller arguments (e.g., `passphrase`, `platform`, `schema_uuid`).
 *   **copied from schema/default**: Taken from schema definitions or static values (e.g., `1` for `envelope_v`).
 *   **validated only**: Read or constrained, but not directly populated.
@@ -22,7 +23,7 @@ This document tracks how each field in the Storage Format V1 SQLite schema is ha
 | Field | Source | Python/Node | Go/Rust | Notes |
 |---|---|---|---|---|
 | `property` | populated by writer | populated | populated | Keys for metadata properties. |
-| `value` | generated deterministic metadata, generated random value | populated | populated | Contains format ID, db UUID, library versions, timestamp, features (`[]`). Go/Rust output `"vault-go"` / `"vault-rust"` and `"0.0.0-dev"`. |
+| `value` | generated deterministic metadata, generated runtime metadata, generated random value | populated | populated | Contains format ID, db UUID, library versions, timestamp, features (`[]`). Go/Rust output `"vault-go"` / `"vault-rust"` and `"0.0.0-dev"`. |
 
 ### `key_class_tbl`, `key_profile_tbl`, `unlock_method_tbl`, `unlock_provider_tbl`, `platform_tbl`, `unlock_provider_platform_tbl`
 
@@ -38,7 +39,7 @@ These tables contain static seed data populated during schema initialization.
 | `purpose` | generated deterministic metadata | populated | populated | `wrap_database_keys`, `wrap_record_keys`, `encrypt_payload` |
 | `alg` | copied from schema/default | populated | populated | `A256GCM` |
 | `status` | copied from schema/default | populated | populated | Set to `active`. Other values (`decrypt_only`, etc.) are ignored. |
-| `created_at_ms` | generated deterministic metadata | populated | populated | Current time in MS |
+| `created_at_ms` | generated runtime metadata | populated | populated | Current time in MS |
 | `activated_at_ms` | intentionally left absent | absent (NULL) | absent (NULL) | Key lifecycle (delayed activation) not supported. |
 | `deactivated_at_ms` | intentionally left absent | absent (NULL) | absent (NULL) | Key lifecycle (rotation) not supported. |
 | `destroyed_at_ms` | intentionally left absent | absent (NULL) | absent (NULL) | Key lifecycle (destruction) not supported. |
@@ -67,7 +68,7 @@ These tables contain static seed data populated during schema initialization.
 | `nonce` | generated random value | 12 bytes | 12 bytes | |
 | `wrapped_key` | derived by writer | populated | populated | AES-GCM output (ciphertext \|\| tag). |
 | `aad_policy` | derived by writer | populated | populated | `wrap-database-key-v1` or `wrap-record-key-v1`. |
-| `created_at_ms` | generated deterministic metadata | populated | populated | Current time in MS |
+| `created_at_ms` | generated runtime metadata | populated | populated | Current time in MS |
 
 ### `encrypted_object_tbl`
 
