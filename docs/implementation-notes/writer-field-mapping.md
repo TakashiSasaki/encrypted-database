@@ -84,7 +84,17 @@ These tables contain static seed data populated during schema initialization.
 | `ciphertext` | derived by writer | populated | populated | AES-GCM output (ciphertext \|\| tag). |
 | `aad_policy` | derived by writer | populated | populated | `record-payload-v1` |
 | `created_at_ms` | generated deterministic metadata | populated | populated | Current time in MS |
-| `updated_at_ms` | generated deterministic metadata | populated | populated | Same as `created_at_ms` (no updates supported yet). |
+| `updated_at_ms` | generated deterministic metadata | populated | populated | Set on insert; on future update flows this field must be refreshed while `created_at_ms` is preserved. |
+
+
+## Update/Delete Field Handling Rules
+
+When implementations expose `UpdatePayload` / `DeletePayload`, field behavior should remain consistent with V1 semantics:
+
+* `encrypted_object_tbl.updated_at_ms`: updated to the current timestamp for update operations.
+* `encrypted_object_tbl.created_at_ms`: preserved from original insert (not rewritten on update).
+* `encrypted_object_tbl.object_uuid`: preserved on update, removed only on delete.
+* Key tables (`key_tbl`, `wrapped_key_tbl`, `unlock_kek_tbl`): unchanged by payload update/delete in the minimal lifecycle scope (no automatic key rotation, destruction, or rewrap side effects).
 
 ## Summary
 
