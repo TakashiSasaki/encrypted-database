@@ -124,6 +124,14 @@ fn validate_argon2id_config(config_json: &str) -> Result<Vec<u8>, ReaderError> {
 }
 
 impl ReadOnlyReader {
+    pub fn get_active_db_kek(&self) -> &[u8] {
+        &self.active_db_kek
+    }
+
+    pub fn get_active_db_kid(&self) -> &str {
+        &self.active_db_kid
+    }
+
     fn unlock_database(&mut self, passphrase: &str) -> Result<(), ReaderError> {
         let mut stmt = self.conn.prepare(
             "SELECT kid FROM key_tbl WHERE key_class = 'database_kek' AND status = 'active' LIMIT 1",

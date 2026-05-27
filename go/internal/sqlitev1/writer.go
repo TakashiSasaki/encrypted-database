@@ -64,6 +64,38 @@ func loadSchemaSQL() (string, error) {
 	return string(b), nil
 }
 
+func OpenWriter(path string, passphrase string) (*Writer, error) {
+	if passphrase == "" {
+		return nil, errors.New("passphrase must be a non-empty string")
+	}
+
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
+
+	_, err = db.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to set PRAGMA foreign_keys: %w", err)
+	}
+
+	r := &Reader{db: db}
+	err = r.unlockDatabase(passphrase)
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	w := &Writer{
+		db:          db,
+		activeDbKek: r.activeDbKek,
+		activeDbKid: r.activeDbKid,
+	}
+
+	return w, nil
+}
+
 func CreateNew(path string, passphrase string, platform string) (*Writer, error) {
 	if passphrase == "" {
 		return nil, errors.New("passphrase must be a non-empty string")
@@ -336,4 +368,149 @@ func (w *Writer) StorePayload(schemaUUID string, contentType string, payload any
 	}
 
 	return objectUUID, nil
+}
+
+func (w *Writer) UpdatePayload(objectUUID string, schemaUUID string, contentType string, payload any) error {
+	if w.activeDbKek == nil {
+		return errors.New("database is locked")
+	}
+
+	if !uuidRegex.MatchString(objectUUID) {
+		return errors.New("invalid objectUUID")
+	}
+	if !uuidRegex.MatchString(schemaUUID) {
+		return errors.New("invalid schemaUUID")
+	}
+	if contentType == "" || !strings.Contains(contentType, "/") {
+		return errors.New("invalid content type")
+	}
+
+	var envelopeV int
+	var envelopeType, alg, recordKid, aadPolicy string
+	err := w.db.QueryRow("SELECT envelope_v, envelope_type, alg, kid, aad_policy FROM encrypted_object_tbl WHERE object_uuid = ?", objectUUID).
+		Scan(&envelopeV, &envelopeType, &alg, &recordKid, &aadPolicy)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("object %s not found", objectUUID)
+		}
+		return fmt.Errorf("failed to query encrypted object: %w", err)
+	}
+
+	if envelopeV != 1 {
+		return fmt.Errorf("unsupported envelope_v %d", envelopeV)
+	}
+	if envelopeType != "aead" {
+		return fmt.Errorf("unsupported envelope_type %s", envelopeType)
+	}
+	if alg != "A256GCM" {
+		return fmt.Errorf("unsupported algorithm %s", alg)
+	}
+	if aadPolicy != "record-payload-v1" {
+		return fmt.Errorf("unsupported aad_policy %s", aadPolicy)
+	}
+	if recordKid == "" {
+		return errors.New("missing kid in object")
+	}
+
+	var wrapAlg, wrapAadPolicy, wrapEnvelopeType string
+	var wrapEnvelopeV int
+	var nonceWrap, wrappedRecordDek []byte
+	err = w.db.QueryRow("SELECT envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?", recordKid, w.activeDbKid).
+		Scan(&wrapEnvelopeV, &wrapEnvelopeType, &wrapAlg, &nonceWrap, &wrappedRecordDek, &wrapAadPolicy)
+	if err != nil {
+		return fmt.Errorf("failed to query wrapped key: %w", err)
+	}
+
+	if wrapEnvelopeV != 1 || wrapEnvelopeType != "key_wrap" || wrapAlg != "A256GCM" || wrapAadPolicy != "wrap-record-key-v1" {
+		return errors.New("unsupported wrapped key format")
+	}
+
+	wrapAadBytes, err := aad.BuildWrapKeyV1(wrapAadPolicy, recordKid, w.activeDbKid)
+	if err != nil {
+		return fmt.Errorf("failed to build wrap AAD: %w", err)
+	}
+
+	blockWrap, err := aes.NewCipher(w.activeDbKek)
+	if err != nil {
+		return err
+	}
+	aesgcmWrap, err := cipher.NewGCM(blockWrap)
+	if err != nil {
+		return err
+	}
+	recordDekBytes, err := aesgcmWrap.Open(nil, nonceWrap, wrappedRecordDek, wrapAadBytes)
+	if err != nil {
+		return fmt.Errorf("failed to unwrap record DEK: %w", err)
+	}
+
+	payloadStr, err := jcs.Canonicalize(payload)
+	if err != nil {
+		return fmt.Errorf("failed to canonicalize payload: %w", err)
+	}
+	payloadBytes := []byte(payloadStr)
+
+	payloadAadBytes, err := aad.BuildRecordPayloadV1(objectUUID, schemaUUID, contentType, recordKid, alg)
+	if err != nil {
+		return err
+	}
+
+	noncePayload, err := generateRandomBytes(12)
+	if err != nil {
+		return err
+	}
+	blockPayload, err := aes.NewCipher(recordDekBytes)
+	if err != nil {
+		return err
+	}
+	aesgcmPayload, err := cipher.NewGCM(blockPayload)
+	if err != nil {
+		return err
+	}
+	ciphertext := aesgcmPayload.Seal(nil, noncePayload, payloadBytes, payloadAadBytes)
+
+	nowMs := time.Now().UnixMilli()
+
+	result, err := w.db.Exec("UPDATE encrypted_object_tbl SET schema_uuid = ?, content_type = ?, nonce = ?, ciphertext = ?, updated_at_ms = ? WHERE object_uuid = ?", schemaUUID, contentType, noncePayload, ciphertext, nowMs, objectUUID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("object %s not found during update", objectUUID)
+	}
+
+	return nil
+}
+
+// DeletePayload performs a logical hard delete of the encrypted object from the database.
+// This is not a secure erase operation.
+// In the current initial API, this operation does not clean up related key material rows
+// (such as record_dek or wrapped keys).
+func (w *Writer) DeletePayload(objectUUID string) error {
+	if w.activeDbKek == nil {
+		return errors.New("database is locked")
+	}
+
+	if !uuidRegex.MatchString(objectUUID) {
+		return errors.New("invalid objectUUID")
+	}
+
+	result, err := w.db.Exec("DELETE FROM encrypted_object_tbl WHERE object_uuid = ?", objectUUID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("object %s not found", objectUUID)
+	}
+
+	return nil
 }

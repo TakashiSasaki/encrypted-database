@@ -14,14 +14,20 @@ DB_GO="$DIR/go_writer.db"
 DB_RUST="$DIR/rust_writer.db"
 
 # Cleanup on exit
-trap 'rm -f "$DB_GO" "$DB_RUST" "$DIR/go_write_matrix" "$DIR/rust_write_matrix"' EXIT
+trap 'rm -f "$DB_GO" "$DB_RUST" "$DIR/go_write_matrix" "$DIR/go_write_matrix_update" "$DIR/go_write_matrix_delete" "$DIR/rust_write_matrix" "$DIR/rust_write_matrix_update" "$DIR/rust_write_matrix_delete"' EXIT
 
 echo "Building Go wrapper..."
 (cd "$ROOT_DIR/go" && go build -o "$DIR/go_write_matrix" ./cmd/write_matrix_fixture)
+(cd "$ROOT_DIR/go" && go build -o "$DIR/go_write_matrix_update" ./cmd/write_matrix_update)
+(cd "$ROOT_DIR/go" && go build -o "$DIR/go_write_matrix_delete" ./cmd/write_matrix_delete)
 
 echo "Building Rust wrapper..."
 (cd "$ROOT_DIR/rust" && cargo build --bin write_matrix_fixture)
 cp "$ROOT_DIR/rust/target/debug/write_matrix_fixture" "$DIR/rust_write_matrix"
+(cd "$ROOT_DIR/rust" && cargo build --bin write_matrix_update)
+(cd "$ROOT_DIR/rust" && cargo build --bin write_matrix_delete)
+cp "$ROOT_DIR/rust/target/debug/write_matrix_update" "$DIR/rust_write_matrix_update"
+cp "$ROOT_DIR/rust/target/debug/write_matrix_delete" "$DIR/rust_write_matrix_delete"
 
 echo "Preparing Node.js environment..."
 (cd "$ROOT_DIR/nodejs" && npm ci > /dev/null 2>&1)
@@ -35,7 +41,9 @@ run_test() {
     local reader_name="$2"
     local db_path="$3"
     local write_cmd="$4"
-    local env_vars="$5"
+    local update_cmd="$5"
+    local delete_cmd="$6"
+    local env_vars="$7"
 
     echo "=== Testing $writer_name Writer -> $reader_name Reader ==="
     rm -f "$db_path"
@@ -75,16 +83,16 @@ run_test() {
 }
 
 # Go tests
-run_test "Go" "Go" "$DB_GO" "$DIR/go_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
-run_test "Go" "Rust" "$DB_GO" "$DIR/go_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
-run_test "Go" "Python" "$DB_GO" "$DIR/go_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
-run_test "Go" "Node" "$DB_GO" "$DIR/go_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Go" "Go" "$DB_GO" "$DIR/go_write_matrix" "$DIR/go_write_matrix_update" "$DIR/go_write_matrix_delete" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Go" "Rust" "$DB_GO" "$DIR/go_write_matrix" "$DIR/go_write_matrix_update" "$DIR/go_write_matrix_delete" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Go" "Python" "$DB_GO" "$DIR/go_write_matrix" "$DIR/go_write_matrix_update" "$DIR/go_write_matrix_delete" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Go" "Node" "$DB_GO" "$DIR/go_write_matrix" "$DIR/go_write_matrix_update" "$DIR/go_write_matrix_delete" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
 
 # Rust tests
-run_test "Rust" "Rust" "$DB_RUST" "$DIR/rust_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
-run_test "Rust" "Go" "$DB_RUST" "$DIR/rust_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
-run_test "Rust" "Python" "$DB_RUST" "$DIR/rust_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
-run_test "Rust" "Node" "$DB_RUST" "$DIR/rust_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Rust" "Rust" "$DB_RUST" "$DIR/rust_write_matrix" "$DIR/rust_write_matrix_update" "$DIR/rust_write_matrix_delete" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Rust" "Go" "$DB_RUST" "$DIR/rust_write_matrix" "$DIR/rust_write_matrix_update" "$DIR/rust_write_matrix_delete" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Rust" "Python" "$DB_RUST" "$DIR/rust_write_matrix" "$DIR/rust_write_matrix_update" "$DIR/rust_write_matrix_delete" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Rust" "Node" "$DB_RUST" "$DIR/rust_write_matrix" "$DIR/rust_write_matrix_update" "$DIR/rust_write_matrix_delete" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
 
 # Clean up binaries
 rm -f "$DIR/go_write_matrix" "$DIR/rust_write_matrix"
