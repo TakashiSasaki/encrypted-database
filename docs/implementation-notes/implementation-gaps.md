@@ -247,7 +247,7 @@ None.
 
 **Status:** Active
 **Area:** Cryptography / Interoperability
-**Current state:** Go/Rust initial writer scaffolds exist. They implement database creation and payload insertion. A local/manual write-matrix harness proves Go/Rust writer outputs can be checked against Go/Rust/Python/Node readers and currently pass. However, Go/Rust writers are still not full production-ready storage libraries. CI integration of write-matrix is not yet done. Features like update/delete, key rotation, decrypt-only migration, key lifecycle operations, key destruction, rewrap, and public API maturity remain future work.
+**Current state:** Go/Rust initial writer scaffolds exist. They implement database creation and payload insertion. A write-matrix harness validates 8 combinations (Go/Rust writers vs Go/Rust/Python/Node readers) and passes locally. A manual `workflow_dispatch` GitHub Actions workflow has been added for this write-matrix, but it is not yet promoted to automatically run on `push` or `pull_request`. However, Go/Rust writers are still not full production-ready storage libraries. Features like update/delete, key rotation, decrypt-only migration, key destruction, rewrap, additional unlock providers, blind index, and public API maturity remain future work.
 **Expected or intended state:** Go and Rust implementations are complete, production-ready storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
-**Recommended next action:** Stabilize the local write-matrix harness, then decide whether to add a manual/path-filtered CI workflow before proceeding to update/delete and key lifecycle APIs.
+**Recommended next action:** Run and stabilize the manual Write Matrix workflow, then decide whether to promote it to path-filtered pull_request / push before proceeding to update/delete and key lifecycle APIs.

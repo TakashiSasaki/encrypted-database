@@ -5,7 +5,7 @@ This directory contains experimental cross-language interoperability tests valid
 ## Overview
 The `test_writer_matrix.sh` script orchestrates roundtrip tests between the Go and Rust experimental writers and the Go, Rust, Python, and Node.js readers. It verifies that databases created and populated by the Go/Rust writer scaffolds can be successfully unlocked and the payloads correctly decrypted by all baseline language implementations.
 
-**Note:** This is a local, manual test harness. Go and Rust writer implementations are currently portability scaffolds and do not represent the final production-ready public APIs (features like update, delete, and key lifecycle are intentionally absent). As such, these tests are not integrated into the automated CI workflows yet.
+**Note:** Go and Rust writer implementations are currently portability scaffolds and do not represent final production-ready public APIs (features like update, delete, and key lifecycle are intentionally absent). This test matrix is not yet integrated into automated `push` or `pull_request` CI workflows. It can be run either locally or manually via the GitHub Actions `Write Matrix` workflow using `workflow_dispatch`.
 
 ## Prerequisites
 - Go 1.21+
@@ -14,10 +14,15 @@ The `test_writer_matrix.sh` script orchestrates roundtrip tests between the Go a
 - Python 3.10+ (pip installed)
 
 ## Usage
+
+### Local Execution
 Run the test script directly:
 ```bash
-./test_writer_matrix.sh
+bash integration-tests/write-matrix/test_writer_matrix.sh
 ```
+
+### Manual CI Execution
+Trigger the `Write Matrix` workflow via GitHub Actions using the `workflow_dispatch` event.
 
 *Note: The script will automatically attempt to install the necessary local Python and Node.js dependencies (`pip install -e .[test]` and `npm ci`) before running.*
 
