@@ -383,6 +383,11 @@ impl Writer {
             .unwrap()
             .as_millis() as i64;
         let tx = self.conn.transaction()?;
+        tx.execute("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            (&record_kid, "record_dek", "encrypt_payload", alg, "active", now_ms))?;
+        let wrap_id = generate_uuid()?;
+        tx.execute("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            (&wrap_id, &record_kid, &self.active_db_kid, 1, "key_wrap", alg, &nonce_wrap, &wrapped_record_dek, wrap_aad_policy, now_ms))?;
         let updated = tx.execute(
             "UPDATE encrypted_object_tbl SET schema_uuid = ?1, content_type = ?2, alg = ?3, kid = ?4, nonce = ?5, ciphertext = ?6, aad_policy = ?7, updated_at_ms = ?8 WHERE object_uuid = ?9",
             (schema_uuid, content_type, alg, &record_kid, &nonce_payload, &ciphertext, payload_aad_policy, now_ms, object_uuid),
@@ -390,11 +395,6 @@ impl Writer {
         if updated == 0 {
             return Err(WriterError::RequirementError("Object not found".into()));
         }
-        tx.execute("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            (&record_kid, "record_dek", "encrypt_payload", alg, "active", now_ms))?;
-        let wrap_id = generate_uuid()?;
-        tx.execute("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
-            (&wrap_id, &record_kid, &self.active_db_kid, 1, "key_wrap", alg, &nonce_wrap, &wrapped_record_dek, wrap_aad_policy, now_ms))?;
         tx.commit()?;
         Ok(())
     }
