@@ -19,7 +19,7 @@ Additionally, a SQLite V1 read-only database unlock/decrypt reader and an experi
 * Additional unlock providers.
 * Blind indexing.
 * Production-ready public API guarantees.
-* Write-matrix automated CI integration (currently exists as a local/manual test harness).
+* Write-matrix automated CI integration (currently exists as a local/manual test harness and a manual `workflow_dispatch` workflow only, not automatically run on push/PR).
 
 ## Testing
 
