@@ -370,6 +370,17 @@ func (w *Writer) UpdatePayload(objectUUID string, schemaUUID string, contentType
 	if alg != "A256GCM" {
 		return errors.New("unsupported object alg")
 	}
+	var recordDekStatus string
+	err = tx.QueryRow("SELECT status FROM key_tbl WHERE kid = ? AND key_class = 'record_dek'", recordKid).Scan(&recordDekStatus)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%w: record DEK %s not found", ErrNotFound, recordKid)
+		}
+		return fmt.Errorf("failed to query record DEK status: %w", err)
+	}
+	if recordDekStatus != "active" {
+		return fmt.Errorf("%w: record DEK status must be active", ErrInvalidStatus)
+	}
 
 	var envelopeV int64
 	var envelopeType, wrapAlg, wrapAadPolicy string

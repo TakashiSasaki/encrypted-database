@@ -362,6 +362,19 @@ impl Writer {
                 "Unsupported object alg".to_string(),
             ));
         }
+        let record_dek_status: String = tx
+            .query_row(
+                "SELECT status FROM key_tbl WHERE kid = ?1 AND key_class = 'record_dek'",
+                [&record_kid],
+                |r| r.get(0),
+            )
+            .optional()?
+            .ok_or_else(|| WriterError::NotFound(format!("record DEK {} not found", record_kid)))?;
+        if record_dek_status != "active" {
+            return Err(WriterError::RequirementError(
+                "record DEK status must be active".to_string(),
+            ));
+        }
 
         let (envelope_v, envelope_type, wrap_alg, nonce_wrap, wrapped_record_dek, wrap_aad_policy) = tx
             .query_row(
