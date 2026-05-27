@@ -1,4 +1,5 @@
 use serde_json::json;
+use rusqlite::Connection;
 use tempfile::tempdir;
 use vault_moukaeritai_work::sqlitev1::validate_read_only;
 use vault_moukaeritai_work::sqlitev1_reader::open_read_only;
@@ -118,4 +119,136 @@ fn test_writer_multiple_payloads() {
     for obj_uuid in uuids {
         assert!(reader.decrypt_object(&obj_uuid).is_ok());
     }
+}
+
+#[test]
+fn test_writer_update_payload_roundtrip_and_timestamps() {
+    let dir = tempdir().unwrap();
+    let db_path = dir.path().join("test_writer_update.db");
+    let passphrase = "test-passphrase";
+    let mut writer = create_new(&db_path, passphrase, "linux").expect("Failed to create db");
+
+    let schema_uuid = "00000000-0000-4000-8000-000000000001";
+    let content_type = "application/json";
+    let obj_uuid = writer
+        .store_payload(schema_uuid, content_type, &json!({"v": 1}))
+        .expect("store failed");
+
+    let conn = Connection::open(&db_path).unwrap();
+    let (created_before, updated_before): (i64, i64) = conn
+        .query_row(
+            "SELECT created_at_ms, updated_at_ms FROM encrypted_object_tbl WHERE object_uuid = ?1",
+            [&obj_uuid],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )
+        .unwrap();
+
+    std::thread::sleep(std::time::Duration::from_millis(2));
+    writer
+        .update_payload(
+            &obj_uuid,
+            "00000000-0000-4000-8000-000000000002",
+            "application/merge-patch+json",
+            &json!({"v": 2, "hello": "world"}),
+        )
+        .expect("update failed");
+    writer.close().unwrap();
+
+    let (created_after, updated_after, schema_after, content_after): (i64, i64, String, String) =
+        conn.query_row(
+            "SELECT created_at_ms, updated_at_ms, schema_uuid, content_type FROM encrypted_object_tbl WHERE object_uuid = ?1",
+            [&obj_uuid],
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
+        ).unwrap();
+    assert_eq!(created_after, created_before, "created_at_ms must be preserved");
+    assert!(updated_after > updated_before, "updated_at_ms must advance");
+    assert_eq!(schema_after, "00000000-0000-4000-8000-000000000002");
+    assert_eq!(content_after, "application/merge-patch+json");
+
+    let reader = open_read_only(&db_path, passphrase).expect("reader open failed");
+    let plaintext = reader.decrypt_object(&obj_uuid).expect("decrypt failed");
+    assert_eq!(
+        String::from_utf8(plaintext).unwrap(),
+        r#"{"hello":"world","v":2}"#
+    );
+}
+
+#[test]
+fn test_writer_delete_payload_only_deletes_object_row() {
+    let dir = tempdir().unwrap();
+    let db_path = dir.path().join("test_writer_delete.db");
+    let passphrase = "test-passphrase";
+    let mut writer = create_new(&db_path, passphrase, "linux").expect("Failed to create db");
+
+    let obj_uuid = writer
+        .store_payload(
+            "00000000-0000-4000-8000-000000000001",
+            "application/json",
+            &json!({"x": 1}),
+        )
+        .expect("store failed");
+
+    let conn = Connection::open(&db_path).unwrap();
+    let key_count_before: i64 = conn
+        .query_row("SELECT COUNT(*) FROM key_tbl", [], |r| r.get(0))
+        .unwrap();
+    let wrapped_count_before: i64 = conn
+        .query_row("SELECT COUNT(*) FROM wrapped_key_tbl", [], |r| r.get(0))
+        .unwrap();
+    let unlock_count_before: i64 = conn
+        .query_row("SELECT COUNT(*) FROM unlock_kek_tbl", [], |r| r.get(0))
+        .unwrap();
+
+    writer.delete_payload(&obj_uuid).expect("delete failed");
+    writer.close().unwrap();
+
+    let object_count_after: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM encrypted_object_tbl WHERE object_uuid = ?1",
+            [&obj_uuid],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(object_count_after, 0);
+
+    let key_count_after: i64 = conn
+        .query_row("SELECT COUNT(*) FROM key_tbl", [], |r| r.get(0))
+        .unwrap();
+    let wrapped_count_after: i64 = conn
+        .query_row("SELECT COUNT(*) FROM wrapped_key_tbl", [], |r| r.get(0))
+        .unwrap();
+    let unlock_count_after: i64 = conn
+        .query_row("SELECT COUNT(*) FROM unlock_kek_tbl", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(key_count_after, key_count_before);
+    assert_eq!(wrapped_count_after, wrapped_count_before);
+    assert_eq!(unlock_count_after, unlock_count_before);
+}
+
+#[test]
+fn test_writer_update_delete_validation_and_not_found() {
+    let dir = tempdir().unwrap();
+    let db_path = dir.path().join("test_writer_update_delete_negative.db");
+    let mut writer = create_new(&db_path, "test-passphrase", "linux").expect("create failed");
+    let payload = json!({"ok": true});
+
+    assert!(writer
+        .update_payload("invalid-uuid", "00000000-0000-4000-8000-000000000001", "application/json", &payload)
+        .is_err());
+    assert!(writer
+        .update_payload("00000000-0000-4000-8000-000000000010", "invalid-uuid", "application/json", &payload)
+        .is_err());
+    assert!(writer
+        .update_payload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "invalid_type", &payload)
+        .is_err());
+    assert!(writer
+        .delete_payload("invalid-uuid")
+        .is_err());
+
+    assert!(writer
+        .update_payload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "application/json", &payload)
+        .is_err());
+    assert!(writer
+        .delete_payload("00000000-0000-4000-8000-000000000010")
+        .is_err());
 }
