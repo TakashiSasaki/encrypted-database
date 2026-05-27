@@ -56,15 +56,15 @@ run_test() {
         (cd "$ROOT_DIR/rust" && VAULT_SQLITE_V1_FIXTURE_DB="$db_path" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$obj_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="$expected_payload_hex" cargo test --test sqlitev1_external_fixture)
     elif [ "$reader_name" == "Python" ]; then
         local py_out=$(python3 "$DIR/read_fixture_python.py" "$db_path" "$PASSPHRASE" "$obj_uuid")
-        local actual_hex=$(echo "$py_out" | grep -o '"payload_hex": "[^"]*' | cut -d'"' -f4)
-        if [ "$actual_hex" != "$expected_payload_hex" ]; then
+        local actual_hex=$(python3 -c "import sys, json; print(json.loads(sys.stdin.read())['payload_hex'])" <<< "$py_out")
+        if [ -z "$actual_hex" ] || [ "$actual_hex" != "$expected_payload_hex" ]; then
             echo "Python Reader Failed: Expected $expected_payload_hex, got $actual_hex"
             exit 1
         fi
     elif [ "$reader_name" == "Node" ]; then
         local node_out=$(node "$DIR/read_fixture_node.js" "$db_path" "$PASSPHRASE" "$obj_uuid")
-        local actual_hex=$(echo "$node_out" | grep -o '"payload_hex":"[^"]*' | cut -d'"' -f4)
-        if [ "$actual_hex" != "$expected_payload_hex" ]; then
+        local actual_hex=$(python3 -c "import sys, json; print(json.loads(sys.stdin.read())['payload_hex'])" <<< "$node_out")
+        if [ -z "$actual_hex" ] || [ "$actual_hex" != "$expected_payload_hex" ]; then
             echo "Node Reader Failed: Expected $expected_payload_hex, got $actual_hex"
             exit 1
         fi
