@@ -68,3 +68,98 @@ func TestWriterRoundtrip(t *testing.T) {
 		t.Fatalf("expected error with wrong passphrase, got nil")
 	}
 }
+
+func TestWriterNegativeCases(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "vault_writer_negative_test")
+	if err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	dbPath := filepath.Join(tempDir, "test.db")
+	passphrase := "test-passphrase"
+
+	// Empty passphrase
+	_, err = CreateNew(filepath.Join(tempDir, "empty_pass.db"), "", "linux")
+	if err == nil {
+		t.Fatalf("expected error for empty passphrase")
+	}
+
+	// Unknown platform
+	_, err = CreateNew(filepath.Join(tempDir, "unknown_platform.db"), passphrase, "unknown_platform")
+	if err == nil {
+		t.Fatalf("expected error for unknown platform")
+	}
+
+	// Valid creation
+	writer, err := CreateNew(dbPath, passphrase, "linux")
+	if err != nil {
+		t.Fatalf("CreateNew failed: %v", err)
+	}
+	defer writer.Close()
+
+	// Invalid schemaUUID
+	_, err = writer.StorePayload("invalid-uuid", "application/json", map[string]string{})
+	if err == nil {
+		t.Fatalf("expected error for invalid schemaUUID")
+	}
+
+	// Invalid contentType
+	_, err = writer.StorePayload("00000000-0000-4000-8000-000000000001", "invalid", map[string]string{})
+	if err == nil {
+		t.Fatalf("expected error for invalid contentType")
+	}
+
+	// Non-JCS-serializable payload
+	// E.g. A map with an unsupported type like func()
+	unsupportedPayload := map[string]interface{}{
+		"func": func() {},
+	}
+	_, err = writer.StorePayload("00000000-0000-4000-8000-000000000001", "application/json", unsupportedPayload)
+	if err == nil {
+		t.Fatalf("expected error for non-JCS-serializable payload")
+	}
+}
+
+func TestWriterMultiplePayloads(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "vault_writer_multi_test")
+	if err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	dbPath := filepath.Join(tempDir, "test.db")
+	passphrase := "test-passphrase"
+
+	writer, err := CreateNew(dbPath, passphrase, "linux")
+	if err != nil {
+		t.Fatalf("CreateNew failed: %v", err)
+	}
+	defer writer.Close()
+
+	schemaUUID := "00000000-0000-4000-8000-000000000001"
+	contentType := "application/json"
+
+	var uuids []string
+	for i := 0; i < 5; i++ {
+		payload := map[string]interface{}{"index": i}
+		objUUID, err := writer.StorePayload(schemaUUID, contentType, payload)
+		if err != nil {
+			t.Fatalf("StorePayload failed at index %d: %v", i, err)
+		}
+		uuids = append(uuids, objUUID)
+	}
+
+	reader, err := OpenReadOnly(dbPath, passphrase)
+	if err != nil {
+		t.Fatalf("OpenReadOnly failed: %v", err)
+	}
+	defer reader.db.Close()
+
+	for _, id := range uuids {
+		_, err := reader.DecryptObject(id)
+		if err != nil {
+			t.Fatalf("DecryptObject failed for %s: %v", id, err)
+		}
+	}
+}

@@ -42,3 +42,17 @@ The following areas are anticipated points of divergence and should be monitored
 - file locking / close semantics
 - content_type / MIME validation
 - browser/sql.js exception boundaries
+
+## FINDING-009: Strict UUID enforcement in Writers
+- **Tag:** `implementation-note`
+- **Area:** Storage Format / API Implementation
+- **Description:** When inserting new rows containing `schema_uuid` or generating `object_uuid`, writers must proactively validate or generate strict RFC4122/RFC9562-compatible UUIDs (`^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`). While standard V4 generator libraries in Go and Rust produce valid compliant UUIDs, inputs like `schema_uuid` must be explicitly verified to prevent silent database corruption from non-compliant caller arguments.
+- **Impact:** Low. Added strict regex validation in Go and Rust writer scaffolds.
+- **Resolution:** Validated and enforced inside `store_payload`.
+
+## FINDING-010: Explicit Transactions in Writers
+- **Tag:** `implementation-note`
+- **Area:** Storage Format / API Implementation
+- **Description:** The `PRAGMA foreign_keys = ON` constraint must be explicitly set *before* opening an initialization or insertion transaction in Go and Rust SQLite drivers. Both scaffolds were hardened to perform all metadata and payload writes atomically, rolling back safely if any step (such as cryptography or UUID generation) fails.
+- **Impact:** High for robustness.
+- **Resolution:** Explicit `BEGIN` and `COMMIT` block management in Go and Rust was confirmed and hardened.

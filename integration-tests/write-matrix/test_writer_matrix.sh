@@ -23,6 +23,12 @@ echo "Building Rust wrapper..."
 (cd "$ROOT_DIR/rust" && cargo build --bin write_matrix_fixture)
 cp "$ROOT_DIR/rust/target/debug/write_matrix_fixture" "$DIR/rust_write_matrix"
 
+echo "Preparing Node.js environment..."
+(cd "$ROOT_DIR/nodejs" && npm ci > /dev/null 2>&1)
+
+echo "Preparing Python environment..."
+(cd "$ROOT_DIR/python" && pip install -e .[test] > /dev/null 2>&1)
+
 # Function to run the write/read test
 run_test() {
     local writer_name="$1"
@@ -48,6 +54,20 @@ run_test() {
         (cd "$ROOT_DIR/go" && VAULT_SQLITE_V1_FIXTURE_DB="$db_path" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$obj_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="$expected_payload_hex" go test ./internal/sqlitev1 -run TestExternalFixtureReadOnly)
     elif [ "$reader_name" == "Rust" ]; then
         (cd "$ROOT_DIR/rust" && VAULT_SQLITE_V1_FIXTURE_DB="$db_path" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$obj_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="$expected_payload_hex" cargo test --test sqlitev1_external_fixture)
+    elif [ "$reader_name" == "Python" ]; then
+        local py_out=$(python3 "$DIR/read_fixture_python.py" "$db_path" "$PASSPHRASE" "$obj_uuid")
+        local actual_hex=$(echo "$py_out" | grep -o '"payload_hex": "[^"]*' | cut -d'"' -f4)
+        if [ "$actual_hex" != "$expected_payload_hex" ]; then
+            echo "Python Reader Failed: Expected $expected_payload_hex, got $actual_hex"
+            exit 1
+        fi
+    elif [ "$reader_name" == "Node" ]; then
+        local node_out=$(node "$DIR/read_fixture_node.js" "$db_path" "$PASSPHRASE" "$obj_uuid")
+        local actual_hex=$(echo "$node_out" | grep -o '"payload_hex":"[^"]*' | cut -d'"' -f4)
+        if [ "$actual_hex" != "$expected_payload_hex" ]; then
+            echo "Node Reader Failed: Expected $expected_payload_hex, got $actual_hex"
+            exit 1
+        fi
     fi
 
     echo "$writer_name -> $reader_name SUCCESS"
@@ -57,10 +77,14 @@ run_test() {
 # Go tests
 run_test "Go" "Go" "$DB_GO" "$DIR/go_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
 run_test "Go" "Rust" "$DB_GO" "$DIR/go_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Go" "Python" "$DB_GO" "$DIR/go_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Go" "Node" "$DB_GO" "$DIR/go_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
 
 # Rust tests
 run_test "Rust" "Rust" "$DB_RUST" "$DIR/rust_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
 run_test "Rust" "Go" "$DB_RUST" "$DIR/rust_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Rust" "Python" "$DB_RUST" "$DIR/rust_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Rust" "Node" "$DB_RUST" "$DIR/rust_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
 
 # Clean up binaries
 rm -f "$DIR/go_write_matrix" "$DIR/rust_write_matrix"

@@ -22,6 +22,7 @@ fn test_writer_roundtrip() {
         "value": 42
     });
 
+    let mut writer = writer;
     let obj_uuid = writer
         .store_payload(schema_uuid, content_type, &payload)
         .expect("Failed to store payload");
@@ -45,4 +46,69 @@ fn test_writer_roundtrip() {
     // 5. Wrong Passphrase
     let bad_reader = open_read_only(&db_path, "wrong-passphrase");
     assert!(bad_reader.is_err());
+}
+
+#[test]
+fn test_writer_negative_cases() {
+    let dir = tempdir().unwrap();
+    let db_path = dir.path().join("test_writer_negative.db");
+    let passphrase = "test-passphrase";
+
+    // Empty passphrase
+    assert!(create_new(&dir.path().join("empty_pass.db"), "", "linux").is_err());
+
+    // Unknown platform
+    assert!(create_new(&dir.path().join("unknown_platform.db"), passphrase, "unknown_platform").is_err());
+
+    // Valid creation
+    let mut writer = create_new(&db_path, passphrase, "linux").expect("Failed to create new db");
+
+    // Invalid schema_uuid
+    let payload = json!({});
+    assert!(
+        writer
+            .store_payload("invalid-uuid", "application/json", &payload)
+            .is_err()
+    );
+
+    // Invalid content_type
+    assert!(
+        writer
+            .store_payload(
+                "00000000-0000-4000-8000-000000000001",
+                "invalid_type",
+                &payload
+            )
+            .is_err()
+    );
+}
+
+#[test]
+fn test_writer_multiple_payloads() {
+    let dir = tempdir().unwrap();
+    let db_path = dir.path().join("test_writer_multi.db");
+    let passphrase = "test-passphrase";
+    let platform = "linux";
+
+    let mut writer = create_new(&db_path, passphrase, platform).expect("Failed to create new db");
+
+    let schema_uuid = "00000000-0000-4000-8000-000000000001";
+    let content_type = "application/json";
+
+    let mut uuids = Vec::new();
+    for i in 0..5 {
+        let payload = json!({ "index": i });
+        let obj_uuid = writer
+            .store_payload(schema_uuid, content_type, &payload)
+            .expect("Failed to store payload");
+        uuids.push(obj_uuid);
+    }
+
+    writer.close().expect("Failed to close writer");
+
+    let reader = open_read_only(&db_path, passphrase).expect("Failed to open reader");
+
+    for obj_uuid in uuids {
+        assert!(reader.decrypt_object(&obj_uuid).is_ok());
+    }
 }
