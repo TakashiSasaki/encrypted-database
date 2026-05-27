@@ -242,6 +242,108 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 	}, nil
 }
 
+func (w *Writer) UpdatePayload(objectUUID string, schemaUUID string, contentType string, payload any) error {
+	if w.activeDbKek == nil {
+		return errors.New("database is locked")
+	}
+	if !uuidRegex.MatchString(objectUUID) || !uuidRegex.MatchString(schemaUUID) {
+		return errors.New("invalid uuid")
+	}
+	if contentType == "" || !strings.Contains(contentType, "/") {
+		return errors.New("invalid content type")
+	}
+
+	recordDekBytes, err := generateRandomBytes(32)
+	if err != nil {
+		return err
+	}
+	recordKid := generateUUID()
+	alg := "A256GCM"
+	wrapAadPolicy := "wrap-record-key-v1"
+	wrapAadBytes, err := aad.BuildWrapKeyV1(wrapAadPolicy, recordKid, w.activeDbKid)
+	if err != nil {
+		return err
+	}
+	nonceWrap, err := generateRandomBytes(12)
+	if err != nil {
+		return err
+	}
+	blockWrap, err := aes.NewCipher(w.activeDbKek)
+	if err != nil {
+		return err
+	}
+	aesgcmWrap, err := cipher.NewGCM(blockWrap)
+	if err != nil {
+		return err
+	}
+	wrappedRecordDek := aesgcmWrap.Seal(nil, nonceWrap, recordDekBytes, wrapAadBytes)
+
+	payloadStr, err := jcs.Canonicalize(payload)
+	if err != nil {
+		return fmt.Errorf("failed to canonicalize payload: %w", err)
+	}
+	payloadAadPolicy := "record-payload-v1"
+	payloadAadBytes, err := aad.BuildRecordPayloadV1(objectUUID, schemaUUID, contentType, recordKid, alg)
+	if err != nil {
+		return err
+	}
+	noncePayload, err := generateRandomBytes(12)
+	if err != nil {
+		return err
+	}
+	blockPayload, err := aes.NewCipher(recordDekBytes)
+	if err != nil {
+		return err
+	}
+	aesgcmPayload, err := cipher.NewGCM(blockPayload)
+	if err != nil {
+		return err
+	}
+	ciphertext := aesgcmPayload.Seal(nil, noncePayload, []byte(payloadStr), payloadAadBytes)
+
+	tx, err := w.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	nowMs := time.Now().UnixMilli()
+	_, err = tx.Exec("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)", recordKid, "record_dek", "encrypt_payload", alg, "active", nowMs)
+	if err != nil {
+		return err
+	}
+	wrapId := generateUUID()
+	_, err = tx.Exec("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", wrapId, recordKid, w.activeDbKid, 1, "key_wrap", alg, nonceWrap, wrappedRecordDek, wrapAadPolicy, nowMs)
+	if err != nil {
+		return err
+	}
+	res, err := tx.Exec("UPDATE encrypted_object_tbl SET schema_uuid = ?, content_type = ?, alg = ?, kid = ?, nonce = ?, ciphertext = ?, aad_policy = ?, updated_at_ms = ? WHERE object_uuid = ?", schemaUUID, contentType, alg, recordKid, noncePayload, ciphertext, payloadAadPolicy, nowMs, objectUUID)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return ErrNotFound
+	}
+	return tx.Commit()
+}
+
+func (w *Writer) DeletePayload(objectUUID string) error {
+	res, err := w.db.Exec("DELETE FROM encrypted_object_tbl WHERE object_uuid = ?", objectUUID)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
 func (w *Writer) Close() error {
 	if w.db != nil {
 		return w.db.Close()

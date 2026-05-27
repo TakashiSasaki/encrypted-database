@@ -324,6 +324,100 @@ impl Writer {
         Ok(object_uuid)
     }
 
+    pub fn update_payload(
+        &mut self,
+        object_uuid: &str,
+        schema_uuid: &str,
+        content_type: &str,
+        payload: &serde_json::Value,
+    ) -> Result<(), WriterError> {
+        if self.active_db_kek.is_empty() {
+            return Err(WriterError::RequirementError("Database is locked".into()));
+        }
+
+        let is_valid_uuid = |u: &str| {
+            u.len() == 36
+                && u.chars().enumerate().all(|(i, c)| match i {
+                    8 | 13 | 18 | 23 => c == '-',
+                    14 => ('1'..='8').contains(&c),
+                    19 => ['8', '9', 'a', 'b'].contains(&c),
+                    _ => c.is_ascii_hexdigit() && (c.is_ascii_lowercase() || c.is_ascii_digit()),
+                })
+        };
+        if !is_valid_uuid(object_uuid) || !is_valid_uuid(schema_uuid) {
+            return Err(WriterError::RequirementError("Invalid uuid".into()));
+        }
+        if content_type.is_empty() || !content_type.contains('/') {
+            return Err(WriterError::RequirementError("Invalid content type".into()));
+        }
+        let record_dek_bytes = generate_random_bytes(32)?;
+        let record_kid = generate_uuid()?;
+        let alg = "A256GCM";
+        let wrap_aad_policy = "wrap-record-key-v1";
+        let wrap_aad_bytes =
+            build_wrap_key_v1(wrap_aad_policy, &record_kid, &self.active_db_kid)
+                .map_err(|e| WriterError::CryptoError(format!("Wrap AAD build: {:?}", e)))?;
+        let nonce_wrap = generate_random_bytes(12)?;
+        let cipher_wrap = Aes256Gcm::new_from_slice(&self.active_db_kek)
+            .map_err(|e| WriterError::CryptoError(format!("AES Key: {}", e)))?;
+        let wrapped_record_dek = cipher_wrap
+            .encrypt(
+                aes_gcm::Nonce::from_slice(&nonce_wrap),
+                Payload {
+                    msg: &record_dek_bytes,
+                    aad: &wrap_aad_bytes,
+                },
+            )
+            .map_err(|e| WriterError::CryptoError(format!("Encrypt error: {}", e)))?;
+        let payload_str =
+            canonicalize(payload).map_err(|e| WriterError::JcsError(e.to_string()))?;
+        let payload_aad_policy = "record-payload-v1";
+        let payload_aad_bytes =
+            build_record_payload_v1(object_uuid, schema_uuid, content_type, &record_kid, alg)
+                .map_err(|e| WriterError::CryptoError(format!("Payload AAD build: {:?}", e)))?;
+        let nonce_payload = generate_random_bytes(12)?;
+        let cipher_payload = Aes256Gcm::new_from_slice(&record_dek_bytes)
+            .map_err(|e| WriterError::CryptoError(format!("AES Key: {}", e)))?;
+        let ciphertext = cipher_payload
+            .encrypt(
+                aes_gcm::Nonce::from_slice(&nonce_payload),
+                Payload {
+                    msg: payload_str.as_bytes(),
+                    aad: &payload_aad_bytes,
+                },
+            )
+            .map_err(|e| WriterError::CryptoError(format!("Encrypt error: {}", e)))?;
+        let now_ms = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as i64;
+        let tx = self.conn.transaction()?;
+        tx.execute("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            (&record_kid, "record_dek", "encrypt_payload", alg, "active", now_ms))?;
+        let wrap_id = generate_uuid()?;
+        tx.execute("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            (&wrap_id, &record_kid, &self.active_db_kid, 1, "key_wrap", alg, &nonce_wrap, &wrapped_record_dek, wrap_aad_policy, now_ms))?;
+        let updated = tx.execute(
+            "UPDATE encrypted_object_tbl SET schema_uuid = ?1, content_type = ?2, alg = ?3, kid = ?4, nonce = ?5, ciphertext = ?6, aad_policy = ?7, updated_at_ms = ?8 WHERE object_uuid = ?9",
+            (schema_uuid, content_type, alg, &record_kid, &nonce_payload, &ciphertext, payload_aad_policy, now_ms, object_uuid),
+        )?;
+        if updated == 0 {
+            return Err(WriterError::RequirementError("Object not found".into()));
+        }
+        tx.commit()?;
+        Ok(())
+    }
+
+    pub fn delete_payload(&mut self, object_uuid: &str) -> Result<(), WriterError> {
+        let deleted = self.conn.execute(
+            "DELETE FROM encrypted_object_tbl WHERE object_uuid = ?1",
+            [object_uuid],
+        )?;
+        if deleted == 0 {
+            return Err(WriterError::RequirementError("Object not found".into()));
+        }
+        Ok(())
+    }
     pub fn close(self) -> Result<(), WriterError> {
         self.conn
             .close()
