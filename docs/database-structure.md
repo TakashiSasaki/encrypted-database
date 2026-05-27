@@ -255,7 +255,7 @@ This section documents **writer defaults and connection-setting guidance** for S
 
 ### Normative requirement reference
 
-For normative per-connection PRAGMA requirements (including `PRAGMA foreign_keys=ON`), follow [`docs/spec/storage-format-sqlite.md` §4 Required PRAGMAs](spec/storage-format-sqlite.md).
+For normative per-connection PRAGMA requirements (including `PRAGMA foreign_keys=ON`), follow [SQLite Storage Profile spec §4 Required PRAGMAs](spec/storage-format-sqlite.md#4-required-pragmas).
 
 ### Writer defaults during database creation
 
@@ -287,16 +287,16 @@ Storage Format V1 uses Authenticated Encryption with Associated Data (AEAD), spe
 *Note: The Go and Rust minimal writers populate these specific AAD policies during encryption, and read-only readers implement these policies strictly to validate integrity before returning plaintext.*
 
 
-## UpdatePayload / DeletePayload Behavior (Current Scaffold Scope)
+## Update/Delete Operation Behavior (Current Scaffold Scope)
 
-When update/delete APIs are present in a scaffold implementation, the following is **non-normative guidance** describing current scaffold behavior (not a normative V1 requirement):
+When update/delete operations are present in a scaffold implementation, the following is **non-normative guidance** describing current scaffold behavior (not a normative V1 requirement). `UpdatePayload` / `DeletePayload` are used here only as illustrative operation names:
 
-* **UpdatePayload**
+* **Update operation**
   * `object_uuid` is preserved (in-place logical record update).
   * The existing `record_dek` (`kid`) is reused for that object.
   * A **new nonce** and **new ciphertext** are generated for every update operation.
   * `updated_at_ms` is refreshed while `created_at_ms` remains unchanged.
-* **DeletePayload**
+* **Delete operation**
   * Delete removes only the row in `encrypted_object_tbl`.
   * Related key rows are not immediately shredded by delete itself in the current model.
   * Delete is a logical removal and is **not** a secure-erase guarantee at storage-medium level.
