@@ -2,6 +2,7 @@ package sqlitev1
 
 import (
 	"encoding/hex"
+	"errors"
 	"os"
 	"testing"
 )
@@ -23,6 +24,14 @@ func TestExternalFixtureReadOnly(t *testing.T) {
 	defer reader.Close()
 
 	payloadBytes, err := reader.DecryptObject(objectUUID)
+
+	if expectedPayloadHex == "DELETED" {
+		if !errors.Is(err, ErrNotFound) {
+			t.Fatalf("Expected ErrNotFound for deleted object, got: %v", err)
+		}
+		return
+	}
+
 	if err != nil {
 		t.Fatalf("Failed to decrypt object %s: %v", objectUUID, err)
 	}

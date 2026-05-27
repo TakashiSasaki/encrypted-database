@@ -1,0 +1,24 @@
+--- go/internal/sqlitev1/reader_external_fixture_test.go
++++ go/internal/sqlitev1/reader_external_fixture_test.go
+@@ -3,6 +3,7 @@
+ import (
+	"encoding/hex"
++	"errors"
+	"os"
+	"testing"
+ )
+@@ -23,6 +24,14 @@
+	defer reader.Close()
+
+	payloadBytes, err := reader.DecryptObject(objectUUID)
++
++	if expectedPayloadHex == "DELETED" {
++		if !errors.Is(err, ErrNotFound) {
++			t.Fatalf("Expected ErrNotFound for deleted object, got: %v", err)
++		}
++		return
++	}
++
+	if err != nil {
+		t.Fatalf("Failed to decrypt object %s: %v", objectUUID, err)
+	}

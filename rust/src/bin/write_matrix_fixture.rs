@@ -5,22 +5,23 @@ use vault_moukaeritai_work::sqlitev1_writer::create_new;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() < 7 {
+    if args.len() < 8 {
         eprintln!(
-            "Usage: {} <db_path> <passphrase> <platform> <schema_uuid> <content_type> <payload_json>",
+            "Usage: {} <mode> <db_path> <passphrase> <platform> <schema_uuid> <content_type> <payload_json>",
             args[0]
         );
         process::exit(1);
     }
 
-    let db_path = std::path::Path::new(&args[1]);
-    let passphrase = &args[2];
-    let platform = &args[3];
-    let schema_uuid = &args[4];
-    let content_type = &args[5];
-    let payload_str = &args[6];
+    let mode = &args[1];
+    let db_path = std::path::Path::new(&args[2]);
+    let passphrase = &args[3];
+    let platform = &args[4];
+    let schema_uuid = &args[5];
+    let content_type = &args[6];
+    let payload_str = &args[7];
 
-    let payload: serde_json::Value = match serde_json::from_str(payload_str) {
+    let mut payload: serde_json::Value = match serde_json::from_str(payload_str) {
         Ok(v) => v,
         Err(e) => {
             eprintln!("Failed to parse payload JSON: {}", e);
@@ -43,6 +44,23 @@ fn main() {
             process::exit(1);
         }
     };
+
+    if mode == "update" {
+        let payload2: serde_json::Value =
+            serde_json::json!({"secret": "matrix-test", "value": 100, "updated": true});
+        if let Err(e) = writer.update_payload(&obj_uuid, schema_uuid, content_type, &payload2) {
+            eprintln!("Failed to update payload: {}", e);
+            process::exit(1);
+        }
+        payload = payload2;
+    } else if mode == "delete" {
+        if let Err(e) = writer.delete_payload(&obj_uuid) {
+            eprintln!("Failed to delete payload: {}", e);
+            process::exit(1);
+        }
+        println!("{}\nDELETED", obj_uuid);
+        return;
+    }
 
     let expected_payload_jcs = match canonicalize(&payload) {
         Ok(jcs) => jcs,

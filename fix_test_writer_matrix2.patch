@@ -1,0 +1,13 @@
+--- integration-tests/write-matrix/test_writer_matrix.sh
++++ integration-tests/write-matrix/test_writer_matrix.sh
+@@ -37,9 +37,7 @@
+     local mode="${6:-store}"
+
+     echo "=== Testing $writer_name Writer ($mode) -> $reader_name Reader ==="
+-    if [ "$mode" == "store" ]; then
+-        rm -f "$db_path"
+-    fi
++    rm -f "$db_path"
+
+     echo "Writing..."
+     local output

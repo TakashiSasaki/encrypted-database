@@ -246,6 +246,14 @@ sequenceDiagram
     - The `record_dek` is wrapped by the `database_kek` and stored in `wrapped_key_tbl` (using the `wrap-record-key-v1` AAD policy).
     - The user's JSON payload is encrypted using the `record_dek`. The output is stored as `ciphertext || tag` in `encrypted_object_tbl.ciphertext` using the `record-payload-v1` AAD policy.
 
+
+### Note on Update and Delete Operations
+
+Initial API scaffolds for updating and deleting payloads are implemented:
+*   **UpdatePayload**: Updates the payload of an existing `object_uuid`. It canonicalizes the new payload, encrypts it with a new randomly generated `nonce` reusing the existing `record_dek`, and updates the corresponding row in `encrypted_object_tbl`. `updated_at_ms` is updated, while `created_at_ms` is maintained. Key lifecycle operations (`key_tbl`, `wrapped_key_tbl`) are not altered.
+*   **DeletePayload**: Performs a logical hard delete by removing the target row from `encrypted_object_tbl`.
+*   **Key Lifecycle limitations**: Neither Update nor Delete perform complex key lifecycle operations such as key rotation, rewrap, or cleaning up associated `record_dek` or wrapped key materials. Secure erase guarantees and orphan key cleanup policies remain future work.
+
 **Note on Lifecycle Fields**: The minimal writer scaffolds intentionally leave complex key lifecycle fields (`activated_at_ms`, `deactivated_at_ms`, `destroyed_at_ms`, `description_json`, `device_id`) absent (NULL), as update/delete, key rotation, decrypt-only migrations, key destruction, and rewrap are not yet implemented.
 
 ## Metadata and Compatibility

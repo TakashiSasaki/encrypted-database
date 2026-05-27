@@ -1,0 +1,51 @@
+--- rust/tests/sqlitev1_writer.rs
++++ rust/tests/sqlitev1_writer.rs
+@@ -32,8 +32,7 @@
+     writer.close().expect("Failed to close writer");
+
+     // 3. Read and verify using the existing reader
+-    let mut reader = open_read_only(&db_path).expect("Failed to open reader");
+-    reader.unlock(passphrase).expect("Failed to unlock DB");
++    let mut reader = open_read_only(&db_path, passphrase).expect("Failed to open reader");
+
+     let decrypted = reader
+         .decrypt_object(&obj_uuid)
+@@ -53,11 +52,15 @@
+     env::set_var("VAULT_SCHEMA_SQL_PATH", "../docs/backend/sqlite/schema.sql");
+
+     // Missing passphrase
+-    let err = create_new(&db_path, "", platform).unwrap_err();
++    let err = match create_new(&db_path, "", platform) {
++        Err(e) => e,
++        Ok(_) => panic!("Expected error"),
++    };
+     assert!(matches!(err, WriterError::RequirementError(_)));
+
+     // Unknown platform
+-    let err2 = create_new(&db_path, passphrase, "unknown_platform").unwrap_err();
++    let err2 = match create_new(&db_path, passphrase, "unknown_platform") {
++        Err(e) => e,
++        Ok(_) => panic!("Expected error"),
++    };
+     assert!(matches!(err2, WriterError::UnsupportedPlatform(_)));
+
+     // Valid create
+@@ -105,8 +108,7 @@
+
+     writer.close().expect("Failed to close writer");
+
+-    let mut reader = open_read_only(&db_path).expect("Failed to open reader");
+-    reader.unlock(passphrase).expect("Failed to unlock DB");
++    let mut reader = open_read_only(&db_path, passphrase).expect("Failed to open reader");
+
+     for obj_uuid in uuids {
+         assert!(reader.decrypt_object(&obj_uuid).is_ok());
+@@ -138,8 +140,7 @@
+
+     writer.update_payload(&obj_uuid, new_schema_uuid, content_type, &payload2).unwrap();
+
+-    let mut reader = open_read_only(&db_path).unwrap();
+-    reader.unlock(passphrase).unwrap();
++    let mut reader = open_read_only(&db_path, passphrase).unwrap();
+     let decrypted = reader.decrypt_object(&obj_uuid).unwrap();
+     assert_eq!(decrypted, b"{\"msg\":\"world\"}");

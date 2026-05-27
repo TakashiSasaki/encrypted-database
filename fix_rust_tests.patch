@@ -1,0 +1,44 @@
+--- rust/tests/sqlitev1_writer.rs
++++ rust/tests/sqlitev1_writer.rs
+@@ -102,4 +102,42 @@
+         );
+         assert_eq!(decrypted, payload2_bytes);
+     }
++
++    #[test]
++    fn test_update_and_delete_payload() {
++        let dir = tempdir().unwrap();
++        let db_path = dir.path().join("test_update_delete.db");
++        let passphrase = "test-passphrase";
++        let platform = "linux";
++
++        env::set_var("VAULT_SCHEMA_SQL_PATH", "../docs/backend/sqlite/schema.sql");
++
++        let mut writer = create_new(&db_path, passphrase, platform).unwrap();
++        let schema_uuid = "00000000-0000-4000-8000-000000000001";
++        let content_type = "application/json";
++        let payload1 = json!({"msg": "hello"});
++
++        let obj_uuid = writer
++            .store_payload(schema_uuid, content_type, &payload1)
++            .unwrap();
++
++        let new_schema_uuid = "00000000-0000-4000-8000-000000000002";
++        let payload2 = json!({"msg": "world"});
++
++        writer.update_payload(&obj_uuid, new_schema_uuid, content_type, &payload2).unwrap();
++
++        let mut reader = open_read_only(&db_path).unwrap();
++        reader.unlock(passphrase).unwrap();
++        let decrypted = reader.decrypt_object(&obj_uuid).unwrap();
++        assert_eq!(decrypted, b"{\"msg\":\"world\"}");
++
++        let fake_uuid = "00000000-0000-4000-8000-000000000003";
++        assert!(matches!(writer.update_payload(fake_uuid, new_schema_uuid, content_type, &payload2), Err(vault_moukaeritai_work::sqlitev1_writer::WriterError::NotFound(_))));
++
++        writer.delete_payload(&obj_uuid).unwrap();
++        assert!(matches!(writer.delete_payload(fake_uuid), Err(vault_moukaeritai_work::sqlitev1_writer::WriterError::NotFound(_))));
++
++        assert!(matches!(reader.decrypt_object(&obj_uuid), Err(vault_moukaeritai_work::sqlitev1_reader::ReaderError::NotFound(_))));
++    }
+ }

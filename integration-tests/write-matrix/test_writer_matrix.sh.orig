@@ -39,7 +39,9 @@ run_test() {
     local mode="${6:-store}"
 
     echo "=== Testing $writer_name Writer ($mode) -> $reader_name Reader ==="
-    rm -f "$db_path"
+    if [ "$mode" == "store" ]; then
+        rm -f "$db_path"
+    fi
 
     echo "Writing..."
     local output
@@ -51,17 +53,9 @@ run_test() {
 
     echo "Reading..."
     if [ "$reader_name" == "Go" ]; then
-        if [ "$mode" == "delete" ]; then
-            (cd "$ROOT_DIR/go" && VAULT_SQLITE_V1_FIXTURE_DB="$db_path" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$obj_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="DELETED" go test ./internal/sqlitev1 -run TestExternalFixtureReadOnly)
-        else
-            (cd "$ROOT_DIR/go" && VAULT_SQLITE_V1_FIXTURE_DB="$db_path" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$obj_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="$expected_payload_hex" go test ./internal/sqlitev1 -run TestExternalFixtureReadOnly)
-        fi
+        (cd "$ROOT_DIR/go" && VAULT_SQLITE_V1_FIXTURE_DB="$db_path" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$obj_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="$expected_payload_hex" go test ./internal/sqlitev1 -run TestExternalFixtureReadOnly)
     elif [ "$reader_name" == "Rust" ]; then
-        if [ "$mode" == "delete" ]; then
-            (cd "$ROOT_DIR/rust" && VAULT_SQLITE_V1_FIXTURE_DB="$db_path" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$obj_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="DELETED" cargo test --test sqlitev1_external_fixture)
-        else
-            (cd "$ROOT_DIR/rust" && VAULT_SQLITE_V1_FIXTURE_DB="$db_path" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$obj_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="$expected_payload_hex" cargo test --test sqlitev1_external_fixture)
-        fi
+        (cd "$ROOT_DIR/rust" && VAULT_SQLITE_V1_FIXTURE_DB="$db_path" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$obj_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="$expected_payload_hex" cargo test --test sqlitev1_external_fixture)
     elif [ "$reader_name" == "Python" ]; then
         if [ "$mode" == "delete" ]; then
             echo "Skipping Python reader NotFound verification for delete"

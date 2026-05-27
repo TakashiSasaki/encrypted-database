@@ -1,8 +1,10 @@
+#!/bin/bash
+cat << 'INNER_EOF' > rust/tests/sqlitev1_writer.rs
 use serde_json::json;
 use std::env;
 use tempfile::tempdir;
 use vault_moukaeritai_work::sqlitev1_reader::open_read_only;
-use vault_moukaeritai_work::sqlitev1_writer::{WriterError, create_new};
+use vault_moukaeritai_work::sqlitev1_writer::{create_new, WriterError};
 
 #[test]
 fn test_writer_roundtrip() {
@@ -12,9 +14,7 @@ fn test_writer_roundtrip() {
     let platform = "linux";
 
     // Set schema path explicitly for testing if running from root
-    unsafe {
-        env::set_var("VAULT_SCHEMA_SQL_PATH", "../docs/backend/sqlite/schema.sql");
-    }
+    env::set_var("VAULT_SCHEMA_SQL_PATH", "../docs/backend/sqlite/schema.sql");
 
     // 1. Create new database
     let mut writer = create_new(&db_path, passphrase, platform).expect("Failed to create DB");
@@ -34,7 +34,8 @@ fn test_writer_roundtrip() {
     writer.close().expect("Failed to close writer");
 
     // 3. Read and verify using the existing reader
-    let reader = open_read_only(&db_path, passphrase).expect("Failed to open reader");
+    let mut reader = open_read_only(&db_path).expect("Failed to open reader");
+    reader.unlock(passphrase).expect("Failed to unlock DB");
 
     let decrypted = reader
         .decrypt_object(&obj_uuid)
@@ -51,22 +52,14 @@ fn test_writer_negative_cases() {
     let passphrase = "test-passphrase";
     let platform = "linux";
 
-    unsafe {
-        env::set_var("VAULT_SCHEMA_SQL_PATH", "../docs/backend/sqlite/schema.sql");
-    }
+    env::set_var("VAULT_SCHEMA_SQL_PATH", "../docs/backend/sqlite/schema.sql");
 
     // Missing passphrase
-    let err = match create_new(&db_path, "", platform) {
-        Err(e) => e,
-        Ok(_) => panic!("Expected error"),
-    };
+    let err = create_new(&db_path, "", platform).unwrap_err();
     assert!(matches!(err, WriterError::RequirementError(_)));
 
     // Unknown platform
-    let err2 = match create_new(&db_path, passphrase, "unknown_platform") {
-        Err(e) => e,
-        Ok(_) => panic!("Expected error"),
-    };
+    let err2 = create_new(&db_path, passphrase, "unknown_platform").unwrap_err();
     assert!(matches!(err2, WriterError::UnsupportedPlatform(_)));
 
     // Valid create
@@ -77,15 +70,11 @@ fn test_writer_negative_cases() {
     let payload = json!({});
 
     // Invalid schema UUID
-    let err3 = writer
-        .store_payload("invalid-uuid", valid_ct, &payload)
-        .unwrap_err();
+    let err3 = writer.store_payload("invalid-uuid", valid_ct, &payload).unwrap_err();
     assert!(matches!(err3, WriterError::RequirementError(_)));
 
     // Invalid content type
-    let err4 = writer
-        .store_payload(valid_schema, "invalid", &payload)
-        .unwrap_err();
+    let err4 = writer.store_payload(valid_schema, "invalid", &payload).unwrap_err();
     assert!(matches!(err4, WriterError::RequirementError(_)));
 }
 
@@ -96,9 +85,7 @@ fn test_writer_multiple_payloads() {
     let passphrase = "test-passphrase";
     let platform = "linux";
 
-    unsafe {
-        env::set_var("VAULT_SCHEMA_SQL_PATH", "../docs/backend/sqlite/schema.sql");
-    }
+    env::set_var("VAULT_SCHEMA_SQL_PATH", "../docs/backend/sqlite/schema.sql");
 
     let mut writer = create_new(&db_path, passphrase, platform).unwrap();
 
@@ -116,7 +103,8 @@ fn test_writer_multiple_payloads() {
 
     writer.close().expect("Failed to close writer");
 
-    let reader = open_read_only(&db_path, passphrase).expect("Failed to open reader");
+    let mut reader = open_read_only(&db_path).expect("Failed to open reader");
+    reader.unlock(passphrase).expect("Failed to unlock DB");
 
     for obj_uuid in uuids {
         assert!(reader.decrypt_object(&obj_uuid).is_ok());
@@ -130,9 +118,7 @@ fn test_update_and_delete_payload() {
     let passphrase = "test-passphrase";
     let platform = "linux";
 
-    unsafe {
-        env::set_var("VAULT_SCHEMA_SQL_PATH", "../docs/backend/sqlite/schema.sql");
-    }
+    env::set_var("VAULT_SCHEMA_SQL_PATH", "../docs/backend/sqlite/schema.sql");
 
     let mut writer = create_new(&db_path, passphrase, platform).unwrap();
     let schema_uuid = "00000000-0000-4000-8000-000000000001";
@@ -146,28 +132,19 @@ fn test_update_and_delete_payload() {
     let new_schema_uuid = "00000000-0000-4000-8000-000000000002";
     let payload2 = json!({"msg": "world"});
 
-    writer
-        .update_payload(&obj_uuid, new_schema_uuid, content_type, &payload2)
-        .unwrap();
+    writer.update_payload(&obj_uuid, new_schema_uuid, content_type, &payload2).unwrap();
 
-    let reader = open_read_only(&db_path, passphrase).unwrap();
+    let mut reader = open_read_only(&db_path).unwrap();
+    reader.unlock(passphrase).unwrap();
     let decrypted = reader.decrypt_object(&obj_uuid).unwrap();
     assert_eq!(decrypted, b"{\"msg\":\"world\"}");
 
     let fake_uuid = "00000000-0000-4000-8000-000000000003";
-    assert!(matches!(
-        writer.update_payload(fake_uuid, new_schema_uuid, content_type, &payload2),
-        Err(vault_moukaeritai_work::sqlitev1_writer::WriterError::NotFound(_))
-    ));
+    assert!(matches!(writer.update_payload(fake_uuid, new_schema_uuid, content_type, &payload2), Err(vault_moukaeritai_work::sqlitev1_writer::WriterError::NotFound(_))));
 
     writer.delete_payload(&obj_uuid).unwrap();
-    assert!(matches!(
-        writer.delete_payload(fake_uuid),
-        Err(vault_moukaeritai_work::sqlitev1_writer::WriterError::NotFound(_))
-    ));
+    assert!(matches!(writer.delete_payload(fake_uuid), Err(vault_moukaeritai_work::sqlitev1_writer::WriterError::NotFound(_))));
 
-    assert!(matches!(
-        reader.decrypt_object(&obj_uuid),
-        Err(vault_moukaeritai_work::sqlitev1_reader::ReaderError::NotFound(_))
-    ));
+    assert!(matches!(reader.decrypt_object(&obj_uuid), Err(vault_moukaeritai_work::sqlitev1_reader::ReaderError::NotFound(_))));
 }
+INNER_EOF

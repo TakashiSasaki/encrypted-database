@@ -1,0 +1,11 @@
+--- rust/src/sqlitev1_writer.rs
++++ rust/src/sqlitev1_writer.rs
+@@ -26,6 +26,8 @@
+     JcsError(String),
+     #[error("Requirement error: {0}")]
+     RequirementError(String),
++    #[error("Not found: {0}")]
++    NotFound(String),
+ }
+
+ pub struct Writer {

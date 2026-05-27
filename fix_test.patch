@@ -1,0 +1,26 @@
+--- go/internal/sqlitev1/writer_test.go
++++ go/internal/sqlitev1/writer_test.go
+@@ -3,6 +3,7 @@
+ import (
+	"encoding/json"
++	"errors"
+	"os"
+	"path/filepath"
+	"testing"
+ )
+@@ -192,7 +193,7 @@
+	}
+
+	// Read and verify updated payload
+-	reader, err := OpenReadOnly(dbPath)
++	reader, err := OpenReadOnly(dbPath, passphrase)
+	if err != nil {
+		t.Fatalf("OpenReadOnly failed: %v", err)
+	}
+	defer reader.Close()
+-	err = reader.Unlock(passphrase)
+-	if err != nil {
+-		t.Fatalf("Unlock failed: %v", err)
+-	}
+
+	decryptedBytes, err := reader.DecryptObject(objUUID)

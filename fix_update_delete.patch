@@ -1,0 +1,146 @@
+--- rust/src/sqlitev1_writer.rs
++++ rust/src/sqlitev1_writer.rs
+@@ -322,6 +322,143 @@
+         Ok(object_uuid)
+     }
+
++    pub fn update_payload(
++        &mut self,
++        object_uuid: &str,
++        schema_uuid: &str,
++        content_type: &str,
++        payload: &serde_json::Value,
++    ) -> Result<(), WriterError> {
++        if self.active_db_kek.is_empty() {
++            return Err(WriterError::RequirementError("Database is locked".into()));
++        }
++
++        let is_valid_uuid = |uuid: &str| -> bool {
++            uuid.len() == 36
++                && uuid.chars().enumerate().all(|(i, c)| match i {
++                    8 | 13 | 18 | 23 => c == '-',
++                    14 => ('1'..='8').contains(&c),
++                    19 => ['8', '9', 'a', 'b'].contains(&c),
++                    _ => c.is_ascii_hexdigit() && (c.is_ascii_lowercase() || c.is_ascii_digit()),
++                })
++        };
++
++        if !is_valid_uuid(object_uuid) {
++            return Err(WriterError::RequirementError("Invalid object_uuid".into()));
++        }
++        if !is_valid_uuid(schema_uuid) {
++            return Err(WriterError::RequirementError("Invalid schema_uuid".into()));
++        }
++
++        if content_type.is_empty() || !content_type.contains('/') {
++            return Err(WriterError::RequirementError("Invalid content type".into()));
++        }
++
++        let mut record_kid = String::new();
++        let mut alg = String::new();
++
++        {
++            let mut stmt = self.conn.prepare("SELECT kid, alg FROM encrypted_object_tbl WHERE object_uuid = ?1")?;
++            let mut rows = stmt.query([object_uuid])?;
++            if let Some(row) = rows.next()? {
++                record_kid = row.get(0)?;
++                alg = row.get(1)?;
++            } else {
++                return Err(WriterError::NotFound(object_uuid.to_string()));
++            }
++        }
++
++        if alg != "A256GCM" {
++            return Err(WriterError::RequirementError(format!("Unsupported alg: {}", alg)));
++        }
++
++        let mut nonce_wrap: Vec<u8> = Vec::new();
++        let mut wrapped_record_dek: Vec<u8> = Vec::new();
++        let mut wrap_aad_policy = String::new();
++        let mut wrap_alg = String::new();
++        let mut envelope_type = String::new();
++        let mut envelope_v: i32 = 0;
++
++        {
++            let mut stmt = self.conn.prepare("SELECT nonce, wrapped_key, aad_policy, wrap_alg, envelope_v, envelope_type FROM wrapped_key_tbl WHERE wrapped_kid = ?1 AND wrapping_kid = ?2")?;
++            let mut rows = stmt.query([&record_kid, &self.active_db_kid])?;
++            if let Some(row) = rows.next()? {
++                nonce_wrap = row.get(0)?;
++                wrapped_record_dek = row.get(1)?;
++                wrap_aad_policy = row.get(2)?;
++                wrap_alg = row.get(3)?;
++                envelope_v = row.get(4)?;
++                envelope_type = row.get(5)?;
++            } else {
++                return Err(WriterError::NotFound(format!("Wrap info for kid {}", record_kid)));
++            }
++        }
++
++        if wrap_alg != "A256GCM" || envelope_v != 1 || envelope_type != "key_wrap" {
++            return Err(WriterError::RequirementError("Unsupported wrap envelope".into()));
++        }
++
++        let wrap_aad_bytes = build_wrap_key_v1(&wrap_aad_policy, &record_kid, &self.active_db_kid)
++            .map_err(|e| WriterError::CryptoError(format!("Wrap AAD build: {:?}", e)))?;
++
++        let cipher_wrap = Aes256Gcm::new_from_slice(&self.active_db_kek)
++            .map_err(|e| WriterError::CryptoError(format!("AES Key: {}", e)))?;
++        let nonce_wrap_arr = aes_gcm::Nonce::from_slice(&nonce_wrap);
++        let record_dek_bytes = cipher_wrap
++            .decrypt(nonce_wrap_arr, Payload { msg: &wrapped_record_dek, aad: &wrap_aad_bytes })
++            .map_err(|e| WriterError::CryptoError(format!("Decrypt record DEK error: {}", e)))?;
++
++        let payload_str =
++            canonicalize(payload).map_err(|e| WriterError::JcsError(e.to_string()))?;
++        let payload_bytes = payload_str.as_bytes();
++
++        let payload_aad_policy = "record-payload-v1";
++        let payload_aad_bytes =
++            build_record_payload_v1(object_uuid, schema_uuid, content_type, &record_kid, &alg)
++                .map_err(|e| WriterError::CryptoError(format!("Payload AAD build: {:?}", e)))?;
++
++        let nonce_payload = generate_random_bytes(12)?;
++        let cipher_payload = Aes256Gcm::new_from_slice(&record_dek_bytes)
++            .map_err(|e| WriterError::CryptoError(format!("AES Key: {}", e)))?;
++        let nonce_payload_arr = aes_gcm::Nonce::from_slice(&nonce_payload);
++        let ciphertext = cipher_payload
++            .encrypt(nonce_payload_arr, Payload { msg: payload_bytes, aad: &payload_aad_bytes })
++            .map_err(|e| WriterError::CryptoError(format!("Encrypt error: {}", e)))?;
++
++        let now_ms = SystemTime::now()
++            .duration_since(UNIX_EPOCH)
++            .unwrap()
++            .as_millis() as i64;
++
++        let tx = self.conn.transaction()?;
++        let updated = tx.execute(
++            "UPDATE encrypted_object_tbl SET schema_uuid = ?1, content_type = ?2, nonce = ?3, ciphertext = ?4, aad_policy = ?5, updated_at_ms = ?6 WHERE object_uuid = ?7",
++            (schema_uuid, content_type, &nonce_payload, &ciphertext, payload_aad_policy, now_ms, object_uuid),
++        )?;
++        tx.commit()?;
++
++        if updated == 0 {
++            return Err(WriterError::NotFound(object_uuid.to_string()));
++        }
++
++        Ok(())
++    }
++
++    pub fn delete_payload(&mut self, object_uuid: &str) -> Result<(), WriterError> {
++        if self.active_db_kek.is_empty() {
++            return Err(WriterError::RequirementError("Database is locked".into()));
++        }
++
++        let tx = self.conn.transaction()?;
++        let deleted = tx.execute("DELETE FROM encrypted_object_tbl WHERE object_uuid = ?1", [object_uuid])?;
++        tx.commit()?;
++
++        if deleted == 0 {
++            return Err(WriterError::NotFound(object_uuid.to_string()));
++        }
++        Ok(())
++    }
++
+     pub fn close(self) -> Result<(), WriterError> {
+         self.conn
+             .close()

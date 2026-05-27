@@ -3,9 +3,9 @@
 This directory contains experimental cross-language interoperability tests validating the newly implemented Go and Rust writer scaffolds.
 
 ## Overview
-The `test_writer_matrix.sh` script orchestrates roundtrip tests between the Go and Rust experimental writers and the Go, Rust, Python, and Node.js readers. It verifies that databases created and populated by the Go/Rust writer scaffolds can be successfully unlocked and the payloads correctly decrypted by all baseline language implementations.
+The `test_writer_matrix.sh` script orchestrates roundtrip tests between the Go and Rust experimental writers and the Go, Rust, Python, and Node.js readers. It verifies that databases created, updated, and deleted by the Go/Rust writer scaffolds can be successfully unlocked and the payloads correctly decrypted (or NotFound verified) by baseline language implementations. The tests orchestrate `store`, `update`, and `delete` scenarios. Note that `delete` performs a logical hard delete on the payload row without secure erase guarantees or key cleanup.
 
-**Note:** Go and Rust writer implementations are currently portability scaffolds and do not represent final production-ready public APIs (features like update, delete, and key lifecycle are intentionally absent). This test matrix is not yet integrated into automated `push` or `pull_request` CI workflows. It can be run either locally or manually via the GitHub Actions `Write Matrix` workflow using `workflow_dispatch`.
+**Note:** Go and Rust writer implementations are currently portability scaffolds and do not represent final production-ready public APIs (key lifecycle, key rotation, and secure erase are intentionally absent). This test matrix is not yet integrated into automated `push` or `pull_request` CI workflows. It can be run either locally or manually via the GitHub Actions `Write Matrix` workflow using `workflow_dispatch`.
 
 ## Prerequisites
 - Go 1.21+

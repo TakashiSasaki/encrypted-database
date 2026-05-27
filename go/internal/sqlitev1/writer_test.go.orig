@@ -1,7 +1,6 @@
 package sqlitev1
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -210,11 +209,15 @@ func TestUpdateAndDeletePayload(t *testing.T) {
 	}
 
 	// Read and verify updated payload
-	reader, err := OpenReadOnly(dbPath, passphrase)
+	reader, err := OpenReadOnly(dbPath)
 	if err != nil {
 		t.Fatalf("OpenReadOnly failed: %v", err)
 	}
 	defer reader.Close()
+	err = reader.Unlock(passphrase)
+	if err != nil {
+		t.Fatalf("Unlock failed: %v", err)
+	}
 
 	decryptedBytes, err := reader.DecryptObject(objUUID)
 	if err != nil {

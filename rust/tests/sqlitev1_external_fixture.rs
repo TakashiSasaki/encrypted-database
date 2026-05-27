@@ -24,9 +24,22 @@ fn test_external_fixture_read_only() {
     let reader = open_read_only(Path::new(&db_path), &passphrase)
         .expect("Failed to open external fixture DB");
 
-    let payload_bytes = reader
-        .decrypt_object(&object_uuid)
-        .expect("Failed to decrypt object");
+    let payload_bytes = match reader.decrypt_object(&object_uuid) {
+        Err(vault_moukaeritai_work::sqlitev1_reader::ReaderError::NotFound(_))
+            if expected_payload_hex == "DELETED" =>
+        {
+            return;
+        }
+        Err(e) if expected_payload_hex == "DELETED" => {
+            panic!("Expected NotFound error for deleted object, got {:?}", e);
+        }
+        Ok(b) => b,
+        Err(e) => panic!("Failed to decrypt object {}: {:?}", object_uuid, e),
+    };
+
+    if expected_payload_hex == "DELETED" {
+        panic!("Expected object to be deleted but it was decrypted successfully");
+    }
 
     let actual_payload_hex = hex::encode(payload_bytes);
 
