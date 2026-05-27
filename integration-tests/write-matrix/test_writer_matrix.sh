@@ -1,0 +1,66 @@
+#!/bin/bash
+set -euo pipefail
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+ROOT_DIR="$(dirname "$(dirname "$DIR")")"
+
+PASSPHRASE="writer-matrix-passphrase"
+PLATFORM="linux"
+SCHEMA_UUID="00000000-0000-4000-8000-000000000001"
+CONTENT_TYPE="application/json"
+PAYLOAD_JSON='{"secret": "matrix-test", "value": 42}'
+
+DB_GO="$DIR/go_writer.db"
+DB_RUST="$DIR/rust_writer.db"
+
+# Cleanup on exit
+trap 'rm -f "$DB_GO" "$DB_RUST"' EXIT
+
+echo "Building Go wrapper..."
+(cd "$ROOT_DIR/go" && go build -o "$DIR/go_write_matrix" ./cmd/write_matrix_fixture)
+
+echo "Building Rust wrapper..."
+(cd "$ROOT_DIR/rust" && cargo build --bin write_matrix_fixture)
+cp "$ROOT_DIR/rust/target/debug/write_matrix_fixture" "$DIR/rust_write_matrix"
+
+# Function to run the write/read test
+run_test() {
+    local writer_name="$1"
+    local reader_name="$2"
+    local db_path="$3"
+    local write_cmd="$4"
+    local env_vars="$5"
+
+    echo "=== Testing $writer_name Writer -> $reader_name Reader ==="
+    rm -f "$db_path"
+
+    echo "Writing..."
+    # Set environment variables for schema path
+    local output
+    output=$(env $env_vars "$write_cmd" "$db_path" "$PASSPHRASE" "$PLATFORM" "$SCHEMA_UUID" "$CONTENT_TYPE" "$PAYLOAD_JSON")
+
+    # Output should be two lines: obj_uuid and expected_payload_hex
+    local obj_uuid=$(echo "$output" | head -n 1)
+    local expected_payload_hex=$(echo "$output" | tail -n 1)
+
+    echo "Reading..."
+    if [ "$reader_name" == "Go" ]; then
+        (cd "$ROOT_DIR/go" && VAULT_SQLITE_V1_FIXTURE_DB="$db_path" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$obj_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="$expected_payload_hex" go test ./internal/sqlitev1 -run TestExternalFixtureReadOnly)
+    elif [ "$reader_name" == "Rust" ]; then
+        (cd "$ROOT_DIR/rust" && VAULT_SQLITE_V1_FIXTURE_DB="$db_path" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$obj_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="$expected_payload_hex" cargo test --test sqlitev1_external_fixture)
+    fi
+
+    echo "$writer_name -> $reader_name SUCCESS"
+    echo ""
+}
+
+# Go tests
+run_test "Go" "Go" "$DB_GO" "$DIR/go_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Go" "Rust" "$DB_GO" "$DIR/go_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+
+# Rust tests
+run_test "Rust" "Rust" "$DB_RUST" "$DIR/rust_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+run_test "Rust" "Go" "$DB_RUST" "$DIR/rust_write_matrix" "VAULT_SCHEMA_SQL_PATH=$ROOT_DIR/docs/backend/sqlite/schema.sql"
+
+# Clean up binaries
+rm -f "$DIR/go_write_matrix" "$DIR/rust_write_matrix"
