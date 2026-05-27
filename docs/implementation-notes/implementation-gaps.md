@@ -4,7 +4,7 @@ This document tracks known discrepancies and gaps between the current specificat
 
 ## Active Gaps (V1-Blocking Storage-Format Gaps)
 
-None.
+None. Storage Format V1 core shape, metadata validation, and envelope rules are implemented.
 
 *See [`../spec/storage-format-v1-readiness.md`](../spec/storage-format-v1-readiness.md) for the Storage Format V1 Stable Declaration Review and the rationale for treating known remaining work as non-blocking for the storage format.*
 
@@ -75,13 +75,13 @@ None.
 **Why it matters:** Developers might incorrectly assume the library produces standard JWE tokens, leading to integration issues with external systems.
 **Recommended next action:** Update documentation to clarify the non-JWE nature of the envelopes, and treat standard JWE export as a future enhancement rather than a current feature.
 
-### Key rotation and lifecycle operations are not implemented
+### Key lifecycle APIs (rotation / destroy / rewrap) are not implemented
 
 **Status:** Active
 **Area:** Key Management
 **Current state:** The schema supports `status`, activation/deactivation timestamps, and key classes, but public operations for key rotation, decrypt-only migration, destruction semantics, and rewrapping are not implemented.
 **Expected or intended state:** Public APIs allowing consumers to securely rotate keys, rewrap data, and manage key lifecycles according to the schema capabilities.
-**Why it matters:** Lack of key rotation makes the library unsuitable for long-term production use where cryptographic hygiene and rotation are mandated.
+**Why it matters:** Without lifecycle APIs, operational cryptographic hygiene requirements (scheduled rotation, staged migrations, destruction workflows) cannot be fully satisfied.
 **Recommended next action:** Specify and implement key rotation, migration, and key destruction procedures.
 
 ### Additional unlock providers are schema/planned only
