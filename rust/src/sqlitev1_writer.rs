@@ -326,6 +326,10 @@ impl Writer {
         content_type: &str,
         payload: &serde_json::Value,
     ) -> Result<(), WriterError> {
+        if self.active_db_kek.is_empty() {
+            return Err(WriterError::RequirementError("Database is locked".into()));
+        }
+
         let is_valid_uuid = |u: &str| {
             u.len() == 36
                 && u.chars().enumerate().all(|(i, c)| match i {
