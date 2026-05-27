@@ -4,7 +4,7 @@ use aes_gcm::Aes256Gcm;
 use aes_gcm::aead::{Aead, KeyInit, Payload};
 use argon2::{Algorithm, Argon2, Params, Version};
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
-use rusqlite::Connection;
+use rusqlite::{Connection, OptionalExtension, params};
 use serde_json::json;
 use std::env;
 use std::fs;
@@ -26,6 +26,18 @@ pub enum WriterError {
     JcsError(String),
     #[error("Missing requirement: {0}")]
     RequirementError(String),
+    #[error("Not found: {0}")]
+    NotFound(String),
+}
+
+fn is_valid_uuid(value: &str) -> bool {
+    value.len() == 36
+        && value.chars().enumerate().all(|(i, c)| match i {
+            8 | 13 | 18 | 23 => c == '-',
+            14 => ('1'..='8').contains(&c),
+            19 => ['8', '9', 'a', 'b'].contains(&c),
+            _ => c.is_ascii_hexdigit() && (c.is_ascii_lowercase() || c.is_ascii_digit()),
+        })
 }
 
 pub struct Writer {
@@ -230,16 +242,7 @@ impl Writer {
             return Err(WriterError::RequirementError("Database is locked".into()));
         }
 
-        // Validate schema_uuid manually to avoid pulling in regex dependency / LazyLock which requires newer Rust
-        let is_valid_uuid = schema_uuid.len() == 36
-            && schema_uuid.chars().enumerate().all(|(i, c)| match i {
-                8 | 13 | 18 | 23 => c == '-',
-                14 => ('1'..='8').contains(&c),
-                19 => ['8', '9', 'a', 'b'].contains(&c),
-                _ => c.is_ascii_hexdigit() && (c.is_ascii_lowercase() || c.is_ascii_digit()),
-            });
-
-        if !is_valid_uuid {
+        if !is_valid_uuid(schema_uuid) {
             return Err(WriterError::RequirementError("Invalid schema_uuid".into()));
         }
 
@@ -317,6 +320,143 @@ impl Writer {
         tx.commit()?;
 
         Ok(object_uuid)
+    }
+
+    pub fn update_payload(
+        &mut self,
+        object_uuid: &str,
+        schema_uuid: &str,
+        content_type: &str,
+        payload: &serde_json::Value,
+    ) -> Result<(), WriterError> {
+        if self.active_db_kek.is_empty() {
+            return Err(WriterError::RequirementError("Database is locked".into()));
+        }
+        if !is_valid_uuid(object_uuid) {
+            return Err(WriterError::RequirementError("Invalid object_uuid".into()));
+        }
+        if !is_valid_uuid(schema_uuid) {
+            return Err(WriterError::RequirementError("Invalid schema_uuid".into()));
+        }
+        if content_type.is_empty() || !content_type.contains('/') {
+            return Err(WriterError::RequirementError("Invalid content type".into()));
+        }
+
+        let tx = self.conn.transaction()?;
+        let (record_kid, alg, created_at_ms) = tx
+            .query_row(
+                "SELECT kid, alg, created_at_ms FROM encrypted_object_tbl WHERE object_uuid = ?1",
+                [object_uuid],
+                |r| {
+                    Ok((
+                        r.get::<_, String>(0)?,
+                        r.get::<_, String>(1)?,
+                        r.get::<_, i64>(2)?,
+                    ))
+                },
+            )
+            .optional()?
+            .ok_or_else(|| WriterError::NotFound(format!("object {}", object_uuid)))?;
+        if alg != "A256GCM" {
+            return Err(WriterError::RequirementError(
+                "Unsupported object alg".to_string(),
+            ));
+        }
+
+        let (envelope_v, envelope_type, wrap_alg, nonce_wrap, wrapped_record_dek, wrap_aad_policy) = tx
+            .query_row(
+                "SELECT envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ?1 AND wrapping_kid = ?2",
+                params![&record_kid, &self.active_db_kid],
+                |r| {
+                    Ok((
+                        r.get::<_, i64>(0)?,
+                        r.get::<_, String>(1)?,
+                        r.get::<_, String>(2)?,
+                        r.get::<_, Vec<u8>>(3)?,
+                        r.get::<_, Vec<u8>>(4)?,
+                        r.get::<_, String>(5)?,
+                    ))
+                },
+            )
+            .optional()?
+            .ok_or_else(|| WriterError::NotFound("record DEK wrap info not found".to_string()))?;
+        if envelope_v != 1
+            || envelope_type != "key_wrap"
+            || wrap_alg != "A256GCM"
+            || wrap_aad_policy != "wrap-record-key-v1"
+        {
+            return Err(WriterError::RequirementError(
+                "Invalid wrapped key envelope metadata".to_string(),
+            ));
+        }
+
+        let wrap_aad_bytes = build_wrap_key_v1(&wrap_aad_policy, &record_kid, &self.active_db_kid)
+            .map_err(|e| WriterError::CryptoError(format!("Wrap AAD build: {:?}", e)))?;
+        let unwrap_cipher = Aes256Gcm::new_from_slice(&self.active_db_kek)
+            .map_err(|e| WriterError::CryptoError(format!("AES Key: {}", e)))?;
+        let record_dek_bytes = unwrap_cipher
+            .decrypt(
+                aes_gcm::Nonce::from_slice(&nonce_wrap),
+                Payload {
+                    msg: &wrapped_record_dek,
+                    aad: &wrap_aad_bytes,
+                },
+            )
+            .map_err(|e| WriterError::CryptoError(format!("Decrypt error: {}", e)))?;
+
+        let payload_str = canonicalize(payload).map_err(|e| WriterError::JcsError(e.to_string()))?;
+        let payload_aad_policy = "record-payload-v1";
+        let payload_aad_bytes = build_record_payload_v1(
+            object_uuid,
+            schema_uuid,
+            content_type,
+            &record_kid,
+            "A256GCM",
+        )
+        .map_err(|e| WriterError::CryptoError(format!("Payload AAD build: {:?}", e)))?;
+        let nonce_payload = generate_random_bytes(12)?;
+        let payload_cipher = Aes256Gcm::new_from_slice(&record_dek_bytes)
+            .map_err(|e| WriterError::CryptoError(format!("AES Key: {}", e)))?;
+        let ciphertext = payload_cipher
+            .encrypt(
+                aes_gcm::Nonce::from_slice(&nonce_payload),
+                Payload {
+                    msg: payload_str.as_bytes(),
+                    aad: &payload_aad_bytes,
+                },
+            )
+            .map_err(|e| WriterError::CryptoError(format!("Encrypt error: {}", e)))?;
+
+        let now_ms = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as i64;
+
+        tx.execute(
+            "UPDATE encrypted_object_tbl SET schema_uuid = ?1, content_type = ?2, nonce = ?3, ciphertext = ?4, aad_policy = ?5, updated_at_ms = ?6, created_at_ms = ?7 WHERE object_uuid = ?8",
+            params![schema_uuid, content_type, &nonce_payload, &ciphertext, payload_aad_policy, now_ms, created_at_ms, object_uuid],
+        )?;
+        tx.commit()?;
+        Ok(())
+    }
+
+    pub fn delete_payload(&mut self, object_uuid: &str) -> Result<(), WriterError> {
+        if self.active_db_kek.is_empty() {
+            return Err(WriterError::RequirementError("Database is locked".into()));
+        }
+        if !is_valid_uuid(object_uuid) {
+            return Err(WriterError::RequirementError("Invalid object_uuid".into()));
+        }
+        let tx = self.conn.transaction()?;
+        let deleted = tx.execute(
+            "DELETE FROM encrypted_object_tbl WHERE object_uuid = ?1",
+            [object_uuid],
+        )?;
+        if deleted == 0 {
+            return Err(WriterError::NotFound(format!("object {}", object_uuid)));
+        }
+        tx.commit()?;
+        Ok(())
     }
 
     pub fn close(self) -> Result<(), WriterError> {
