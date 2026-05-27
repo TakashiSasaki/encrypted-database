@@ -58,7 +58,14 @@ fn test_writer_negative_cases() {
     assert!(create_new(&dir.path().join("empty_pass.db"), "", "linux").is_err());
 
     // Unknown platform
-    assert!(create_new(&dir.path().join("unknown_platform.db"), passphrase, "unknown_platform").is_err());
+    assert!(
+        create_new(
+            &dir.path().join("unknown_platform.db"),
+            passphrase,
+            "unknown_platform"
+        )
+        .is_err()
+    );
 
     // Valid creation
     let mut writer = create_new(&db_path, passphrase, "linux").expect("Failed to create new db");

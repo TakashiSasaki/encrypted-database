@@ -196,16 +196,57 @@ The database utilizes an envelope encryption hierarchy to protect data while all
 
 When a new Storage Format V1 database is initialized by a writer (such as the Go or Rust scaffolds), the following sequence occurs to establish the cryptographic hierarchy and initial metadata:
 
+```mermaid
+sequenceDiagram
+    participant App as Application
+    participant Writer as Go/Rust Writer
+    participant DB as SQLite DB
+
+    %% CreateNew Flow
+    rect rgb(240, 248, 255)
+        Note right of App: CreateNew(db_path, passphrase, platform)
+        App->>Writer: Create new database
+        Writer->>DB: Execute schema.sql
+        Note over DB: Populates seed tables: key_class_tbl, key_profile_tbl,<br>unlock_method_tbl, unlock_provider_tbl, platform_tbl
+        Writer->>DB: PRAGMA application_id & user_version
+        Writer->>DB: Insert into storage_metadata_tbl
+        Note right of Writer: Generate Database KEK<br>Derive Unlock KEK (Argon2id)
+        Writer->>DB: Insert unlock_kek & database_kek into key_tbl (status='active')
+        Writer->>DB: Insert into unlock_kek_tbl
+        Note over DB: provider_config_json is JCS canonical JSON
+        Writer->>DB: Insert into wrapped_key_tbl
+        Note over DB: wraps unlock_kek -> database_kek (ciphertext || tag)<br>AAD Policy: wrap-database-key-v1
+        Writer-->>App: Writer Instance
+    end
+
+    %% StorePayload Flow
+    rect rgb(245, 245, 245)
+        Note right of App: StorePayload(schema_uuid, content_type, payload_json)
+        App->>Writer: Store payload
+        Note right of Writer: Generate Record DEK
+        Writer->>DB: Insert record_dek into key_tbl (status='active')
+        Writer->>DB: Insert into wrapped_key_tbl
+        Note over DB: wraps database_kek -> record_dek (ciphertext || tag)<br>AAD Policy: wrap-record-key-v1
+        Writer->>DB: Insert into encrypted_object_tbl
+        Note over DB: payload envelope (ciphertext || tag)<br>AAD Policy: record-payload-v1
+        Writer-->>App: object_uuid
+    end
+```
+
 1.  **Schema Bootstrap**: The writer executes the canonical `docs/backend/sqlite/schema.sql`. This populates the database with **seed data** for static lookup tables (`key_class_tbl`, `key_profile_tbl`, `unlock_method_tbl`, `unlock_provider_tbl`, `platform_tbl`, `unlock_provider_platform_tbl`).
 2.  **Platform Validation**: The writer validates the caller-provided platform string against the populated `platform_tbl`.
 3.  **Root Key Generation**: The writer generates a new Database KEK (`database_kek`) and derives an Unlock KEK (`unlock_kek`) from the user's passphrase (e.g., via Argon2id).
 4.  **Metadata Insertion**: A new UUID is generated for the database, and the writer populates `storage_metadata_tbl` with format versions, library identifiers (e.g., `"vault-go"`, `"vault-rust"`), timestamps, and feature flags.
 5.  **Key and Wrap Insertion**:
     - The `database_kek` and `unlock_kek` are inserted into `key_tbl` with a status of `active`.
-    - The `unlock_kek` configuration (like Argon2id salt and parameters) is canonicalized into JSON and stored in `unlock_kek_tbl.provider_config_json`.
-    - The `database_kek` is encrypted with the `unlock_kek`. The resulting ciphertext and envelope metadata are stored as a new row in `wrapped_key_tbl`, utilizing the `wrap-database-key-v1` AAD policy.
+    - The `unlock_kek` configuration (like Argon2id salt and parameters) is canonicalized into **JCS canonical JSON** and stored in `unlock_kek_tbl.provider_config_json`.
+    - The `database_kek` is encrypted with the `unlock_kek`. The resulting output is stored as `ciphertext || tag` in `wrapped_key_tbl.wrapped_key`, utilizing the `wrap-database-key-v1` AAD policy.
+6.  **Payload Insertion (`StorePayload`)**:
+    - A new Record DEK (`record_dek`) is generated and inserted into `key_tbl`.
+    - The `record_dek` is wrapped by the `database_kek` and stored in `wrapped_key_tbl` (using the `wrap-record-key-v1` AAD policy).
+    - The user's JSON payload is encrypted using the `record_dek`. The output is stored as `ciphertext || tag` in `encrypted_object_tbl.ciphertext` using the `record-payload-v1` AAD policy.
 
-**Note on Lifecycle Fields**: The minimal writer scaffolds intentionally leave complex key lifecycle fields (e.g., `activated_at_ms`, `deactivated_at_ms`, `destroyed_at_ms`, `device_id`) absent (NULL), as update/delete, key rotation, and decrypt-only migrations are not yet implemented.
+**Note on Lifecycle Fields**: The minimal writer scaffolds intentionally leave complex key lifecycle fields (`activated_at_ms`, `deactivated_at_ms`, `destroyed_at_ms`, `description_json`, `device_id`) absent (NULL), as update/delete, key rotation, decrypt-only migrations, key destruction, and rewrap are not yet implemented.
 
 ## Metadata and Compatibility
 
