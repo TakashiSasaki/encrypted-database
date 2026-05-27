@@ -319,6 +319,12 @@ func TestWriterUpdateDeleteValidationAndNotFound(t *testing.T) {
 	if err := writer.UpdatePayload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "invalid", payload); err == nil {
 		t.Fatalf("expected invalid content type error")
 	}
+	if err := writer.UpdatePayload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "application/", payload); err == nil {
+		t.Fatalf("expected invalid content type error for empty subtype")
+	}
+	if err := writer.UpdatePayload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "application/\x07json", payload); err == nil {
+		t.Fatalf("expected invalid content type error for control chars")
+	}
 	if err := writer.DeletePayload("invalid-uuid"); err == nil {
 		t.Fatalf("expected invalid objectUUID error")
 	}

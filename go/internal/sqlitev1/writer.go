@@ -40,6 +40,18 @@ func generateRandomBytes(n int) ([]byte, error) {
 	return b, nil
 }
 
+func isValidContentType(contentType string) bool {
+	if contentType == "" || strings.IndexByte(contentType, '/') <= 0 || strings.HasSuffix(contentType, "/") {
+		return false
+	}
+	for _, r := range contentType {
+		if r < 0x20 || r == 0x7f {
+			return false
+		}
+	}
+	return true
+}
+
 func loadSchemaSQL() (string, error) {
 	path := os.Getenv("VAULT_SCHEMA_SQL_PATH")
 	if path == "" {
@@ -249,7 +261,7 @@ func (w *Writer) StorePayload(schemaUUID string, contentType string, payload any
 		return "", errors.New("invalid schemaUUID")
 	}
 
-	if contentType == "" || !strings.Contains(contentType, "/") {
+	if !isValidContentType(contentType) {
 		return "", errors.New("invalid content type")
 	}
 
@@ -348,7 +360,7 @@ func (w *Writer) UpdatePayload(objectUUID string, schemaUUID string, contentType
 	if !uuidRegex.MatchString(schemaUUID) {
 		return errors.New("invalid schemaUUID")
 	}
-	if contentType == "" || !strings.Contains(contentType, "/") {
+	if !isValidContentType(contentType) {
 		return errors.New("invalid content type")
 	}
 
