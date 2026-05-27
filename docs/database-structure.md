@@ -251,7 +251,7 @@ sequenceDiagram
 
 ## SQLite Backend PRAGMA Profile (Writer)
 
-For SQLite backend writers, the V1 profile uses the following PRAGMA set during database creation:
+For SQLite backend writers, the V1 profile uses the following PRAGMAs during database creation:
 
 * `PRAGMA page_size=4096`
 * `PRAGMA auto_vacuum=INCREMENTAL`
