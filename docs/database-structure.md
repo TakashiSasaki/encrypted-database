@@ -207,7 +207,7 @@ sequenceDiagram
         Note right of App: CreateNew(db_path, passphrase, platform)
         App->>Writer: Create new database
         Writer->>DB: Execute schema.sql
-        Note over DB: Populates seed tables: key_class_tbl, key_profile_tbl,<br>unlock_method_tbl, unlock_provider_tbl, platform_tbl
+        Note over DB: Populates seed tables: key_class_tbl, key_profile_tbl,<br>unlock_method_tbl, unlock_provider_tbl, platform_tbl, unlock_provider_platform_tbl
         Writer->>DB: PRAGMA application_id & user_version
         Writer->>DB: Insert into storage_metadata_tbl
         Note right of Writer: Generate Database KEK<br>Derive Unlock KEK (Argon2id)
