@@ -14,7 +14,7 @@ DB_GO="$DIR/go_writer.db"
 DB_RUST="$DIR/rust_writer.db"
 
 # Cleanup on exit
-trap 'rm -f "$DB_GO" "$DB_RUST"' EXIT
+trap 'rm -f "$DB_GO" "$DB_RUST" "$DIR/go_write_matrix" "$DIR/rust_write_matrix"' EXIT
 
 echo "Building Go wrapper..."
 (cd "$ROOT_DIR/go" && go build -o "$DIR/go_write_matrix" ./cmd/write_matrix_fixture)

@@ -34,20 +34,20 @@ pub struct Writer {
     active_db_kid: String,
 }
 
-fn generate_random_bytes(len: usize) -> Vec<u8> {
+fn generate_random_bytes(len: usize) -> Result<Vec<u8>, WriterError> {
     let mut buf = vec![0u8; len];
-    getrandom::getrandom(&mut buf).expect("Failed to get random bytes");
-    buf
+    getrandom::getrandom(&mut buf)
+        .map_err(|e| WriterError::CryptoError(format!("Failed to get random bytes: {}", e)))?;
+    Ok(buf)
 }
 
-fn generate_uuid() -> String {
-    let bytes = generate_random_bytes(16);
-    let mut uuid = bytes;
+fn generate_uuid() -> Result<String, WriterError> {
+    let mut uuid = generate_random_bytes(16)?;
     // Set UUID v4
     uuid[6] = (uuid[6] & 0x0f) | 0x40;
     // Set RFC4122 variant
     uuid[8] = (uuid[8] & 0x3f) | 0x80;
-    format!(
+    Ok(format!(
         "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
         uuid[0],
         uuid[1],
@@ -65,7 +65,7 @@ fn generate_uuid() -> String {
         uuid[13],
         uuid[14],
         uuid[15]
-    )
+    ))
 }
 
 fn load_schema_sql() -> Result<String, WriterError> {
@@ -98,6 +98,7 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
     conn.execute_batch(&schema_sql)?;
     conn.execute("PRAGMA application_id = 1447906135", [])?;
     conn.execute("PRAGMA user_version = 1", [])?;
+    conn.execute("PRAGMA foreign_keys = ON", [])?;
 
     // Validate platform
     {
@@ -108,10 +109,10 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
         }
     }
 
-    let db_kek_bytes = generate_random_bytes(32);
-    let db_kid = generate_uuid();
+    let db_kek_bytes = generate_random_bytes(32)?;
+    let db_kid = generate_uuid()?;
 
-    let salt = generate_random_bytes(16);
+    let salt = generate_random_bytes(16)?;
 
     let mut unlock_kek_bytes = vec![0u8; 32];
     let params = Params::new(65536, 3, 1, Some(32))
@@ -121,7 +122,7 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
         .hash_password_into(passphrase.as_bytes(), &salt, &mut unlock_kek_bytes)
         .map_err(|e| WriterError::CryptoError(format!("Argon2 hash: {}", e)))?;
 
-    let unlock_kid = generate_uuid();
+    let unlock_kid = generate_uuid()?;
 
     let salt_b64 = URL_SAFE_NO_PAD.encode(&salt);
     let provider_config = json!({
@@ -142,7 +143,7 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
     let aad_bytes = build_wrap_key_v1(aad_policy_name, &db_kid, &unlock_kid)
         .map_err(|e| WriterError::CryptoError(format!("Wrap AAD build: {:?}", e)))?;
 
-    let nonce = generate_random_bytes(12);
+    let nonce = generate_random_bytes(12)?;
 
     let cipher = Aes256Gcm::new_from_slice(&unlock_kek_bytes)
         .map_err(|e| WriterError::CryptoError(format!("AES Key: {}", e)))?;
@@ -155,7 +156,7 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
         .encrypt(nonce_arr, payload)
         .map_err(|e| WriterError::CryptoError(format!("Encrypt error: {}", e)))?;
 
-    let db_uuid = generate_uuid();
+    let db_uuid = generate_uuid()?;
     let now_ms = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -201,7 +202,7 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
         (&unlock_kid, "passphrase_argon2id", &provider_config_json, platform),
     )?;
 
-    let wrap_id = generate_uuid();
+    let wrap_id = generate_uuid()?;
     tx.execute(
         "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
         (wrap_id, &db_kid, &unlock_kid, 1, "key_wrap", wrap_alg, &nonce, &wrapped_db_kek, aad_policy_name, now_ms),
@@ -230,9 +231,9 @@ impl Writer {
             return Err(WriterError::RequirementError("Invalid content type".into()));
         }
 
-        let object_uuid = generate_uuid();
-        let record_dek_bytes = generate_random_bytes(32);
-        let record_kid = generate_uuid();
+        let object_uuid = generate_uuid()?;
+        let record_dek_bytes = generate_random_bytes(32)?;
+        let record_kid = generate_uuid()?;
         let alg = "A256GCM";
 
         let wrap_aad_policy = "wrap-record-key-v1";
@@ -240,7 +241,7 @@ impl Writer {
             build_wrap_key_v1(wrap_aad_policy, &record_kid, &self.active_db_kid)
                 .map_err(|e| WriterError::CryptoError(format!("Wrap AAD build: {:?}", e)))?;
 
-        let nonce_wrap = generate_random_bytes(12);
+        let nonce_wrap = generate_random_bytes(12)?;
         let cipher_wrap = Aes256Gcm::new_from_slice(&self.active_db_kek)
             .map_err(|e| WriterError::CryptoError(format!("AES Key: {}", e)))?;
         let nonce_wrap_arr = aes_gcm::Nonce::from_slice(&nonce_wrap);
@@ -261,7 +262,7 @@ impl Writer {
             build_record_payload_v1(&object_uuid, schema_uuid, content_type, &record_kid, alg)
                 .map_err(|e| WriterError::CryptoError(format!("Payload AAD build: {:?}", e)))?;
 
-        let nonce_payload = generate_random_bytes(12);
+        let nonce_payload = generate_random_bytes(12)?;
         let cipher_payload = Aes256Gcm::new_from_slice(&record_dek_bytes)
             .map_err(|e| WriterError::CryptoError(format!("AES Key: {}", e)))?;
         let nonce_payload_arr = aes_gcm::Nonce::from_slice(&nonce_payload);
@@ -273,33 +274,49 @@ impl Writer {
             .encrypt(nonce_payload_arr, payload_encrypt)
             .map_err(|e| WriterError::CryptoError(format!("Encrypt error: {}", e)))?;
 
-        let mut stmt = self.conn.prepare("BEGIN TRANSACTION")?;
-        stmt.execute([])?;
-
         let now_ms = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_millis() as i64;
 
-        self.conn.execute(
-            "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            (&record_kid, "record_dek", "encrypt_payload", alg, "active", now_ms),
-        )?;
+        // We use explicit `BEGIN TRANSACTION` and `COMMIT` previously.
+        // It is safer to use `transaction()` instead so it automatically rolls back on early return.
+        // However, we cannot use `self.conn.transaction()` without `&mut self`.
+        // We can just execute the BEGIN and map errors to explicit rollbacks if necessary, but
+        // since `Connection::transaction()` needs mutable reference, we'll manually ensure rollback on error.
 
-        let wrap_id = generate_uuid();
-        self.conn.execute(
-            "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
-            (wrap_id, &record_kid, &self.active_db_kid, 1, "key_wrap", alg, &nonce_wrap, &wrapped_record_dek, wrap_aad_policy, now_ms),
-        )?;
+        self.conn.execute("BEGIN TRANSACTION", [])?;
 
-        self.conn.execute(
-            "INSERT INTO encrypted_object_tbl (object_uuid, envelope_v, envelope_type, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
-            (&object_uuid, 1, "aead", schema_uuid, content_type, alg, &record_kid, &nonce_payload, &ciphertext, payload_aad_policy, now_ms, now_ms),
-        )?;
+        let wrap_id = generate_uuid()?;
 
-        self.conn.execute("COMMIT", [])?;
+        let mut success = false;
+        let result = (|| -> Result<(), WriterError> {
+            self.conn.execute(
+                "INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                (&record_kid, "record_dek", "encrypt_payload", alg, "active", now_ms),
+            )?;
 
-        Ok(object_uuid)
+            self.conn.execute(
+                "INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+                (&wrap_id, &record_kid, &self.active_db_kid, 1, "key_wrap", alg, &nonce_wrap, &wrapped_record_dek, wrap_aad_policy, now_ms),
+            )?;
+
+            self.conn.execute(
+                "INSERT INTO encrypted_object_tbl (object_uuid, envelope_v, envelope_type, schema_uuid, content_type, alg, kid, nonce, ciphertext, aad_policy, created_at_ms, updated_at_ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+                (&object_uuid, 1, "aead", schema_uuid, content_type, alg, &record_kid, &nonce_payload, &ciphertext, payload_aad_policy, now_ms, now_ms),
+            )?;
+
+            success = true;
+            Ok(())
+        })();
+
+        if success {
+            self.conn.execute("COMMIT", [])?;
+            Ok(object_uuid)
+        } else {
+            let _ = self.conn.execute("ROLLBACK", []);
+            Err(result.unwrap_err())
+        }
     }
 
     pub fn close(self) -> Result<(), WriterError> {

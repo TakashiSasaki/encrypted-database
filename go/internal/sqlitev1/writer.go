@@ -89,6 +89,11 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 		db.Close()
 		return nil, fmt.Errorf("failed to set PRAGMA user_version: %w", err)
 	}
+	_, err = db.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to set PRAGMA foreign_keys: %w", err)
+	}
 
 	// Validate platform
 	var p string
@@ -165,52 +170,57 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 		db.Close()
 		return nil, err
 	}
-	defer tx.Rollback()
 
-	dbUuid := uuid.New().String()
-	nowMs := time.Now().UnixMilli()
+	commitOrRollback := func() error {
+		defer tx.Rollback()
+		dbUuid := uuid.New().String()
+		nowMs := time.Now().UnixMilli()
 
-	metadata := map[string]string{
-		"storage_format_id":     "vault.moukaeritai.work.storage",
-		"format_major":          "1",
-		"format_minor":          "0",
-		"schema_version":        "1",
-		"database_uuid":         dbUuid,
-		"created_at_ms":         fmt.Sprintf("%d", nowMs),
-		"created_by_library":    "vault-go",
-		"created_by_version":    "0.0.0-dev",
-		"sqlite_application_id": "1447906135",
-		"sqlite_user_version":   "1",
-		"required_features":     "[]",
-		"optional_features":     "[]",
-	}
-
-	for prop, val := range metadata {
-		_, err = tx.Exec("INSERT INTO storage_metadata_tbl (property, value) VALUES (?, ?)", prop, val)
-		if err != nil {
-			return nil, err
+		metadata := map[string]string{
+			"storage_format_id":     "vault.moukaeritai.work.storage",
+			"format_major":          "1",
+			"format_minor":          "0",
+			"schema_version":        "1",
+			"database_uuid":         dbUuid,
+			"created_at_ms":         fmt.Sprintf("%d", nowMs),
+			"created_by_library":    "vault-go",
+			"created_by_version":    "0.0.0-dev",
+			"sqlite_application_id": "1447906135",
+			"sqlite_user_version":   "1",
+			"required_features":     "[]",
+			"optional_features":     "[]",
 		}
+
+		for prop, val := range metadata {
+			_, err = tx.Exec("INSERT INTO storage_metadata_tbl (property, value) VALUES (?, ?)", prop, val)
+			if err != nil {
+				return err
+			}
+		}
+
+		_, err = tx.Exec("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)", dbKid, "database_kek", "wrap_record_keys", wrapAlg, "active", nowMs)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)", unlockKid, "unlock_kek", "wrap_database_keys", wrapAlg, "active", nowMs)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec("INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)", unlockKid, "passphrase_argon2id", providerConfigJson, platform)
+		if err != nil {
+			return err
+		}
+		wrapId := uuid.New().String()
+		_, err = tx.Exec("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", wrapId, dbKid, unlockKid, 1, "key_wrap", wrapAlg, nonce, wrappedDbKek, aadPolicyName, nowMs)
+		if err != nil {
+			return err
+		}
+
+		return tx.Commit()
 	}
 
-	_, err = tx.Exec("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)", dbKid, "database_kek", "wrap_record_keys", wrapAlg, "active", nowMs)
-	if err != nil {
-		return nil, err
-	}
-	_, err = tx.Exec("INSERT INTO key_tbl (kid, key_class, purpose, alg, status, created_at_ms) VALUES (?, ?, ?, ?, ?, ?)", unlockKid, "unlock_kek", "wrap_database_keys", wrapAlg, "active", nowMs)
-	if err != nil {
-		return nil, err
-	}
-	_, err = tx.Exec("INSERT INTO unlock_kek_tbl (kid, unlock_provider, provider_config_json, created_on_platform) VALUES (?, ?, ?, ?)", unlockKid, "passphrase_argon2id", providerConfigJson, platform)
-	if err != nil {
-		return nil, err
-	}
-	wrapId := uuid.New().String()
-	_, err = tx.Exec("INSERT INTO wrapped_key_tbl (wrap_id, wrapped_kid, wrapping_kid, envelope_v, envelope_type, wrap_alg, nonce, wrapped_key, aad_policy, created_at_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", wrapId, dbKid, unlockKid, 1, "key_wrap", wrapAlg, nonce, wrappedDbKek, aadPolicyName, nowMs)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
+	if err := commitOrRollback(); err != nil {
+		db.Close()
 		return nil, err
 	}
 
