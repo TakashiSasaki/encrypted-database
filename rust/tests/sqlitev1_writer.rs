@@ -242,6 +242,12 @@ fn test_writer_update_delete_validation_and_not_found() {
         .update_payload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "invalid_type", &payload)
         .is_err());
     assert!(writer
+        .update_payload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "application/", &payload)
+        .is_err());
+    assert!(writer
+        .update_payload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "application/\u{0007}json", &payload)
+        .is_err());
+    assert!(writer
         .delete_payload("invalid-uuid")
         .is_err());
 

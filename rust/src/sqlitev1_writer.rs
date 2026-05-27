@@ -40,6 +40,16 @@ fn is_valid_uuid(value: &str) -> bool {
         })
 }
 
+fn is_valid_content_type(value: &str) -> bool {
+    if value.is_empty() || value.chars().any(|c| c.is_control()) {
+        return false;
+    }
+    let mut parts = value.splitn(2, '/');
+    let ty = parts.next().unwrap_or_default();
+    let subtype = parts.next().unwrap_or_default();
+    !ty.is_empty() && !subtype.is_empty()
+}
+
 pub struct Writer {
     conn: Connection,
     active_db_kek: Vec<u8>,
@@ -246,7 +256,7 @@ impl Writer {
             return Err(WriterError::RequirementError("Invalid schema_uuid".into()));
         }
 
-        if content_type.is_empty() || !content_type.contains('/') {
+        if !is_valid_content_type(content_type) {
             return Err(WriterError::RequirementError("Invalid content type".into()));
         }
 
@@ -338,7 +348,7 @@ impl Writer {
         if !is_valid_uuid(schema_uuid) {
             return Err(WriterError::RequirementError("Invalid schema_uuid".into()));
         }
-        if content_type.is_empty() || !content_type.contains('/') {
+        if !is_valid_content_type(content_type) {
             return Err(WriterError::RequirementError("Invalid content type".into()));
         }
 
