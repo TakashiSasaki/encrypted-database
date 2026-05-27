@@ -41,7 +41,7 @@
 </head>
 <body class="markdown-body">
     <nav style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eaecef;">
-        <strong>Navigation:</strong>
+        <a href="#" id="show-index-btn" style="font-weight: bold; margin-right: 15px; color: #0969da; text-decoration: none;">Navigation:</a>
         <a href="?file=README.md" style="margin-right: 15px;">Home (README)</a>
         <a href="?file=docs/database-structure.md" style="margin-right: 15px;">Database Structure</a>
         <a href="demo/index.html" style="margin-right: 15px;">Browser Demo</a>
@@ -49,11 +49,18 @@
     </nav>
     <div id="file-path-display" style="margin-bottom: 15px; font-size: 0.9em; color: #57606a;"></div>
     <div id="content" style="background-color: #ffffe0; padding: 20px; border-radius: 6px;">Loading...</div>
+    <div id="index-container" style="display: none; background-color: #f6f8fa; padding: 20px; border-radius: 6px;">
+        <h2>All Documents</h2>
+        <ul id="index-list"></ul>
+    </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const contentDiv = document.getElementById('content');
             const pathDisplayDiv = document.getElementById('file-path-display');
+            const indexContainer = document.getElementById('index-container');
+            const indexList = document.getElementById('index-list');
+            const showIndexBtn = document.getElementById('show-index-btn');
 
             function getQueryParam(name) {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -81,7 +88,35 @@
                 return baseParts.join('/');
             }
 
+            async function fetchDocumentIndex() {
+                const CACHE_KEY = 'vault_docs_index';
+                const cached = sessionStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    return JSON.parse(cached);
+                }
+
+                try {
+                    const response = await fetch('https://api.github.com/repos/TakashiSasaki/vault.moukaeritai.work/git/trees/vault.moukaeritai.work?recursive=1');
+                    if (!response.ok) throw new Error('Failed to fetch repository tree');
+                    const data = await response.json();
+
+                    const mdFiles = data.tree
+                        .filter(item => item.type === 'blob' && item.path.endsWith('.md'))
+                        .map(item => item.path);
+
+                    sessionStorage.setItem(CACHE_KEY, JSON.stringify(mdFiles));
+                    return mdFiles;
+                } catch (error) {
+                    console.error('Error fetching document index:', error);
+                    return [];
+                }
+            }
+
             async function loadMarkdown() {
+                // Ensure index is hidden and content is visible
+                indexContainer.style.display = 'none';
+                contentDiv.style.display = 'block';
+
                 let file = getQueryParam('file') || 'README.md';
 
                 // Security check to prevent fetching external resources
@@ -219,10 +254,64 @@
                 }
             }
 
+            // Handle clicking the "Navigation" link
+            showIndexBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+
+                // Hide content, show index
+                contentDiv.style.display = 'none';
+                pathDisplayDiv.innerHTML = 'Index';
+                indexContainer.style.display = 'block';
+                indexList.innerHTML = '<li>Loading document list...</li>';
+
+                // Update URL to empty file parameter so reloading doesn't show a specific file if they are on index
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.delete('file');
+                window.history.pushState({ isIndex: true }, '', newUrl.toString());
+
+                const files = await fetchDocumentIndex();
+
+                if (files.length === 0) {
+                    indexList.innerHTML = '<li>Could not load document list.</li>';
+                    return;
+                }
+
+                indexList.innerHTML = '';
+                files.forEach(file => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = `?file=${file}`;
+                    a.textContent = file;
+
+                    a.addEventListener('click', (e) => {
+                        if (e.ctrlKey || e.metaKey) return;
+                        e.preventDefault();
+                        const fileUrl = new URL(window.location);
+                        fileUrl.searchParams.set('file', file);
+                        window.history.pushState({}, '', fileUrl.toString());
+                        loadMarkdown();
+                    });
+
+                    li.appendChild(a);
+                    indexList.appendChild(li);
+                });
+            });
+
             // Handle browser back/forward buttons
-            window.addEventListener('popstate', loadMarkdown);
+            window.addEventListener('popstate', (e) => {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (!urlParams.has('file') && e.state && e.state.isIndex) {
+                    // We're back to the index view
+                    showIndexBtn.click();
+                } else {
+                    loadMarkdown();
+                }
+            });
 
             // Initial load
+            const initialUrlParams = new URLSearchParams(window.location.search);
+            // If the user navigates directly to the root with no file, we default to README.md in loadMarkdown,
+            // so we don't automatically show the index unless they click the button.
             loadMarkdown();
         });
     </script>
