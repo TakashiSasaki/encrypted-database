@@ -84,13 +84,13 @@ These tables contain static seed data populated during schema initialization.
 | `nonce` | generated random value | 12 bytes | 12 bytes | |
 | `ciphertext` | derived by writer | populated | populated | AES-GCM output (ciphertext \|\| tag). |
 | `aad_policy` | derived by writer | populated | populated | `record-payload-v1` |
-| `created_at_ms` | generated runtime metadata | populated | populated | Current time in MS |
-| `updated_at_ms` | generated runtime metadata | populated | populated | Set on insert; on future update flows this field must be refreshed while `created_at_ms` is preserved. |
+| `created_at_ms` | generated deterministic metadata | populated | populated | Current time in MS |
+| `updated_at_ms` | generated deterministic metadata | populated | populated | Set on insert; on future update flows this field must be refreshed while `created_at_ms` is preserved. |
 
 
 ## Update/Delete Field Handling Rules
 
-When implementations expose `UpdatePayload` / `DeletePayload`, the following is **non-normative implementation guidance** for current scaffold behavior (until normative update/delete spec text is defined):
+When implementations expose `UpdatePayload` / `DeletePayload`, field behavior should remain consistent with V1 semantics:
 
 * `encrypted_object_tbl.updated_at_ms`: updated to the current timestamp for update operations.
 * `encrypted_object_tbl.created_at_ms`: preserved from original insert (not rewritten on update).
