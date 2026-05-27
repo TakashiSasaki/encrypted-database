@@ -1,37 +1,14 @@
 # Write Matrix Interoperability Tests
 
-This directory contains experimental cross-language interoperability tests validating the newly implemented Go and Rust writer scaffolds.
+`test_writer_matrix.sh` validates cross-language read compatibility for experimental Go/Rust writers with **store/update/delete** lifecycle fixtures.
 
-## Overview
-The `test_writer_matrix.sh` script orchestrates roundtrip tests between the Go and Rust experimental writers and the Go, Rust, Python, and Node.js readers. It verifies that databases created and populated by the Go/Rust writer scaffolds can be successfully unlocked and the payloads correctly decrypted by all baseline language implementations.
+## What is validated
+- Fixture writers emit JSON with `object_uuid`, `initial_payload_hex`, `updated_payload_hex`, `deleted`.
+- Readers (Go/Rust/Python/Node) validate updated payload (`payload B`) after writer update.
+- Delete-afterwrite behavior is validated as `NotFound` for **Go/Rust readers only**.
+- Cleanup now includes SQLite WAL sidecars (`*.db-wal`, `*.db-shm`).
 
-**Note:** Go and Rust writer implementations are currently portability scaffolds and do not represent final production-ready public APIs (features like update, delete, and key lifecycle are intentionally absent). This test matrix is not yet integrated into automated `push` or `pull_request` CI workflows. It can be run either locally or manually via the GitHub Actions `Write Matrix` workflow using `workflow_dispatch`.
-
-## Prerequisites
-- Go 1.21+
-- Rust (Cargo) 1.70+
-- Node.js 18+ (npm installed)
-- Python 3.10+ (pip installed)
-
-## Usage
-
-### Local Execution
-Run the test script directly:
+## Run
 ```bash
 bash integration-tests/write-matrix/test_writer_matrix.sh
 ```
-
-### Manual CI Execution
-Trigger the `Write Matrix` workflow via GitHub Actions using the `workflow_dispatch` event.
-
-*Note: The script will automatically attempt to install the necessary local Python and Node.js dependencies (`pip install -e .[test]` and `npm ci`) before running.*
-
-## Matrix Combinations Supported
-- Go Writer -> Go Reader
-- Go Writer -> Rust Reader
-- Go Writer -> Python Reader
-- Go Writer -> Node Reader
-- Rust Writer -> Rust Reader
-- Rust Writer -> Go Reader
-- Rust Writer -> Python Reader
-- Rust Writer -> Node Reader
