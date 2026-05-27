@@ -1,6 +1,7 @@
 package sqlitev1
 
 import (
+	"database/sql"
 	"os"
 	"path/filepath"
 	"testing"
@@ -66,6 +67,60 @@ func TestWriterRoundtrip(t *testing.T) {
 	_, err = OpenReadOnly(dbPath, "wrong-passphrase")
 	if err == nil {
 		t.Fatalf("expected error with wrong passphrase, got nil")
+	}
+}
+
+
+func TestCreateNewAppliesPragmas(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "vault_writer_pragma_test")
+	if err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	dbPath := filepath.Join(tempDir, "test_pragma.db")
+	writer, err := CreateNew(dbPath, "test-passphrase", "linux")
+	if err != nil {
+		t.Fatalf("CreateNew failed: %v", err)
+	}
+	writer.Close()
+
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite db: %v", err)
+	}
+	defer db.Close()
+
+	var pageSize int
+	if err := db.QueryRow("PRAGMA page_size").Scan(&pageSize); err != nil {
+		t.Fatalf("failed to read PRAGMA page_size: %v", err)
+	}
+	if pageSize != 4096 {
+		t.Fatalf("expected page_size=4096, got %d", pageSize)
+	}
+
+	var autoVacuum int
+	if err := db.QueryRow("PRAGMA auto_vacuum").Scan(&autoVacuum); err != nil {
+		t.Fatalf("failed to read PRAGMA auto_vacuum: %v", err)
+	}
+	if autoVacuum != 0 {
+		t.Fatalf("expected auto_vacuum=0 (NONE), got %d", autoVacuum)
+	}
+
+	var journalMode string
+	if err := db.QueryRow("PRAGMA journal_mode").Scan(&journalMode); err != nil {
+		t.Fatalf("failed to read PRAGMA journal_mode: %v", err)
+	}
+	if journalMode != "wal" {
+		t.Fatalf("expected journal_mode=wal, got %s", journalMode)
+	}
+
+	var synchronous int
+	if err := db.QueryRow("PRAGMA synchronous").Scan(&synchronous); err != nil {
+		t.Fatalf("failed to read PRAGMA synchronous: %v", err)
+	}
+	if synchronous != 1 && synchronous != 2 {
+		t.Fatalf("expected synchronous NORMAL-equivalent (1 or 2), got %d", synchronous)
 	}
 }
 
