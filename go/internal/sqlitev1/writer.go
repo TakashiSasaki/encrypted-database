@@ -79,11 +79,19 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	// PRAGMA foreign_keys = ON should be set before any transactions
-	_, err = db.Exec("PRAGMA foreign_keys = ON")
-	if err != nil {
-		db.Close()
-		return nil, fmt.Errorf("failed to set PRAGMA foreign_keys: %w", err)
+	// Connection-level initialization PRAGMAs before schema/data operations.
+	pragmaStatements := []string{
+		"PRAGMA page_size = 4096",
+		"PRAGMA auto_vacuum = NONE",
+		"PRAGMA journal_mode = WAL",
+		"PRAGMA synchronous = NORMAL",
+		"PRAGMA foreign_keys = ON",
+	}
+	for _, stmt := range pragmaStatements {
+		if _, err = db.Exec(stmt); err != nil {
+			db.Close()
+			return nil, fmt.Errorf("failed to execute %s: %w", stmt, err)
+		}
 	}
 
 	tx, err := db.Begin()

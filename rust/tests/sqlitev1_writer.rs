@@ -1,3 +1,4 @@
+use rusqlite::Connection;
 use serde_json::json;
 use tempfile::tempdir;
 use vault_moukaeritai_work::sqlitev1::validate_read_only;
@@ -46,6 +47,36 @@ fn test_writer_roundtrip() {
     // 5. Wrong Passphrase
     let bad_reader = open_read_only(&db_path, "wrong-passphrase");
     assert!(bad_reader.is_err());
+}
+
+
+#[test]
+fn test_create_new_applies_pragmas() {
+    let dir = tempdir().unwrap();
+    let db_path = dir.path().join("test_writer_pragma.db");
+
+    let writer = create_new(&db_path, "test-passphrase", "linux").expect("Failed to create new db");
+    writer.close().expect("Failed to close writer");
+
+    let conn = Connection::open(&db_path).unwrap();
+
+    let page_size: i64 = conn.query_row("PRAGMA page_size", [], |row| row.get(0)).unwrap();
+    assert_eq!(page_size, 4096);
+
+    let auto_vacuum: i64 = conn
+        .query_row("PRAGMA auto_vacuum", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(auto_vacuum, 0);
+
+    let journal_mode: String = conn
+        .query_row("PRAGMA journal_mode", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(journal_mode, "wal");
+
+    let synchronous: i64 = conn
+        .query_row("PRAGMA synchronous", [], |row| row.get(0))
+        .unwrap();
+    assert!(synchronous == 1 || synchronous == 2);
 }
 
 #[test]
