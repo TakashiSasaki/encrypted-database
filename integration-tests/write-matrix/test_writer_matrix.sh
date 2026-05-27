@@ -24,10 +24,10 @@ echo "Building Rust wrapper..."
 cp "$ROOT_DIR/rust/target/debug/write_matrix_fixture" "$DIR/rust_write_matrix"
 
 echo "Preparing Node.js environment..."
-(cd "$ROOT_DIR/nodejs" && npm ci > /dev/null 2>&1 || true)
+(cd "$ROOT_DIR/nodejs" && npm ci > /dev/null 2>&1)
 
 echo "Preparing Python environment..."
-(cd "$ROOT_DIR/python" && pip install -e .[test] > /dev/null 2>&1 || true)
+(cd "$ROOT_DIR/python" && pip install -e .[test] > /dev/null 2>&1)
 
 # Function to run the write/read test
 run_test() {

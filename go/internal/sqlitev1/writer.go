@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -18,11 +17,6 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/argon2"
 	_ "modernc.org/sqlite"
-)
-
-var (
-	// strictUUIDRegex enforces strict UUID shape: lowercase canonical text with accepted version (1-8) and RFC4122/RFC9562-compatible variant (8,9,a,b).
-	strictUUIDRegex = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
 )
 
 func generateUUID() string {
@@ -251,7 +245,7 @@ func (w *Writer) StorePayload(schemaUUID string, contentType string, payload any
 	if w.activeDbKek == nil {
 		return "", errors.New("database is locked")
 	}
-	if !strictUUIDRegex.MatchString(schemaUUID) {
+	if !uuidRegex.MatchString(schemaUUID) {
 		return "", errors.New("invalid schemaUUID")
 	}
 
