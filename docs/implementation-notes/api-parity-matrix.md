@@ -80,7 +80,7 @@ It intentionally separates:
 
 | Capability | Python | Node.js | Go | Rust | Notes |
 |---|---|---|---|---|---|
-| Argon2id profile-v1 | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Current code paths use 64MiB/3/1 parameters; `docs/providers/passphrase-argon2id.md` defines profile-v1 target as 256MiB/3/4, so this is not yet aligned. |
+| Argon2id profile-v1 | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Current V1 implementations and fixtures use `memory_kib=65536`, `iterations=3`, `parallelism=1`, `output_bytes=32`, and `salt_bytes=16`; this is now aligned with `docs/providers/passphrase-argon2id.md`. |
 | AES-256-GCM | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
 | AAD policies (`wrap-database-key-v1`, `wrap-record-key-v1`, `record-payload-v1`) | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
 | `ciphertext || tag` storage | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
