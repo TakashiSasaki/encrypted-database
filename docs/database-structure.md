@@ -246,7 +246,7 @@ sequenceDiagram
     - The `record_dek` is wrapped by the `database_kek` and stored in `wrapped_key_tbl` (using the `wrap-record-key-v1` AAD policy).
     - The user's JSON payload is encrypted using the `record_dek`. The output is stored as `ciphertext || tag` in `encrypted_object_tbl.ciphertext` using the `record-payload-v1` AAD policy.
 
-**Note on Lifecycle Fields**: The minimal writer scaffolds intentionally leave complex key lifecycle fields (`activated_at_ms`, `deactivated_at_ms`, `destroyed_at_ms`, `description_json`, `device_id`) absent (NULL), as update/delete, key rotation, decrypt-only migrations, key destruction, and rewrap are not yet implemented.
+**Note on Lifecycle Fields**: The minimal writer scaffolds intentionally leave complex key lifecycle fields (`activated_at_ms`, `deactivated_at_ms`, `destroyed_at_ms`, `description_json`, `device_id`) absent (NULL). Update/delete are implemented for payload rows, but key lifecycle operations (key rotation, decrypt-only migrations, key destruction, rewrap) remain out of scope.
 
 
 ## SQLite Backend PRAGMA Profile (Writer)
@@ -260,9 +260,9 @@ For normative per-connection PRAGMA requirements (including `PRAGMA foreign_keys
 ### Writer defaults during database creation
 
 * `PRAGMA page_size=4096`
-* `PRAGMA auto_vacuum=INCREMENTAL`
+* `PRAGMA auto_vacuum=NONE`
 * `PRAGMA synchronous=NORMAL`
-* `PRAGMA journal_mode=WAL` (**optional/recommended** for desktop/server file-backed SQLite; environments such as `sql.js` or some in-memory backends may differ per the SQLite profile exception notes).
+* `PRAGMA journal_mode=WAL`
 
 ### Apply Timing Guidance (Writer Defaults)
 
@@ -289,7 +289,7 @@ Storage Format V1 uses Authenticated Encryption with Associated Data (AEAD), spe
 
 ## Update/Delete Operation Behavior (Current Scaffold Scope)
 
-When update/delete operations are present in a scaffold implementation, the following is **non-normative guidance** describing current scaffold behavior (not a normative V1 requirement). `UpdatePayload` / `DeletePayload` are used here only as illustrative operation names:
+Current Go/Rust scaffold implementations expose `UpdatePayload` / `DeletePayload` (`update_payload` / `delete_payload`) with the following behavior (still within current scaffold scope, not full key lifecycle semantics):
 
 * **Update operation**
   * `object_uuid` is preserved (in-place logical record update).

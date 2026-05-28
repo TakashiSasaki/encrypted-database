@@ -432,7 +432,8 @@ impl Writer {
             )
             .map_err(|e| WriterError::CryptoError(format!("Decrypt error: {}", e)))?;
 
-        let payload_str = canonicalize(payload).map_err(|e| WriterError::JcsError(e.to_string()))?;
+        let payload_str =
+            canonicalize(payload).map_err(|e| WriterError::JcsError(e.to_string()))?;
         let payload_aad_policy = "record-payload-v1";
         let payload_aad_bytes = build_record_payload_v1(
             object_uuid,

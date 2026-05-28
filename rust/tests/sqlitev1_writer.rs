@@ -49,7 +49,6 @@ fn test_writer_roundtrip() {
     assert!(bad_reader.is_err());
 }
 
-
 #[test]
 fn test_create_new_applies_pragmas() {
     let dir = tempdir().unwrap();
@@ -60,7 +59,9 @@ fn test_create_new_applies_pragmas() {
 
     let conn = Connection::open(&db_path).unwrap();
 
-    let page_size: i64 = conn.query_row("PRAGMA page_size", [], |row| row.get(0)).unwrap();
+    let page_size: i64 = conn
+        .query_row("PRAGMA page_size", [], |row| row.get(0))
+        .unwrap();
     assert_eq!(page_size, 4096);
 
     let auto_vacuum: i64 = conn
@@ -190,7 +191,10 @@ fn test_writer_update_payload_roundtrip_and_timestamps() {
             [&obj_uuid],
             |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
         ).unwrap();
-    assert_eq!(created_after, created_before, "created_at_ms must be preserved");
+    assert_eq!(
+        created_after, created_before,
+        "created_at_ms must be preserved"
+    );
     assert!(updated_after > updated_before, "updated_at_ms must advance");
     assert_eq!(schema_after, "00000000-0000-4000-8000-000000000002");
     assert_eq!(content_after, "application/merge-patch+json");
@@ -262,29 +266,71 @@ fn test_writer_update_delete_validation_and_not_found() {
     let mut writer = create_new(&db_path, "test-passphrase", "linux").expect("create failed");
     let payload = json!({"ok": true});
 
-    assert!(writer
-        .update_payload("invalid-uuid", "00000000-0000-4000-8000-000000000001", "application/json", &payload)
-        .is_err());
-    assert!(writer
-        .update_payload("00000000-0000-4000-8000-000000000010", "invalid-uuid", "application/json", &payload)
-        .is_err());
-    assert!(writer
-        .update_payload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "invalid_type", &payload)
-        .is_err());
-    assert!(writer
-        .update_payload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "application/", &payload)
-        .is_err());
-    assert!(writer
-        .update_payload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "application/\u{0007}json", &payload)
-        .is_err());
-    assert!(writer
-        .delete_payload("invalid-uuid")
-        .is_err());
+    assert!(
+        writer
+            .update_payload(
+                "invalid-uuid",
+                "00000000-0000-4000-8000-000000000001",
+                "application/json",
+                &payload
+            )
+            .is_err()
+    );
+    assert!(
+        writer
+            .update_payload(
+                "00000000-0000-4000-8000-000000000010",
+                "invalid-uuid",
+                "application/json",
+                &payload
+            )
+            .is_err()
+    );
+    assert!(
+        writer
+            .update_payload(
+                "00000000-0000-4000-8000-000000000010",
+                "00000000-0000-4000-8000-000000000001",
+                "invalid_type",
+                &payload
+            )
+            .is_err()
+    );
+    assert!(
+        writer
+            .update_payload(
+                "00000000-0000-4000-8000-000000000010",
+                "00000000-0000-4000-8000-000000000001",
+                "application/",
+                &payload
+            )
+            .is_err()
+    );
+    assert!(
+        writer
+            .update_payload(
+                "00000000-0000-4000-8000-000000000010",
+                "00000000-0000-4000-8000-000000000001",
+                "application/\u{0007}json",
+                &payload
+            )
+            .is_err()
+    );
+    assert!(writer.delete_payload("invalid-uuid").is_err());
 
-    assert!(writer
-        .update_payload("00000000-0000-4000-8000-000000000010", "00000000-0000-4000-8000-000000000001", "application/json", &payload)
-        .is_err());
-    assert!(writer
-        .delete_payload("00000000-0000-4000-8000-000000000010")
-        .is_err());
+    assert!(
+        writer
+            .update_payload(
+                "00000000-0000-4000-8000-000000000010",
+                "00000000-0000-4000-8000-000000000001",
+                "application/json",
+                &payload
+            )
+            .is_err()
+    );
+    assert!(
+        writer
+            .delete_payload("00000000-0000-4000-8000-000000000010")
+            .is_err()
+    );
 }

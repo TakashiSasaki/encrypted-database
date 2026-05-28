@@ -10,10 +10,11 @@ Additionally, a SQLite V1 read-only database unlock/decrypt reader and an experi
 * New SQLite V1 Database Creation and initialization (schema population).
 * `passphrase_argon2id` unlock provider setup.
 * JSON payload encryption and insertion (`store_payload`).
+* In-place payload update (`update_payload`) and payload delete (`delete_payload`) for `encrypted_object_tbl` rows only.
 * Self-read roundtripping and cross-read compatibility across Go, Rust, Python, and Node.js readers.
+* SQLite backend PRAGMA profile in writer initialization: `page_size=4096`, `auto_vacuum=NONE`, `journal_mode=WAL`, `synchronous=NORMAL`, `foreign_keys=ON`.
 
 **NOT supported (out of current scaffold scope):**
-* Update/Delete APIs for encrypted objects.
 * Key rotation, destruction, and decrypt-only migrations.
 * Key rewrapping.
 * Additional unlock providers.
