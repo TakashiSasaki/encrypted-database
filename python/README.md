@@ -41,3 +41,6 @@ object_uuid = storage.store_payload(schema_uuid, "application/json", payload)
 retrieved = storage.retrieve_payload(object_uuid)
 print(retrieved)
 ```
+
+
+See also: [`docs/implementation-notes/api-parity-matrix.md`](../docs/implementation-notes/api-parity-matrix.md)
