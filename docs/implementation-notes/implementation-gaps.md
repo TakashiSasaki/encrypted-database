@@ -57,7 +57,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 **Why it matters:** The storage format core is designed for multi-language support. Proving it in stricter compiled languages (Go/Rust) provides strong confidence.
 **Recommended next action:** Run and monitor the promoted Write Matrix CI (and manual workflow) for update/delete scenarios before proceeding to key lifecycle APIs or production API polishing.
 
-### Write-matrix is not yet promoted to automatic PR/push CI
+### Write-matrix is promoted to path-filtered PR/push CI
 
 **Status:** Active
 **Area:** Interoperability

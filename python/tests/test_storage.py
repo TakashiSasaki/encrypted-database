@@ -30,7 +30,8 @@ def test_writer_pragma_profile(temp_db):
     storage.initialize_database("pass", "linux")
     storage.close()
 
-    conn = EncryptedStorage(temp_db).conn
+    import sqlite3
+    conn = sqlite3.connect(temp_db)
     assert conn.execute("PRAGMA page_size").fetchone()[0] == 4096
     assert conn.execute("PRAGMA auto_vacuum").fetchone()[0] == 0
     assert conn.execute("PRAGMA journal_mode").fetchone()[0] == "wal"

@@ -12,8 +12,11 @@ class EncryptedStorage {
     constructor(dbPath) {
         this.dbPath = dbPath;
         this.conn = new Database(dbPath);
-        this.conn.pragma('page_size = 4096');
-        this.conn.pragma('auto_vacuum = NONE');
+        const hasTables = this.conn.prepare("SELECT 1 FROM sqlite_master WHERE type='table' LIMIT 1").get();
+        if (!hasTables) {
+            this.conn.pragma('page_size = 4096');
+            this.conn.pragma('auto_vacuum = NONE');
+        }
         this.conn.pragma('journal_mode = WAL');
         this.conn.pragma('synchronous = NORMAL');
         this.conn.pragma('foreign_keys = ON');
