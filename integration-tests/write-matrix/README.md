@@ -12,3 +12,6 @@
 ```bash
 bash integration-tests/write-matrix/test_writer_matrix.sh
 ```
+
+- The same script is used by a manual GitHub Actions `workflow_dispatch` workflow.
+- Write-matrix is not yet promoted to automatic `push` / `pull_request` CI.
