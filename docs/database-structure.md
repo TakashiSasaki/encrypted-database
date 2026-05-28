@@ -206,6 +206,8 @@ sequenceDiagram
     rect rgb(240, 248, 255)
         Note right of App: CreateNew(db_path, passphrase, platform)
         App->>Writer: Create new database
+        Writer->>DB: Apply SQLite backend PRAGMAs
+        Note over DB: page_size=4096, auto_vacuum=NONE before schema.sql;<br/>journal_mode=WAL and synchronous=NORMAL outside transaction
         Writer->>DB: Execute schema.sql
         Note over DB: Populates seed tables: key_class_tbl, key_profile_tbl,<br>unlock_method_tbl, unlock_provider_tbl, platform_tbl, unlock_provider_platform_tbl
         Writer->>DB: PRAGMA application_id & user_version
@@ -233,15 +235,16 @@ sequenceDiagram
     end
 ```
 
-1.  **Schema Bootstrap**: The writer executes the canonical `docs/backend/sqlite/schema.sql`. This populates the database with **seed data** for static lookup tables (`key_class_tbl`, `key_profile_tbl`, `unlock_method_tbl`, `unlock_provider_tbl`, `platform_tbl`, `unlock_provider_platform_tbl`).
-2.  **Platform Validation**: The writer validates the caller-provided platform string against the populated `platform_tbl`.
-3.  **Root Key Generation**: The writer generates a new Database KEK (`database_kek`) and derives an Unlock KEK (`unlock_kek`) from the user's passphrase (e.g., via Argon2id).
-4.  **Metadata Insertion**: A new UUID is generated for the database, and the writer populates `storage_metadata_tbl` with format versions, library identifiers (e.g., `"vault-go"`, `"vault-rust"`), timestamps, and feature flags.
-5.  **Key and Wrap Insertion**:
+1.  **SQLite PRAGMA Profile Setup**: The writer applies SQLite backend PRAGMAs before first schema/data writes. In current scaffold defaults, `page_size=4096` and `auto_vacuum=NONE` are applied before schema creation, while `journal_mode=WAL` and `synchronous=NORMAL` are set outside explicit transactions.
+2.  **Schema Bootstrap**: The writer executes the canonical `docs/backend/sqlite/schema.sql`. This populates the database with **seed data** for static lookup tables (`key_class_tbl`, `key_profile_tbl`, `unlock_method_tbl`, `unlock_provider_tbl`, `platform_tbl`, `unlock_provider_platform_tbl`).
+3.  **Platform Validation**: The writer validates the caller-provided platform string against the populated `platform_tbl`.
+4.  **Root Key Generation**: The writer generates a new Database KEK (`database_kek`) and derives an Unlock KEK (`unlock_kek`) from the user's passphrase (e.g., via Argon2id).
+5.  **Metadata Insertion**: A new UUID is generated for the database, and the writer populates `storage_metadata_tbl` with format versions, library identifiers (e.g., `"vault-go"`, `"vault-rust"`), timestamps, and feature flags.
+6.  **Key and Wrap Insertion**:
     - The `database_kek` and `unlock_kek` are inserted into `key_tbl` with a status of `active`.
     - The `unlock_kek` configuration (like Argon2id salt and parameters) is canonicalized into **JCS canonical JSON** and stored in `unlock_kek_tbl.provider_config_json`.
     - The `database_kek` is encrypted with the `unlock_kek`. The resulting output is stored as `ciphertext || tag` in `wrapped_key_tbl.wrapped_key`, utilizing the `wrap-database-key-v1` AAD policy.
-6.  **Payload Insertion (`StorePayload`)**:
+7.  **Payload Insertion (`StorePayload`)**:
     - A new Record DEK (`record_dek`) is generated and inserted into `key_tbl`.
     - The `record_dek` is wrapped by the `database_kek` and stored in `wrapped_key_tbl` (using the `wrap-record-key-v1` AAD policy).
     - The user's JSON payload is encrypted using the `record_dek`. The output is stored as `ciphertext || tag` in `encrypted_object_tbl.ciphertext` using the `record-payload-v1` AAD policy.
@@ -297,9 +300,11 @@ Current Go/Rust scaffold implementations expose `UpdatePayload` / `DeletePayload
   * A **new nonce** and **new ciphertext** are generated for every update operation.
   * `updated_at_ms` is refreshed while `created_at_ms` remains unchanged.
 * **Delete operation**
-  * Delete removes only the row in `encrypted_object_tbl`.
-  * Related key rows are not immediately shredded by delete itself in the current model.
+  * Delete removes only the row in `encrypted_object_tbl` (logical hard delete of the payload row).
+  * Delete does **not** perform cleanup of `key_tbl`, `wrapped_key_tbl`, or `unlock_kek_tbl` in current scaffold scope.
   * Delete is a logical removal and is **not** a secure-erase guarantee at storage-medium level.
+
+Key lifecycle operations (rotation, decrypt-only migrations, destruction semantics, rewrap, orphan key cleanup policy) remain future work.
 
 ## Related Source Documents
 
