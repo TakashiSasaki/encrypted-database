@@ -52,7 +52,7 @@ It intentionally separates:
 | Retrieve/decrypt payload | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Go/Rust retrieval is via read-only reader API. |
 | Update payload | not-implemented | not-implemented | implemented-scaffold | implemented-scaffold | Python/Node have no public update API in current source. |
 | Delete payload | not-implemented | not-implemented | implemented-scaffold | implemented-scaffold | Python/Node have no public delete API in current source. |
-| Delete後 NotFound behavior | not-implemented | not-implemented | implemented-scaffold, verified-by-matrix | implemented-scaffold, verified-by-matrix | write-matrix verifies delete NotFound for Go/Rust readers only. |
+| Delete NotFound behavior | not-implemented | not-implemented | implemented-scaffold, verified-by-matrix | implemented-scaffold, verified-by-matrix | write-matrix verifies delete NotFound for Go/Rust readers only. |
 | `schema_uuid`/`content_type` update support | not-implemented | not-implemented | implemented-scaffold | implemented-scaffold | Via Go/Rust `UpdatePayload`/`update_payload`. |
 | `object_uuid` preservation on update | not-implemented | not-implemented | implemented-scaffold | implemented-scaffold | Verified in Go/Rust writer tests. |
 
@@ -80,7 +80,7 @@ It intentionally separates:
 
 | Capability | Python | Node.js | Go | Rust | Notes |
 |---|---|---|---|---|---|
-| Argon2id profile-v1 | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Current implementations use 64MiB/3/1 profile parameters. |
+| Argon2id profile-v1 | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Current code paths use 64MiB/3/1 parameters; `docs/providers/passphrase-argon2id.md` defines profile-v1 target as 256MiB/3/4, so this is not yet aligned. |
 | AES-256-GCM | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
 | AAD policies (`wrap-database-key-v1`, `wrap-record-key-v1`, `record-payload-v1`) | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
 | `ciphertext || tag` storage | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
