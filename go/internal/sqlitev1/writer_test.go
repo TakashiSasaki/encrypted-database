@@ -72,7 +72,6 @@ func TestWriterRoundtrip(t *testing.T) {
 	}
 }
 
-
 func TestCreateNewAppliesPragmas(t *testing.T) {
 	tempDir, err := os.MkdirTemp("", "vault_writer_pragma_test")
 	if err != nil {
