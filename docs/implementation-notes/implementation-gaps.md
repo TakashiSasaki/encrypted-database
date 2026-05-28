@@ -121,6 +121,16 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 **Recommended next action:** Refine `setup.py`, `package.json`, and related metadata to align with standard publishing best practices for each ecosystem.
 
 
+
+### Public API parity across Python/Node/Go/Rust is incomplete
+
+**Status:** Active
+**Area:** API Design / Interoperability
+**Current state:** Storage Format V1 interoperability has advanced via read-only matrix and write-matrix coverage, but public library API parity is still incomplete. Python/Node expose initialize/unlock/store/retrieve/lock/close/status baseline APIs. Go/Rust currently expose read-only reader + writer scaffold APIs (including update/delete). Python/Node currently do not expose public update/delete payload APIs.
+**Expected or intended state:** A clearly defined cross-language public API contract (or explicit documented intentional non-parity) for lifecycle and payload operations.
+**Why it matters:** Interoperable bytes on disk are necessary but not sufficient for developer ergonomics and predictable multi-language integration contracts.
+**Recommended next action:** Use [`api-parity-matrix.md`](api-parity-matrix.md) as the source of truth for parity decisions, then implement or explicitly defer Python/Node update/delete parity.
+
 ## Resolved Gaps
 
 ### Browser/sql.js malformed provider_config_json corruption test exception

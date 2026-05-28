@@ -1,6 +1,6 @@
 # SQLite Storage Format V1 Database Structure
 
-This document provides a structural overview of the SQLite backend schema for Storage Format V1. It serves as an aid for understanding the database design. The canonical source of truth for the actual schema definition remains [`docs/backend/sqlite/schema.sql`](backend/sqlite/schema.sql).
+This document provides a structural overview of the SQLite backend schema for Storage Format V1. It serves as an aid for understanding the database design. The canonical source of truth for the actual schema definition remains [`docs/backend/sqlite/schema.sql`](backend/sqlite/schema.sql). API surface parity across languages is tracked separately in [`docs/implementation-notes/api-parity-matrix.md`](implementation-notes/api-parity-matrix.md).
 
 ---
 

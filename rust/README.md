@@ -35,3 +35,6 @@ You can optionally override the test vectors directory:
 ```bash
 VAULT_TEST_VECTORS_DIR=/path/to/vectors cargo test
 ```
+
+
+See also: [`docs/implementation-notes/api-parity-matrix.md`](../docs/implementation-notes/api-parity-matrix.md)
