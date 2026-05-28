@@ -34,7 +34,10 @@ In browser environments using `sql.js` (WebAssembly SQLite memory databases or e
 
 To ensure security, data integrity, and cross-platform compatibility, implementations interacting with the SQLite profile MUST execute specific PRAGMAs upon connection:
 *   `PRAGMA foreign_keys = ON;` (Mandatory: Validates relationships like `wrapped_kid` referencing `kid`. Implementations must execute this immediately upon connection, and verify it is enabled if possible).
-*   `PRAGMA journal_mode = WAL;` (Optional / Recommended: For concurrency and crash resilience on desktop/server, though environments like `sql.js` in the browser or in-memory backends may differ).
+*   `PRAGMA page_size = 4096;` (Mandatory for writer initialization when creating new SQLite V1 files; apply before schema creation).
+*   `PRAGMA auto_vacuum = NONE;` (Mandatory for writer initialization when creating new SQLite V1 files; apply before schema creation).
+*   `PRAGMA journal_mode = WAL;` (Mandatory for file-backed writer initialization; execute outside explicit transactions. Browser/sql.js is a documented exception).
+*   `PRAGMA synchronous = NORMAL;` (Mandatory for file-backed writer connections; NORMAL-equivalent values are acceptable in verification).
 *   *Future Hardening*: SQLite `STRICT` tables are deferred to future enhancements due to compatibility constraints across Go/Rust drivers and older SQLite versions.
 
 ## 5. Canonical Schema Source

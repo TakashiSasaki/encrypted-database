@@ -25,6 +25,19 @@ def test_initialization_and_unlock(temp_db):
     assert storage2.active_db_kek is not None
     storage2.close()
 
+def test_writer_pragma_profile(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    storage.close()
+
+    import sqlite3
+    conn = sqlite3.connect(temp_db)
+    assert conn.execute("PRAGMA page_size").fetchone()[0] == 4096
+    assert conn.execute("PRAGMA auto_vacuum").fetchone()[0] == 0
+    assert conn.execute("PRAGMA journal_mode").fetchone()[0] == "wal"
+    assert conn.execute("PRAGMA synchronous").fetchone()[0] in (1, 2)
+    conn.close()
+
 def test_store_and_retrieve_payload(temp_db):
     storage = EncryptedStorage(temp_db)
     storage.initialize_database("my_secure_password", "linux")
