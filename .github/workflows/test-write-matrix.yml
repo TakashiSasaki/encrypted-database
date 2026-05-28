@@ -2,6 +2,33 @@ name: Write Matrix
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/test-write-matrix.yml"
+      - "go/**"
+      - "rust/**"
+      - "python/**"
+      - "nodejs/**"
+      - "integration-tests/write-matrix/**"
+      - "docs/backend/sqlite/schema.sql"
+      - "docs/spec/**"
+      - "docs/implementation-notes/**"
+      - "docs/database-structure.md"
+  push:
+    branches:
+      - main
+      - vault.moukaeritai.work
+    paths:
+      - ".github/workflows/test-write-matrix.yml"
+      - "go/**"
+      - "rust/**"
+      - "python/**"
+      - "nodejs/**"
+      - "integration-tests/write-matrix/**"
+      - "docs/backend/sqlite/schema.sql"
+      - "docs/spec/**"
+      - "docs/implementation-notes/**"
+      - "docs/database-structure.md"
 
 permissions:
   contents: read

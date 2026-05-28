@@ -15,6 +15,10 @@ class EncryptedStorage:
     def __init__(self, db_path: str):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
+        self.conn.execute("PRAGMA page_size = 4096")
+        self.conn.execute("PRAGMA auto_vacuum = NONE")
+        self.conn.execute("PRAGMA journal_mode = WAL")
+        self.conn.execute("PRAGMA synchronous = NORMAL")
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.active_db_kek = None
         self.active_db_kid = None

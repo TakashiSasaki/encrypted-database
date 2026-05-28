@@ -12,6 +12,10 @@ class EncryptedStorage {
     constructor(dbPath) {
         this.dbPath = dbPath;
         this.conn = new Database(dbPath);
+        this.conn.pragma('page_size = 4096');
+        this.conn.pragma('auto_vacuum = NONE');
+        this.conn.pragma('journal_mode = WAL');
+        this.conn.pragma('synchronous = NORMAL');
         this.conn.pragma('foreign_keys = ON');
 
 

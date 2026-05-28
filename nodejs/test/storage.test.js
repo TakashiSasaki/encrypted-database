@@ -31,6 +31,19 @@ describe('EncryptedStorage', () => {
         storage2.close();
     });
 
+    test('writer PRAGMA profile', async () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('my_secure_password', 'linux');
+        storage.close();
+
+        const db = require('better-sqlite3')(tempDbPath);
+        expect(db.pragma('page_size', { simple: true })).toBe(4096);
+        expect(db.pragma('auto_vacuum', { simple: true })).toBe(0);
+        expect(db.pragma('journal_mode', { simple: true })).toBe('wal');
+        expect([1, 2]).toContain(db.pragma('synchronous', { simple: true }));
+        db.close();
+    });
+
     test('store and retrieve payload', async () => {
         const storage = new EncryptedStorage(tempDbPath);
         await storage.initializeDatabase('my_secure_password', 'linux');
