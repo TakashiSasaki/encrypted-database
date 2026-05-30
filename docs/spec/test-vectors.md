@@ -2,7 +2,7 @@
 
 To guarantee interoperability between different language implementations (e.g., Python, Node.js, WebAssembly browsers, and eventually Go/Rust) and future migration pathways, implementations must verify their cryptographic operations and canonicalizations against standard test vectors.
 
-These test vectors serve as the foundational conformance suite for the Storage Format V1 invariants. Note that while Go/Rust implementations are planned to prove broader portability, passing the conformance suite in Python, Node.js, and browser-test environments is sufficient for declaring V1 stable.
+These test vectors serve as the foundational conformance suite for the Storage Format V1 Stable invariants. Note that while Go/Rust portability validation scaffolds prove broader portability, the Python/Node.js baseline implementations are sufficient for declaring V1 stable.
 
 ## JSON Canonicalization (JCS) Vectors
 

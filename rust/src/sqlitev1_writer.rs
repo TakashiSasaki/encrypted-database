@@ -122,6 +122,9 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
     conn.execute("PRAGMA foreign_keys = ON", [])?;
 
     // Operational PRAGMAs (recommended, but do not fail if unsupported)
+    // These are operational recommendations for Storage Format V1 Stable,
+    // but are not strict invariants. Failure to enable WAL or synchronous
+    // is explicitly caught/ignored to ensure fallback on restricted systems.
     if let Err(e) = conn.query_row("PRAGMA journal_mode = WAL", [], |_| Ok(())) {
         // Print a non-fatal warning to stderr.
         eprintln!("Warning: Failed to enable WAL mode: {}", e);
