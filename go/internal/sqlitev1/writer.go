@@ -105,8 +105,8 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 	}
 
 	// Recommended operational PRAGMAs (do not hard-fail if unsupported)
-	_ = db.Exec("PRAGMA journal_mode = WAL")
-	_ = db.Exec("PRAGMA synchronous = NORMAL")
+	_, _ = db.Exec("PRAGMA journal_mode = WAL")
+	_, _ = db.Exec("PRAGMA synchronous = NORMAL")
 
 	tx, err := db.Begin()
 	if err != nil {
