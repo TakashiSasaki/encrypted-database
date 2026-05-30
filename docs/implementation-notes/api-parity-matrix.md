@@ -85,7 +85,7 @@ It intentionally separates:
 | AAD policies (`wrap-database-key-v1`, `wrap-record-key-v1`, `record-payload-v1`) | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
 | `ciphertext || tag` storage | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
 | record_dek unwrap on read | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
-| record_dek reuse on update | not-implemented | not-implemented | implemented-scaffold | implemented-scaffold | Only applicable where update exists. |
+| record_dek reuse on update | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold |  |
 
 ### 6) Test / CI coverage
 
