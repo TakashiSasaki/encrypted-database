@@ -42,6 +42,8 @@ The following PRAGMAs are highly recommended for file-backed database operations
 *   `PRAGMA journal_mode = WAL;` (Recommended for file-backed writer initialization; execute outside explicit transactions. If unsupported by the environment, fallback is acceptable without invalidating the database).
 *   `PRAGMA synchronous = NORMAL;` (Recommended for file-backed writer connections).
 
+*Note: WAL/synchronous failure must not invalidate a Storage Format V1 database. WAL is not a Storage Format V1 conformance invariant.*
+
 ## 5. Canonical Schema Source
 The definitive, unversioned schema for the current Storage Format V1 SQLite schema is located at `docs/backend/sqlite/schema.sql`.
 

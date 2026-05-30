@@ -74,7 +74,7 @@ It intentionally separates:
 |---|---|---|---|---|---|
 | `schema.sql` as source of truth | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | All load canonical schema file. |
 | PRAGMA `application_id` / `user_version` handling | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
-| `page_size=4096`, `auto_vacuum=NONE`, `journal_mode=WAL`, `synchronous=NORMAL`, `foreign_keys=ON` | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Confirmed in code/tests. WAL/synchronous are operational recommendations. |
+| `page_size=4096`, `auto_vacuum=NONE`, `journal_mode=WAL`, `synchronous=NORMAL`, `foreign_keys=ON` | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Confirmed in code/tests. `foreign_keys=ON` is mandatory. `page_size=4096` and `auto_vacuum=NONE` are initialization requirements. WAL/synchronous are operational recommendations, not conformance invariants. |
 
 ### 5) Cryptographic envelope behavior
 
@@ -92,9 +92,9 @@ It intentionally separates:
 | Capability | Python | Node.js | Go | Rust | Notes |
 |---|---|---|---|---|---|
 | Shared vector conformance | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
-| Read-only matrix (Py/Node fixtures -> Go/Rust readers) | verified-by-matrix | verified-by-matrix | verified-by-matrix | verified-by-matrix | Harness under `integration-tests/read-only-matrix/`. |
-| Write-matrix updated payload read compatibility | verified-by-matrix | verified-by-matrix | verified-by-matrix | verified-by-matrix | Go/Rust writers -> all four readers. |
-| Write-matrix delete NotFound compatibility | not-implemented | not-implemented | verified-by-matrix | verified-by-matrix | Delete NotFound assertions currently only for Go/Rust readers. |
+| Read-only matrix (Py/Node fixtures -> Go/Rust readers) | verified-by-matrix | verified-by-matrix | verified-by-matrix | verified-by-matrix | CI harness under `integration-tests/read-only-matrix/`. |
+| Write-matrix updated payload read compatibility | verified-by-matrix | verified-by-matrix | verified-by-matrix | verified-by-matrix | Go/Rust writers -> all four readers (Path-filtered CI). |
+| Write-matrix delete NotFound compatibility | not-implemented | not-implemented | verified-by-matrix | verified-by-matrix | Delete NotFound assertions currently only for Go/Rust readers (Path-filtered CI). |
 | Python <-> Node roundtrip | verified-by-matrix | verified-by-matrix | out-of-scope | out-of-scope | Covered by `integration-tests/roundtrip/`. |
 
 ### 7) Unsupported future functionality
