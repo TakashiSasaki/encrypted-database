@@ -174,3 +174,31 @@ describe('EncryptedStorage', () => {
         const storage = new EncryptedStorage(tempDbPath);
         await expect(storage.initializeDatabase('pass', 'linux')).rejects.toThrow(errors.InvalidStorageFormat);
     });
+
+
+describe('WAL Fallback', () => {
+    test('should fallback gracefully when WAL or synchronous pragmas fail', () => {
+        const Database = require('better-sqlite3');
+        const originalPragma = Database.prototype.pragma;
+        Database.prototype.pragma = function(source, options) {
+            if (typeof source === 'string' && source.includes('journal_mode = WAL')) {
+                throw new Error("WAL not supported test");
+            }
+            if (typeof source === 'string' && source.includes('synchronous = NORMAL')) {
+                throw new Error("synchronous NORMAL not supported test");
+            }
+            return originalPragma.call(this, source, options);
+        };
+
+        try {
+            const path = require('path');
+            const os = require('os');
+            const dbPath = path.join(os.tmpdir(), `wal-fallback-${Date.now()}-${Math.random()}.db`);
+            const EncryptedStorage = require('../src/storage');
+            const storage = new EncryptedStorage(dbPath);
+            storage.close();
+        } finally {
+            Database.prototype.pragma = originalPragma;
+        }
+    });
+});
