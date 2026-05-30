@@ -530,6 +530,157 @@ class EncryptedStorage {
         return objectUuid;
     }
 
+    updatePayload(objectUuid, schemaUuid, contentType, payload) {
+        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+
+        this._validateUuid(objectUuid, "objectUuid");
+        this._validateUuid(schemaUuid, "schemaUuid");
+        this._validateContentType(contentType);
+        this._validatePayload(payload);
+
+        if (!this.activeDbKek) throw new errors.StorageLocked("Database is locked");
+
+        let hasRow = false;
+        let row = null;
+        try {
+            const findObjectStmt = this.db.prepare(`SELECT kid, alg, created_at_ms FROM encrypted_object_tbl WHERE object_uuid = ?`);
+            findObjectStmt.bind([objectUuid]);
+            hasRow = findObjectStmt.step();
+            if (hasRow) {
+                row = findObjectStmt.get();
+            }
+            findObjectStmt.free();
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during update lookup: ${e.message}`);
+        }
+
+        if (!hasRow) throw new errors.ObjectNotFound("Object not found");
+
+        const recordKid = row[0];
+        const alg = row[1];
+        const created_at_ms = row[2];
+
+        if (alg !== 'A256GCM') throw new errors.InvalidStorageFormat("Unsupported object alg");
+
+        let hasKeyRow = false;
+        let keyRow = null;
+        try {
+            const findKeyStmt = this.db.prepare(`SELECT status FROM key_tbl WHERE kid = ? AND key_class = 'record_dek'`);
+            findKeyStmt.bind([recordKid]);
+            hasKeyRow = findKeyStmt.step();
+            if (hasKeyRow) {
+                keyRow = findKeyStmt.get();
+            }
+            findKeyStmt.free();
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during record DEK lookup: ${e.message}`);
+        }
+
+        if (!hasKeyRow) throw new errors.ObjectNotFound("Record DEK not found");
+        if (keyRow[0] !== 'active') throw new errors.InvalidStorageFormat("Record DEK is not active");
+
+        let hasWrapRow = false;
+        let wrapRow = null;
+        try {
+            const findWrapStmt = this.db.prepare(`SELECT nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?`);
+            findWrapStmt.bind([recordKid, this.activeDbKid]);
+            hasWrapRow = findWrapStmt.step();
+            if (hasWrapRow) {
+                wrapRow = findWrapStmt.get();
+            }
+            findWrapStmt.free();
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during record key retrieval: ${e.message}`);
+        }
+        if (!hasWrapRow) throw new errors.IntegrityCheckFailed("Record DEK wrap info not found");
+
+        const wrapNonce = wrapRow[0];
+        const wrappedKey = wrapRow[1];
+        const wrapAadPolicyName = wrapRow[2];
+
+        aadPolicy.getPolicy(wrapAadPolicyName);
+
+        const wrapAadBytes = aadPolicy.buildAadBytes(wrapAadPolicyName, {
+            wrapped_kid: recordKid,
+            wrapping_kid: this.activeDbKid
+        });
+
+        let recordDekBytes;
+        try {
+            recordDekBytes = cryptoUtils.decryptAead(this.activeDbKek, wrapNonce, wrappedKey, wrapAadBytes);
+        } catch (e) {
+            throw new errors.CryptoOperationFailed(`Failed to decrypt record DEK: ${e.message}`);
+        }
+
+        const payloadBytes = cryptoUtils.canonicalizeJson(payload);
+        const payloadAadPolicy = aadPolicy.selectPayloadPolicy({ alg });
+        const payloadAadBytes = aadPolicy.buildAadBytes(payloadAadPolicy, {
+            object_uuid: objectUuid,
+            schema_uuid: schemaUuid,
+            content_type: contentType,
+            kid: recordKid,
+            alg
+        });
+
+        const { nonce: noncePayload, ciphertext } = cryptoUtils.encryptAead(recordDekBytes, payloadBytes, payloadAadBytes);
+
+        const runTransaction = () => {
+            this.db.exec("BEGIN TRANSACTION");
+            try {
+                const updateStmt = this.db.prepare(`UPDATE encrypted_object_tbl SET schema_uuid = ?, content_type = ?, nonce = ?, ciphertext = ?, aad_policy = ?, updated_at_ms = ? WHERE object_uuid = ?`);
+                updateStmt.run([schemaUuid, contentType, noncePayload, ciphertext, payloadAadPolicy, this._currentMs(), objectUuid]);
+                updateStmt.free();
+                this.db.exec("COMMIT");
+            } catch (e) {
+                this.db.exec("ROLLBACK");
+                throw e;
+            }
+        };
+
+        try {
+            runTransaction();
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during update: ${e.message}`);
+        }
+    }
+
+    deletePayload(objectUuid) {
+        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+
+        this._validateUuid(objectUuid, "objectUuid");
+
+        if (!this.activeDbKek) throw new errors.StorageLocked("Database is locked");
+
+        const runTransaction = () => {
+            this.db.exec("BEGIN TRANSACTION");
+            try {
+                const deleteStmt = this.db.prepare(`DELETE FROM encrypted_object_tbl WHERE object_uuid = ?`);
+                deleteStmt.run([objectUuid]);
+                const changes = this.db.getRowsModified();
+                deleteStmt.free();
+                if (changes === 0) {
+                    this.db.exec("ROLLBACK");
+                    throw new errors.ObjectNotFound("Object not found");
+                }
+                this.db.exec("COMMIT");
+            } catch (e) {
+                if (!(e instanceof errors.ObjectNotFound)) {
+                    this.db.exec("ROLLBACK");
+                }
+                throw e;
+            }
+        };
+
+        try {
+            runTransaction();
+        } catch (e) {
+            if (e instanceof errors.ObjectNotFound) {
+                throw e;
+            }
+            throw new errors.DatabaseBackendError(`Database error during delete: ${e.message}`);
+        }
+    }
+
     retrievePayload(objectUuid) {
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
 

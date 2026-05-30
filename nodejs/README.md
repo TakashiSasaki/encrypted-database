@@ -40,9 +40,16 @@ async function run() {
     const payload = { secret: 'data', value: 42 };
     const objectUuid = storage.storePayload(schemaUuid, 'application/json', payload);
 
+    // Update payload
+    const newPayload = { secret: 'data-updated', value: 99 };
+    storage.updatePayload(objectUuid, schemaUuid, 'application/json', newPayload);
+
     // Retrieve payload
     const retrieved = storage.retrievePayload(objectUuid);
     console.log(retrieved);
+
+    // Delete payload
+    storage.deletePayload(objectUuid);
 
     // Lock and Close lifecycle
     storage.lock();

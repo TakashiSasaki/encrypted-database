@@ -26,16 +26,28 @@ def main():
     try:
         storage = EncryptedStorage(db_path)
         storage.unlock_database(passphrase)
-        payload = storage.retrieve_payload(object_uuid)
 
-        # JCS canonicalize the payload to ensure accurate hex comparison
-        canonical_bytes = canonicalize_json(payload)
-        payload_hex = canonical_bytes.hex().lower()
+        try:
+            payload = storage.retrieve_payload(object_uuid)
+            not_found = False
+        except Exception as e:
+            if type(e).__name__ == "ObjectNotFound" or "Object not found" in str(e):
+                payload = None
+                not_found = True
+            else:
+                raise e
 
         output = {
             "object_uuid": object_uuid,
-            "payload_hex": payload_hex
+            "not_found": not_found
         }
+
+        if payload is not None:
+            # JCS canonicalize the payload to ensure accurate hex comparison
+            canonical_bytes = canonicalize_json(payload)
+            payload_hex = canonical_bytes.hex().lower()
+            output["payload_hex"] = payload_hex
+
         print(json.dumps(output))
     except Exception as e:
         print(f"Error during Python read: {e}", file=sys.stderr)

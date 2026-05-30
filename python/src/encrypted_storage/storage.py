@@ -419,6 +419,119 @@ class EncryptedStorage:
 
         return object_uuid
 
+    def update_payload(self, object_uuid: str, schema_uuid: str, content_type: str, payload: dict) -> None:
+        """Updates an existing JSON payload and its metadata."""
+        if self._is_closed:
+            raise errors.StorageClosed("Storage is closed")
+
+        self._validate_uuid(object_uuid, "object_uuid")
+        self._validate_uuid(schema_uuid, "schema_uuid")
+        self._validate_content_type(content_type)
+        self._validate_payload(payload)
+
+        if not self.active_db_kek:
+            raise errors.StorageLocked("Database is locked")
+
+        cur = self.conn.cursor()
+        try:
+            cur.execute("SELECT kid, alg, created_at_ms FROM encrypted_object_tbl WHERE object_uuid = ?", (object_uuid,))
+            row = cur.fetchone()
+        except sqlite3.Error as e:
+            raise errors.DatabaseBackendError(f"Database error during update lookup: {e}") from e
+
+        if not row:
+            raise errors.ObjectNotFound("Object not found")
+
+        record_kid, alg, created_at_ms = row
+
+        if alg != "A256GCM":
+            raise errors.InvalidStorageFormat("Unsupported object alg")
+
+        try:
+            cur.execute("SELECT status FROM key_tbl WHERE kid = ? AND key_class = 'record_dek'", (record_kid,))
+            key_row = cur.fetchone()
+        except sqlite3.Error as e:
+            raise errors.DatabaseBackendError(f"Database error during record DEK lookup: {e}") from e
+
+        if not key_row:
+            raise errors.ObjectNotFound("Record DEK not found")
+
+        if key_row[0] != "active":
+            raise errors.InvalidStorageFormat("Record DEK is not active")
+
+        # Get wrapped record DEK
+        try:
+            cur.execute("SELECT nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?", (record_kid, self.active_db_kid))
+            wrap_row = cur.fetchone()
+        except sqlite3.Error as e:
+            raise errors.DatabaseBackendError(f"Database error during record key retrieval: {e}") from e
+
+        if not wrap_row:
+            raise errors.IntegrityCheckFailed("Record DEK wrap info not found")
+
+        nonce_wrap, wrapped_record_dek, wrap_aad_policy = wrap_row
+        aad_policy.get_policy(wrap_aad_policy)
+
+        wrap_aad_bytes = aad_policy.build_aad_bytes(
+            wrap_aad_policy,
+            wrapped_kid=record_kid,
+            wrapping_kid=self.active_db_kid
+        )
+
+        record_dek_bytes = crypto.decrypt_aead(self.active_db_kek, nonce_wrap, wrapped_record_dek, wrap_aad_bytes)
+
+        # Encrypt updated payload with existing record DEK
+        payload_bytes = crypto.canonicalize_json(payload)
+        payload_aad_policy = aad_policy.select_payload_policy(alg=alg)
+        payload_aad_bytes = aad_policy.build_aad_bytes(
+            payload_aad_policy,
+            object_uuid=object_uuid,
+            schema_uuid=schema_uuid,
+            content_type=content_type,
+            kid=record_kid,
+            alg=alg,
+        )
+        nonce_payload, ciphertext = crypto.encrypt_aead(record_dek_bytes, payload_bytes, payload_aad_bytes)
+
+        cur.execute("BEGIN TRANSACTION")
+        try:
+            cur.execute(
+                "UPDATE encrypted_object_tbl SET schema_uuid = ?, content_type = ?, nonce = ?, ciphertext = ?, aad_policy = ?, updated_at_ms = ? WHERE object_uuid = ?",
+                (schema_uuid, content_type, nonce_payload, ciphertext, payload_aad_policy, self._current_ms(), object_uuid)
+            )
+            self.conn.commit()
+        except sqlite3.Error as e:
+            self.conn.rollback()
+            raise errors.DatabaseBackendError(f"Database error during update: {e}") from e
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+
+    def delete_payload(self, object_uuid: str) -> None:
+        """Deletes a payload."""
+        if self._is_closed:
+            raise errors.StorageClosed("Storage is closed")
+
+        self._validate_uuid(object_uuid, "object_uuid")
+
+        if not self.active_db_kek:
+            raise errors.StorageLocked("Database is locked")
+
+        cur = self.conn.cursor()
+        cur.execute("BEGIN TRANSACTION")
+        try:
+            cur.execute("DELETE FROM encrypted_object_tbl WHERE object_uuid = ?", (object_uuid,))
+            if cur.rowcount == 0:
+                self.conn.rollback()
+                raise errors.ObjectNotFound("Object not found")
+            self.conn.commit()
+        except sqlite3.Error as e:
+            self.conn.rollback()
+            raise errors.DatabaseBackendError(f"Database error during delete: {e}") from e
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+
     def retrieve_payload(self, object_uuid: str) -> dict:
         """Retrieves and decrypts a payload."""
         if self._is_closed:

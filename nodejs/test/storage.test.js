@@ -102,9 +102,76 @@ describe('EncryptedStorage', () => {
         await expect(storage.initializeDatabase('pass', 'unknown_os')).rejects.toThrow(errors.UnsupportedPlatform);
     });
 
+    test('updatePayload success', async () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('pass', 'linux');
+
+        const payloadA = { "secret": "data", "value": 42 };
+        const schemaUuidA = "00000000-0000-4000-8000-000000000001";
+        const contentTypeA = "application/json";
+
+        const objectUuid = storage.storePayload(schemaUuidA, contentTypeA, payloadA);
+
+        const findStmt = storage.conn.prepare("SELECT created_at_ms, updated_at_ms FROM encrypted_object_tbl WHERE object_uuid = ?");
+        const rowA = findStmt.get(objectUuid);
+
+        const payloadB = { "secret": "data-updated", "value": 99 };
+        const schemaUuidB = "00000000-0000-4000-8000-000000000002";
+        const contentTypeB = "application/json+updated";
+
+        storage.updatePayload(objectUuid, schemaUuidB, contentTypeB, payloadB);
+
+        const retrieved = storage.retrievePayload(objectUuid);
+        expect(retrieved).toEqual(payloadB);
+
+        const rowB = storage.conn.prepare("SELECT schema_uuid, content_type, created_at_ms, updated_at_ms FROM encrypted_object_tbl WHERE object_uuid = ?").get(objectUuid);
+
+        expect(rowB.schema_uuid).toBe(schemaUuidB);
+        expect(rowB.content_type).toBe(contentTypeB);
+        expect(rowB.created_at_ms).toBe(rowA.created_at_ms);
+        expect(rowB.updated_at_ms).toBeGreaterThanOrEqual(rowA.updated_at_ms);
+
+        storage.close();
+    });
+
+    test('updatePayload fails if not found', async () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('pass', 'linux');
+        expect(() => storage.updatePayload('00000000-0000-4000-8000-000000000000', '00000000-0000-4000-8000-000000000001', 'application/json', {})).toThrow(errors.ObjectNotFound);
+        storage.close();
+    });
+
+    test('deletePayload success', async () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('pass', 'linux');
+        const objectUuid = storage.storePayload('00000000-0000-4000-8000-000000000001', 'application/json', { a: 1 });
+
+        storage.deletePayload(objectUuid);
+
+        expect(() => storage.retrievePayload(objectUuid)).toThrow(errors.ObjectNotFound);
+        storage.close();
+    });
+
+    test('deletePayload fails if not found', async () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('pass', 'linux');
+        expect(() => storage.deletePayload('00000000-0000-4000-8000-000000000000')).toThrow(errors.ObjectNotFound);
+        storage.close();
+    });
+
     test('storePayload fails when database is locked', () => {
         const storage = new EncryptedStorage(tempDbPath);
         expect(() => storage.storePayload('11111111-1111-4111-8111-111111111111', 'application/json', {})).toThrow(errors.StorageLocked);
+    });
+
+    test('updatePayload fails when database is locked', () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        expect(() => storage.updatePayload('11111111-1111-4111-8111-111111111111', '00000000-0000-4000-8000-000000000001', 'application/json', {})).toThrow(errors.StorageLocked);
+    });
+
+    test('deletePayload fails when database is locked', () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        expect(() => storage.deletePayload('11111111-1111-4111-8111-111111111111')).toThrow(errors.StorageLocked);
     });
 
     test('retrievePayload fails when database is locked', () => {

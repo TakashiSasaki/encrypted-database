@@ -60,6 +60,67 @@ def test_store_and_retrieve_payload(temp_db):
     assert retrieved2 == payload
     storage2.close()
 
+def test_update_payload_success(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+
+    payload_a = {"secret": "data", "value": 42}
+    schema_uuid_a = "00000000-0000-4000-8000-000000000001"
+    content_type_a = "application/json"
+
+    object_uuid = storage.store_payload(schema_uuid_a, content_type_a, payload_a)
+
+    cur = storage.conn.cursor()
+    cur.execute("SELECT created_at_ms, updated_at_ms FROM encrypted_object_tbl WHERE object_uuid = ?", (object_uuid,))
+    created_at_ms_a, updated_at_ms_a = cur.fetchone()
+
+    # Update
+    payload_b = {"secret": "data-updated", "value": 99}
+    schema_uuid_b = "00000000-0000-4000-8000-000000000002"
+    content_type_b = "application/json+updated"
+
+    storage.update_payload(object_uuid, schema_uuid_b, content_type_b, payload_b)
+
+    # Retrieve
+    retrieved = storage.retrieve_payload(object_uuid)
+    assert retrieved == payload_b
+
+    cur.execute("SELECT schema_uuid, content_type, created_at_ms, updated_at_ms FROM encrypted_object_tbl WHERE object_uuid = ?", (object_uuid,))
+    schema_uuid_out, content_type_out, created_at_ms_b, updated_at_ms_b = cur.fetchone()
+
+    assert schema_uuid_out == schema_uuid_b
+    assert content_type_out == content_type_b
+    assert created_at_ms_a == created_at_ms_b
+    assert updated_at_ms_b >= updated_at_ms_a
+
+    storage.close()
+
+def test_update_payload_fails_if_not_found(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    with pytest.raises(errors.ObjectNotFound):
+        storage.update_payload("00000000-0000-4000-8000-000000000000", "00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.close()
+
+def test_delete_payload_success(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {"a": 1})
+
+    storage.delete_payload(object_uuid)
+
+    with pytest.raises(errors.ObjectNotFound):
+        storage.retrieve_payload(object_uuid)
+
+    storage.close()
+
+def test_delete_payload_fails_if_not_found(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    with pytest.raises(errors.ObjectNotFound):
+        storage.delete_payload("00000000-0000-4000-8000-000000000000")
+    storage.close()
+
 def test_initialization_fails_on_unknown_platform(temp_db):
     storage = EncryptedStorage(temp_db)
     with pytest.raises(errors.UnsupportedPlatform):
@@ -70,6 +131,16 @@ def test_store_fails_when_locked(temp_db):
     storage = EncryptedStorage(temp_db)
     with pytest.raises(errors.StorageLocked):
         storage.store_payload("11111111-1111-4111-8111-111111111111", "application/json", {})
+
+def test_update_fails_when_locked(temp_db):
+    storage = EncryptedStorage(temp_db)
+    with pytest.raises(errors.StorageLocked):
+        storage.update_payload("11111111-1111-4111-8111-111111111111", "00000000-0000-4000-8000-000000000001", "application/json", {})
+
+def test_delete_fails_when_locked(temp_db):
+    storage = EncryptedStorage(temp_db)
+    with pytest.raises(errors.StorageLocked):
+        storage.delete_payload("11111111-1111-4111-8111-111111111111")
 
 def test_retrieve_fails_when_locked(temp_db):
     storage = EncryptedStorage(temp_db)

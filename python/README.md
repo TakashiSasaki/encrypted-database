@@ -37,9 +37,16 @@ schema_uuid = "00000000-0000-4000-8000-000000000001"
 payload = {"secret": "data", "value": 42}
 object_uuid = storage.store_payload(schema_uuid, "application/json", payload)
 
+# Update payload
+new_payload = {"secret": "data-updated", "value": 99}
+storage.update_payload(object_uuid, schema_uuid, "application/json", new_payload)
+
 # Retrieve payload
 retrieved = storage.retrieve_payload(object_uuid)
 print(retrieved)
+
+# Delete payload
+storage.delete_payload(object_uuid)
 ```
 
 
