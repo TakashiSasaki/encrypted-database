@@ -12,7 +12,7 @@ Additionally, a SQLite V1 read-only database unlock/decrypt reader and an experi
 * JSON payload encryption and insertion (`store_payload`).
 * In-place payload update (`update_payload`) and payload delete (`delete_payload`) for `encrypted_object_tbl` rows only.
 * Self-read roundtripping and cross-read compatibility across Go, Rust, Python, and Node.js readers.
-* SQLite backend PRAGMA profile in writer initialization: `page_size=4096`, `auto_vacuum=NONE`, `journal_mode=WAL`, `synchronous=NORMAL`, `foreign_keys=ON`.
+* SQLite backend PRAGMA profile in writer initialization: `foreign_keys = ON` is mandatory. `page_size = 4096` and `auto_vacuum = NONE` are writer-initialization requirements for newly created SQLite V1 files. `journal_mode = WAL` and `synchronous = NORMAL` are recommended operational PRAGMAs for supported file-backed environments. WAL/synchronous failure must not invalidate a Storage Format V1 database. WAL is not a Storage Format V1 conformance invariant.
 
 **NOT supported (out of current scaffold scope):**
 * Key rotation, destruction, and decrypt-only migrations.
@@ -20,7 +20,8 @@ Additionally, a SQLite V1 read-only database unlock/decrypt reader and an experi
 * Additional unlock providers.
 * Blind indexing.
 * Production-ready API maturity guarantees (stability/SLA/backward-compat commitments).
-* Write-matrix automated CI integration (currently exists as a local/manual test harness and a manual `workflow_dispatch` workflow only, not automatically run on push/PR).
+
+**CI Note:** Write-matrix is integrated as path-filtered automatic `pull_request` and `push` CI, alongside manual `workflow_dispatch`.
 
 ## Testing
 
