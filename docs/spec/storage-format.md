@@ -20,7 +20,9 @@ To maintain a clean separation of concerns, the boundaries are strictly defined:
 
 ## 2. Format Stability Model
 
-This format (Storage Format V1) is **Stable**. The format guarantees backward compatibility. Any structural or cryptographic changes must conform to the Versioning and Compatibility Policy and Migration Policy defined below.
+This format (Storage Format V1) is **Stable**. The format guarantees backward compatibility. Any structural or cryptographic changes must conform to the Versioning and Compatibility Policy and Migration Policy defined below. Future incompatible storage-format changes must be introduced as Storage Format V2 rather than mutating V1 semantics.
+
+*(Note: Operational SQLite journal mode choices such as WAL are profile/implementation recommendations, not Storage Format Core invariants).*
 
 ## 3. Storage Format Identity
 A storage file must contain metadata to identify its format, version, and origin. This ensures that implementations can correctly identify and read the structure. The identity is managed via both database metadata and PRAGMAs (in SQLite).

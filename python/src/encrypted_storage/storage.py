@@ -19,8 +19,15 @@ class EncryptedStorage:
         if is_empty_db:
             self.conn.execute("PRAGMA page_size = 4096")
             self.conn.execute("PRAGMA auto_vacuum = NONE")
-        self.conn.execute("PRAGMA journal_mode = WAL")
-        self.conn.execute("PRAGMA synchronous = NORMAL")
+        try:
+            self.conn.execute("PRAGMA journal_mode = WAL")
+        except sqlite3.Error as e:
+            import logging
+            logging.getLogger(__name__).debug(f"Failed to enable WAL mode: {e}")
+        try:
+            self.conn.execute("PRAGMA synchronous = NORMAL")
+        except sqlite3.Error:
+            pass
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.active_db_kek = None
         self.active_db_kid = None

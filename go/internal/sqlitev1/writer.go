@@ -95,8 +95,6 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 	pragmaStatements := []string{
 		"PRAGMA page_size = 4096",
 		"PRAGMA auto_vacuum = NONE",
-		"PRAGMA journal_mode = WAL",
-		"PRAGMA synchronous = NORMAL",
 		"PRAGMA foreign_keys = ON",
 	}
 	for _, stmt := range pragmaStatements {
@@ -104,6 +102,15 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 			db.Close()
 			return nil, fmt.Errorf("failed to execute %s: %w", stmt, err)
 		}
+	}
+
+	// Recommended operational PRAGMAs (do not hard-fail if unsupported)
+	if _, err = db.Exec("PRAGMA journal_mode = WAL"); err != nil {
+		// Log a non-fatal warning if logging was configured, but do not fail
+		// log.Printf("Failed to enable WAL mode: %v", err)
+	}
+	if _, err = db.Exec("PRAGMA synchronous = NORMAL"); err != nil {
+		// Ignore
 	}
 
 	tx, err := db.Begin()

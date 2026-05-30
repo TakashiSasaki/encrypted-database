@@ -264,8 +264,8 @@ For normative per-connection PRAGMA requirements (including `PRAGMA foreign_keys
 
 * `PRAGMA page_size=4096`
 * `PRAGMA auto_vacuum=NONE`
-* `PRAGMA synchronous=NORMAL`
-* `PRAGMA journal_mode=WAL`
+* `PRAGMA synchronous=NORMAL` (Operational recommendation)
+* `PRAGMA journal_mode=WAL` (Operational recommendation)
 
 ### Apply Timing Guidance (Writer Defaults)
 
