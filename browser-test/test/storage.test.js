@@ -97,6 +97,39 @@ describe('EncryptedStorage', () => {
         storage.close();
     });
 
+    test('updatePayload fails on sql error', async () => {
+        const storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase('pass', 'linux');
+        const objectUuid = storage.storePayload('00000000-0000-4000-8000-000000000001', 'application/json', { a: 1 });
+
+        storage.db.exec("PRAGMA foreign_keys = OFF");
+        storage.db.exec("DROP TABLE encrypted_object_tbl");
+
+        expect(() => storage.updatePayload(objectUuid, '00000000-0000-4000-8000-000000000001', 'application/json', {})).toThrow(errors.DatabaseBackendError);
+        storage.close();
+    });
+
+    test('updatePayload fails on update sql error', async () => {
+        const storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase('pass', 'linux');
+        const objectUuid = storage.storePayload('00000000-0000-4000-8000-000000000001', 'application/json', { a: 1 });
+
+        // sql.js does not support DROP COLUMN or ALTER TABLE RENAME COLUMN completely safely in some versions,
+        // but it does support mocking run/exec. Let's mock db.run or db.prepare.
+        const originalPrepare = storage.db.prepare;
+        storage.db.prepare = function(sql) {
+            if (sql.includes("UPDATE encrypted_object_tbl")) {
+                throw new Error("Mock prepare error");
+            }
+            return originalPrepare.call(this, sql);
+        };
+
+        expect(() => storage.updatePayload(objectUuid, '00000000-0000-4000-8000-000000000001', 'application/json', {})).toThrow(errors.DatabaseBackendError);
+        storage.close();
+    });
+
     test('deletePayload success', async () => {
         const storage = new EncryptedStorage();
         await storage.init();
@@ -114,6 +147,19 @@ describe('EncryptedStorage', () => {
         await storage.init();
         await storage.initializeDatabase('pass', 'linux');
         expect(() => storage.deletePayload('00000000-0000-4000-8000-000000000000')).toThrow(errors.ObjectNotFound);
+        storage.close();
+    });
+
+    test('deletePayload fails on sql error', async () => {
+        const storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase('pass', 'linux');
+        const objectUuid = storage.storePayload('00000000-0000-4000-8000-000000000001', 'application/json', { a: 1 });
+
+        storage.db.exec("PRAGMA foreign_keys = OFF");
+        storage.db.exec("DROP TABLE encrypted_object_tbl");
+
+        expect(() => storage.deletePayload(objectUuid)).toThrow(errors.DatabaseBackendError);
         storage.close();
     });
 

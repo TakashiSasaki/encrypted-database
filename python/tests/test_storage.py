@@ -95,6 +95,102 @@ def test_update_payload_success(temp_db):
 
     storage.close()
 
+def test_update_payload_fails_if_closed(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    storage.close()
+    with pytest.raises(errors.StorageClosed):
+        storage.update_payload("00000000-0000-4000-8000-000000000000", "00000000-0000-4000-8000-000000000001", "application/json", {})
+
+def test_update_payload_fails_if_unsupported_alg(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.conn.execute("UPDATE encrypted_object_tbl SET alg = 'invalid' WHERE object_uuid = ?", (object_uuid,))
+    storage.conn.commit()
+    with pytest.raises(errors.InvalidStorageFormat):
+        storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.close()
+
+def test_update_payload_fails_if_no_key(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.conn.execute("PRAGMA foreign_keys = OFF")
+    storage.conn.execute("DELETE FROM key_tbl")
+    storage.conn.commit()
+    with pytest.raises(errors.ObjectNotFound):
+        storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.close()
+
+def test_update_payload_fails_if_key_inactive(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.conn.execute("UPDATE key_tbl SET status = 'destroyed'")
+    storage.conn.commit()
+    with pytest.raises(errors.InvalidStorageFormat):
+        storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.close()
+
+def test_update_payload_fails_if_no_wrap_info(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.conn.execute("PRAGMA foreign_keys = OFF")
+    storage.conn.execute("DELETE FROM wrapped_key_tbl")
+    storage.conn.commit()
+    with pytest.raises(errors.IntegrityCheckFailed):
+        storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.close()
+
+def test_update_payload_fails_on_sql_error(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {})
+
+    storage.conn.execute("PRAGMA foreign_keys = OFF")
+    storage.conn.execute("DROP TABLE encrypted_object_tbl")
+    storage.conn.commit()
+
+    with pytest.raises(errors.DatabaseBackendError):
+        storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.close()
+
+def test_update_payload_fails_on_update_sql_error(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {})
+
+    # We want to force an error during the UPDATE statement.
+    # A simple way to do this is to add a constraint or trigger to the table that fails, or drop a required column.
+    storage.conn.execute("ALTER TABLE encrypted_object_tbl RENAME COLUMN ciphertext TO missing_col")
+    storage.conn.commit()
+
+    with pytest.raises(errors.DatabaseBackendError):
+        storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.close()
+
+def test_delete_payload_fails_if_closed(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    storage.close()
+    with pytest.raises(errors.StorageClosed):
+        storage.delete_payload("00000000-0000-4000-8000-000000000000")
+
+def test_delete_payload_fails_on_sql_error(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {})
+
+    storage.conn.execute("PRAGMA foreign_keys = OFF")
+    storage.conn.execute("DROP TABLE encrypted_object_tbl")
+    storage.conn.commit()
+
+    with pytest.raises(errors.DatabaseBackendError):
+        storage.delete_payload(object_uuid)
+    storage.close()
+
 def test_update_payload_fails_if_not_found(temp_db):
     storage = EncryptedStorage(temp_db)
     storage.initialize_database("pass", "linux")

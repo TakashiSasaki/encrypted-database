@@ -141,6 +141,29 @@ describe('EncryptedStorage', () => {
         storage.close();
     });
 
+    test('updatePayload fails on sql error', async () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('pass', 'linux');
+        const objectUuid = storage.storePayload('00000000-0000-4000-8000-000000000001', 'application/json', { a: 1 });
+
+        storage.conn.pragma('foreign_keys = OFF');
+        storage.conn.exec('DROP TABLE encrypted_object_tbl');
+
+        expect(() => storage.updatePayload(objectUuid, '00000000-0000-4000-8000-000000000001', 'application/json', {})).toThrow(errors.DatabaseBackendError);
+        storage.close();
+    });
+
+    test('updatePayload fails on update sql error', async () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('pass', 'linux');
+        const objectUuid = storage.storePayload('00000000-0000-4000-8000-000000000001', 'application/json', { a: 1 });
+
+        storage.conn.exec('ALTER TABLE encrypted_object_tbl RENAME COLUMN ciphertext TO missing_col');
+
+        expect(() => storage.updatePayload(objectUuid, '00000000-0000-4000-8000-000000000001', 'application/json', {})).toThrow(errors.DatabaseBackendError);
+        storage.close();
+    });
+
     test('deletePayload success', async () => {
         const storage = new EncryptedStorage(tempDbPath);
         await storage.initializeDatabase('pass', 'linux');
@@ -156,6 +179,18 @@ describe('EncryptedStorage', () => {
         const storage = new EncryptedStorage(tempDbPath);
         await storage.initializeDatabase('pass', 'linux');
         expect(() => storage.deletePayload('00000000-0000-4000-8000-000000000000')).toThrow(errors.ObjectNotFound);
+        storage.close();
+    });
+
+    test('deletePayload fails on sql error', async () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('pass', 'linux');
+        const objectUuid = storage.storePayload('00000000-0000-4000-8000-000000000001', 'application/json', { a: 1 });
+
+        storage.conn.pragma('foreign_keys = OFF');
+        storage.conn.exec('DROP TABLE encrypted_object_tbl');
+
+        expect(() => storage.deletePayload(objectUuid)).toThrow(errors.DatabaseBackendError);
         storage.close();
     });
 
