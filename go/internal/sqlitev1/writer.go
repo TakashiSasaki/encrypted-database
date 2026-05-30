@@ -95,8 +95,6 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 	pragmaStatements := []string{
 		"PRAGMA page_size = 4096",
 		"PRAGMA auto_vacuum = NONE",
-		"PRAGMA journal_mode = WAL",
-		"PRAGMA synchronous = NORMAL",
 		"PRAGMA foreign_keys = ON",
 	}
 	for _, stmt := range pragmaStatements {
@@ -105,6 +103,10 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 			return nil, fmt.Errorf("failed to execute %s: %w", stmt, err)
 		}
 	}
+
+	// Recommended operational PRAGMAs (do not hard-fail if unsupported)
+	_, _ = db.Exec("PRAGMA journal_mode = WAL")
+	_, _ = db.Exec("PRAGMA synchronous = NORMAL")
 
 	tx, err := db.Begin()
 	if err != nil {

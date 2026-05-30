@@ -25,7 +25,6 @@ An SQLite database file implementing this profile should be identifiable both ex
 *   **`PRAGMA user_version`**: Used as an auxiliary integer tracking the SQLite schema / migration version (synchronizes with `schema_version` in the metadata table).
 
 ## 4. Required PRAGMAs
-
 ### Browser/sql.js PRAGMA Exception
 In browser environments using `sql.js` (WebAssembly SQLite memory databases or export/import flows), `PRAGMA application_id` and `PRAGMA user_version` do not reliably persist across database serializations. Therefore, for `browser-test` and similar `sql.js` implementations:
 * PRAGMA validation is strictly skipped during initialization and unlock.
@@ -36,12 +35,15 @@ To ensure security, data integrity, and cross-platform compatibility, implementa
 *   `PRAGMA foreign_keys = ON;` (Mandatory: Validates relationships like `wrapped_kid` referencing `kid`. Implementations must execute this immediately upon connection, and verify it is enabled if possible).
 *   `PRAGMA page_size = 4096;` (Mandatory for writer initialization when creating new SQLite V1 files; apply before schema creation).
 *   `PRAGMA auto_vacuum = NONE;` (Mandatory for writer initialization when creating new SQLite V1 files; apply before schema creation).
-*   `PRAGMA journal_mode = WAL;` (Mandatory for file-backed writer initialization; execute outside explicit transactions. Browser/sql.js is a documented exception).
-*   `PRAGMA synchronous = NORMAL;` (Mandatory for file-backed writer connections; NORMAL-equivalent values are acceptable in verification).
 *   *Future Hardening*: SQLite `STRICT` tables are deferred to future enhancements due to compatibility constraints across Go/Rust drivers and older SQLite versions.
 
+### 4.1 Recommended Operational PRAGMAs
+The following PRAGMAs are highly recommended for file-backed database operations, but are not strict conformance invariants for Storage Format V1:
+*   `PRAGMA journal_mode = WAL;` (Recommended for file-backed writer initialization; execute outside explicit transactions. If unsupported by the environment, fallback is acceptable without invalidating the database).
+*   `PRAGMA synchronous = NORMAL;` (Recommended for file-backed writer connections).
+
 ## 5. Canonical Schema Source
-The definitive, unversioned schema for the current pre-v1 state is located at `docs/backend/sqlite/schema.sql`.
+The definitive, unversioned schema for the current Storage Format V1 SQLite schema is located at `docs/backend/sqlite/schema.sql`.
 
 *Future Hardening*: A "Schema Fingerprint" derived from canonical DDL statements to verify exact database schema layout is deferred.
 

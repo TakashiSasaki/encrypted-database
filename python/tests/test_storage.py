@@ -187,3 +187,33 @@ def test_initialize_fails_on_wrong_db(temp_db):
     with pytest.raises(errors.InvalidStorageFormat):
         storage.initialize_database("pass", "linux")
     storage.close()
+
+
+def test_storage_wal_fallback(tmp_path, monkeypatch):
+    import sqlite3
+    db_path = str(tmp_path / "wal_test.db")
+
+    # We patch sqlite3.connect to return a connection object that raises
+    # OperationalError specifically for PRAGMA journal_mode = WAL
+
+    original_connect = sqlite3.connect
+
+    class MockConnection:
+        def __init__(self, *args, **kwargs):
+            self._conn = original_connect(*args, **kwargs)
+
+        def execute(self, sql, *args, **kwargs):
+            if sql == "PRAGMA journal_mode = WAL":
+                raise sqlite3.OperationalError("journal_mode WAL is not supported")
+            if sql == "PRAGMA synchronous = NORMAL":
+                raise sqlite3.OperationalError("synchronous NORMAL is not supported")
+            return self._conn.execute(sql, *args, **kwargs)
+
+        def __getattr__(self, name):
+            return getattr(self._conn, name)
+
+    monkeypatch.setattr(sqlite3, "connect", MockConnection)
+
+    # Should not raise any error
+    storage = EncryptedStorage(db_path)
+    storage.close()

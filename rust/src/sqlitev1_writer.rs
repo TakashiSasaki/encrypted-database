@@ -119,10 +119,14 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
     // Connection-level initialization PRAGMAs before schema/data operations.
     conn.execute("PRAGMA page_size = 4096", [])?;
     conn.execute("PRAGMA auto_vacuum = NONE", [])?;
-    // journal_mode should be set outside explicit transactions.
-    conn.query_row("PRAGMA journal_mode = WAL", [], |_| Ok(()))?;
-    conn.execute("PRAGMA synchronous = NORMAL", [])?;
     conn.execute("PRAGMA foreign_keys = ON", [])?;
+
+    // Operational PRAGMAs (recommended, but do not fail if unsupported)
+    if let Err(e) = conn.query_row("PRAGMA journal_mode = WAL", [], |_| Ok(())) {
+        // Print a non-fatal warning to stderr.
+        eprintln!("Warning: Failed to enable WAL mode: {}", e);
+    }
+    let _ = conn.execute("PRAGMA synchronous = NORMAL", []);
 
     let tx = conn.transaction()?;
 

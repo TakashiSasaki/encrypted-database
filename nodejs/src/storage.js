@@ -17,8 +17,15 @@ class EncryptedStorage {
             this.conn.pragma('page_size = 4096');
             this.conn.pragma('auto_vacuum = NONE');
         }
-        this.conn.pragma('journal_mode = WAL');
-        this.conn.pragma('synchronous = NORMAL');
+        try {
+            this.conn.pragma('journal_mode = WAL');
+        } catch (e) {
+            console.debug('Failed to enable WAL mode:', e.message);
+        }
+        try {
+            this.conn.pragma('synchronous = NORMAL');
+        } catch (e) {}
+
         this.conn.pragma('foreign_keys = ON');
 
 

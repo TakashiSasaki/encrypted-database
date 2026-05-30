@@ -74,7 +74,7 @@ It intentionally separates:
 |---|---|---|---|---|---|
 | `schema.sql` as source of truth | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | All load canonical schema file. |
 | PRAGMA `application_id` / `user_version` handling | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
-| `page_size=4096`, `auto_vacuum=NONE`, `journal_mode=WAL`, `synchronous=NORMAL`, `foreign_keys=ON` | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Confirmed in code/tests/README and matrix harness assumptions. |
+| `page_size=4096`, `auto_vacuum=NONE`, `journal_mode=WAL`, `synchronous=NORMAL`, `foreign_keys=ON` | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Confirmed in code/tests. WAL/synchronous are operational recommendations. |
 
 ### 5) Cryptographic envelope behavior
 
