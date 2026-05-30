@@ -100,8 +100,8 @@ While V1 stabilization expects strict conformance, the following intentional exc
 
 The following items are recognized as important future enhancements or active work items but are explicitly classified as **non-blocking** for declaring Storage Format V1 stable. See [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md) for more details.
 
-- Go implementation
-- Rust implementation
+- Go portability validation and writer scaffold
+- Rust portability validation and writer scaffold
 - Go/Rust roundtrip integration tests
 - Browser export/import roundtrip testing
 - Browser real-runtime (WebCrypto) coverage

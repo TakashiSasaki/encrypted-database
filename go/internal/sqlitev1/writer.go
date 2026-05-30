@@ -105,6 +105,9 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 	}
 
 	// Recommended operational PRAGMAs (do not hard-fail if unsupported)
+	// These are operational recommendations for Storage Format V1 Stable,
+	// but are not strict invariants. Failure to enable WAL or synchronous
+	// is explicitly ignored to ensure fallback on restricted systems.
 	_, _ = db.Exec("PRAGMA journal_mode = WAL")
 	_, _ = db.Exec("PRAGMA synchronous = NORMAL")
 

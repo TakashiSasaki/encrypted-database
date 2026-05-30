@@ -2,7 +2,7 @@
 
 ## Scope
 
-This document audits the current **implemented surface** across Python / Node.js / Go / Rust for Storage Format V1.
+This document audits the current **implemented surface** across Python / Node.js / Go / Rust for Storage Format V1 Stable.
 It intentionally separates:
 
 1. **Storage-format interoperability parity** (can language A read/write V1 data that language B produced?)
@@ -10,11 +10,11 @@ It intentionally separates:
 
 ## Summary
 
-- Storage Format V1 interoperability is materially validated for current implemented paths (especially Python/Node baseline readers and Go/Rust scaffold writer outputs).
-- Public API parity is **not** complete across four languages.
+- Storage Format V1 Stable interoperability is materially validated for current implemented paths (especially Python/Node.js baseline implementations and Go/Rust portability validation writer scaffolds).
+- Public API parity is **not** complete across four languages. (Note: This public API incompleteness does not weaken the Storage Format V1 Stable baseline).
 - Python and Node.js expose baseline storage library APIs (initialize/open/unlock/store/retrieve/lock/close/status).
-- Go and Rust currently expose portability-focused readers and writer scaffolds; they are **not production-ready public parity targets** yet.
-- Update/delete support is currently public in Go/Rust writer scaffolds, but not present as public APIs in Python/Node baseline libraries.
+- Go and Rust currently expose portability validation and writer scaffolds; they are **not full production storage libraries** yet.
+- Update/delete support is currently public in Go/Rust writer scaffolds, but not present as public APIs in Python/Node.js baseline libraries.
 
 ## Terminology / classification labels
 
@@ -109,13 +109,13 @@ It intentionally separates:
 
 ## Storage-format interoperability vs public API parity
 
-- **Interoperability (Storage Format V1):** Current matrix and roundtrip harnesses show strong practical compatibility for implemented flows (notably Go/Rust writer outputs readable by Go/Rust/Python/Node readers, and Python↔Node roundtrip).
-- **Public API parity:** Not yet achieved. Main visible gap is update/delete API asymmetry (Go/Rust scaffold yes, Python/Node public API no).
+- **Interoperability (Storage Format V1 Stable):** Current matrix and roundtrip harnesses show strong practical compatibility for implemented flows (notably Go/Rust writer scaffold outputs readable by Go/Rust/Python/Node.js readers, and Python↔Node.js roundtrip).
+- **Public API parity:** Not yet achieved. Main visible gap is update/delete API asymmetry (Go/Rust writer scaffold yes, Python/Node.js baseline implementation no).
 
 ## Language-specific notes
 
-- **Python / Node.js:** Baseline public libraries. Lifecycle and store/retrieve API are exposed publicly. Update/delete public methods are not exposed in current source.
-- **Go / Rust:** Portability-validation implementations with read-only readers and writer scaffolds. Useful for format verification; not yet equivalent production public libraries.
+- **Python / Node.js:** Baseline implementations. Lifecycle and store/retrieve API are exposed publicly. Update/delete public methods are not exposed in current source.
+- **Go / Rust:** Portability validation and writer scaffolds. Useful for Storage Format V1 Stable verification; not yet full production storage libraries.
 
 ## Known gaps
 

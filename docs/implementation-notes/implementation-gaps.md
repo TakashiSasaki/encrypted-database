@@ -48,12 +48,12 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 ## Active Gaps (General)
 
-### Go/Rust full storage libraries are not yet implemented
+### Go/Rust full production storage libraries are not yet implemented
 
 **Status:** Active
 **Area:** Implementation
-**Current state:** Go/Rust portability validation is active and materially implemented. The Go/Rust directories include shared-vector conformance validation for JCS, AAD, Argon2id KDF, AES-256-GCM AEAD primitives, key-wrap, and payload encryption; SQLite V1 read-only metadata validators; strict `database_uuid` validation; and initial read-only unlock/decrypt readers. The read-only readers include negative-case coverage for malformed/non-canonical provider configs, unsupported providers/algorithms/envelopes, inactive key status, tampered wrapped keys, tampered payloads, AAD metadata mismatch, invalid envelope parameters, and database KEK unwrap error taxonomy. A read-only matrix harness now exists under `integration-tests/read-only-matrix/` and verifies Python- and Node-generated SQLite V1 fixture databases against the Go and Rust read-only readers. The read-only matrix harness is available both as manual `workflow_dispatch` and as path-filtered `pull_request` / `push` CI for relevant code, schema, spec, and harness changes. Go/Rust are still not full storage libraries. Initial writer APIs and database creation APIs now exist (including update/delete for encrypted payload rows), while key lifecycle operations and full production-grade cross-language read/write maturity remain future work.
-**Expected or intended state:** Native Go and Rust packages expose full storage-library functionality, including database unlock/decrypt reader, writer APIs, lifecycle/key management operations, and cross-language roundtrip interoperability.
+**Current state:** Go/Rust portability validation is active and materially implemented. The Go/Rust directories include shared-vector conformance validation for JCS, AAD, Argon2id KDF, AES-256-GCM AEAD primitives, key-wrap, and payload encryption; SQLite V1 read-only metadata validators; strict `database_uuid` validation; and initial read-only unlock/decrypt readers. The read-only readers include negative-case coverage for malformed/non-canonical provider configs, unsupported providers/algorithms/envelopes, inactive key status, tampered wrapped keys, tampered payloads, AAD metadata mismatch, invalid envelope parameters, and database KEK unwrap error taxonomy. A read-only matrix harness now exists under `integration-tests/read-only-matrix/` and verifies Python- and Node-generated SQLite V1 fixture databases against the Go and Rust read-only readers. The read-only matrix harness is available both as manual `workflow_dispatch` and as path-filtered `pull_request` / `push` CI for relevant code, schema, spec, and harness changes. Go/Rust feature writer scaffolds that support initial database creation, payload insert, payload update, and payload delete. However, Go/Rust are strictly writer scaffolds and not full production storage libraries. Key lifecycle operations and full production-grade cross-language read/write maturity remain future work. (Note: The incompleteness of Go/Rust APIs does not weaken the Storage Format V1 Stable status).
+**Expected or intended state:** Native Go and Rust packages eventually expose full production storage library functionality, including database unlock/decrypt reader, writer APIs, lifecycle/key management operations, and cross-language roundtrip interoperability with Python/Node.js baseline implementations.
 **Why it matters:** The storage format core is designed for multi-language support. Proving it in stricter compiled languages (Go/Rust) provides strong confidence.
 **Recommended next action:** Run and monitor the promoted Write Matrix CI (and manual workflow) for update/delete scenarios before proceeding to key lifecycle APIs or production API polishing.
 
@@ -137,8 +137,8 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Documented Exception (Resolved)
 **Area:** Testing
-**Current state:** Python and Node.js file-backed SQLite implementations use `PRAGMA ignore_check_constraints = ON` to verify that the public API handles malformed JSON in `provider_config_json` (corruption on disk) gracefully by raising `InvalidStorageFormat`. `browser-test` skips this direct corruption test because `sql.js` schema constraints strictly block malformed JSON via `CHECK(json_valid(...))` and bypassing it via PRAGMA is not a required conformance path for the browser implementation.
-**Expected or intended state:** The browser-test exception is fully documented. Semantic invalid JSON cases (which bypass the schema constraint) are universally tested across all environments.
+**Current state:** File-backed SQLite tests for the Python and Node.js baseline implementations use `PRAGMA ignore_check_constraints = ON` to verify that the public API handles malformed JSON in `provider_config_json` (corruption on disk) gracefully by raising `InvalidStorageFormat`. The browser-test implementation skips this direct corruption test because `sql.js` schema constraints strictly block malformed JSON via `CHECK(json_valid(...))` and bypassing it via PRAGMA is not a required conformance path for the browser implementation.
+**Expected or intended state:** The browser-test implementation exception is fully documented. Semantic invalid JSON cases (which bypass the schema constraint) are universally tested across all environments.
 **Why it matters:** Clearly defines that this is a test-scope exception rather than a missing compatibility guarantee.
 **Recommended next action:** None.
 
@@ -147,7 +147,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Resolved
 **Area:** Storage Format
-**Current state:** Python, Node.js, and browser-test implementations have unified validation policies for Storage Format V1. All strictly validate `storage_metadata_tbl` exactness, `database_uuid` canonical form, and `provider_config_json` JCS exactness and explicit parameters. Direct SQL `CHECK` constraint tests are primary coverage in Python / Node.js. Browser-test may have representative sql.js constraint tests, but it does not need to be described as full file-backed parity.
+**Current state:** Python/Node.js baseline implementation and browser-test implementation have unified validation policies for Storage Format V1 Stable. All strictly validate `storage_metadata_tbl` exactness, `database_uuid` canonical form, and `provider_config_json` JCS exactness and explicit parameters. Direct SQL `CHECK` constraint tests are primary coverage in Python/Node.js baseline implementations. Browser-test implementation may have representative sql.js constraint tests, but it does not need to be described as full file-backed parity.
 **Expected or intended state:** Strict structural parity ensures cross-language implementation correctness. `created_by_library` and `created_by_version` are validated as diagnostic provenance metadata strings (not compatibility gates) to preserve interoperability.
 **Why it matters:** Parity ensures consistent data safety guarantees and bug-free interoperability.
 **Recommended next action:** None.
@@ -156,7 +156,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Documented Exception (Resolved)
 **Area:** Storage Format
-**Current state:** `browser-test` bypasses `PRAGMA application_id` and `PRAGMA user_version` validations due to `sql.js` in-memory behavior, instead relying entirely on `storage_metadata_tbl` as the authoritative source. This is explicitly documented in the SQLite Profile specification.
+**Current state:** browser-test implementation bypasses `PRAGMA application_id` and `PRAGMA user_version` validations due to `sql.js` in-memory behavior, instead relying entirely on `storage_metadata_tbl` as the authoritative source. This is explicitly documented in the SQLite Profile specification.
 **Expected or intended state:** The exception is documented and covered by specific tests.
 **Why it matters:** Prevents browser export/import flows from incorrectly triggering format validation failures.
 **Recommended next action:** None.
@@ -165,7 +165,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Resolved
 **Area:** Storage Format
-**Current state:** Python, Node.js, and browser-test implementations fully support parsing, validating, and writing Storage Format V1 metadata. This includes `storage_metadata_tbl`, `PRAGMA application_id`, JCS canonical exactness checking for features, and pre-V1 database explicit rejection.
+**Current state:** Python and Node.js baseline implementations and the browser-test implementation fully support parsing, validating, and writing Storage Format V1 Stable metadata. This includes `storage_metadata_tbl`, `PRAGMA application_id` (except browser-test which relies strictly on `storage_metadata_tbl` due to `sql.js` limitations), JCS canonical exactness checking for features, and pre-V1 database explicit rejection.
 **Expected or intended state:** Application code initializes V1 databases with proper metadata and respects/enforces the format identity and strict feature rejection policies. Pre-V1 databases are explicitly rejected.
 **Why it matters:** Without these metadata handling mechanisms, forward/backward compatibility and feature flag protections cannot be guaranteed.
 **Recommended next action:** None.
@@ -174,7 +174,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Resolved
 **Area:** Storage Format
-**Current state:** Python, Node.js, and browser-test implementations strictly validate `PRAGMA application_id` and `PRAGMA user_version` (with an explicit, documented exception for the browser-test sql.js in-memory database). The SQLite schema fully matches the v1 profile.
+**Current state:** Python/Node.js baseline implementation and browser-test implementation strictly validate `PRAGMA application_id` and `PRAGMA user_version` (with an explicit, documented exception for the browser-test sql.js in-memory database). The SQLite schema fully matches the v1 profile.
 **Expected or intended state:** The SQLite schema fully matches the v1 profile.
 **Why it matters:** The physical database layout must support format versioning.
 **Recommended next action:** None.
@@ -192,7 +192,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Resolved
 **Area:** Storage Format
-**Current state:** `CHECK` constraints for 12-byte nonces, wrapped key minimum lengths, ciphertext minimum lengths, and non-empty content types have been added to `schema.sql`. Direct SQL `CHECK` constraint tests are primary coverage in Python / Node.js. Browser-test has representative sql.js constraint tests, but intentionally skips full file-backed parity (e.g. malformed-on-disk corruption via `ignore_check_constraints` is a documented test-scope exception).
+**Current state:** `CHECK` constraints for 12-byte nonces, wrapped key minimum lengths, ciphertext minimum lengths, and non-empty content types have been added to `schema.sql`. Direct SQL `CHECK` constraint tests are primary coverage in Python/Node.js baseline implementations. Browser-test implementation has representative sql.js constraint tests, but intentionally skips full file-backed parity (e.g. malformed-on-disk corruption via `ignore_check_constraints` is a documented test-scope exception).
 **Expected or intended state:** The schema uses implemented SQLite `CHECK` constraints to provide defense-in-depth for V1 invariants.
 **Why it matters:** DBMS-level enforcement prevents corruption from external tools or bugs in the application layer.
 **Recommended next action:** None.
@@ -257,7 +257,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Active
 **Area:** Cryptography / Interoperability
-**Current state:** Go/Rust initial writer scaffolds exist. They implement database creation and payload insertion. A write-matrix harness validates 8 combinations (Go/Rust writers vs Go/Rust/Python/Node readers) and passes locally. A manual `workflow_dispatch` GitHub Actions workflow has been added for this write-matrix, but it is not yet promoted to automatically run on `push` or `pull_request`. However, Go/Rust writers are still not full production-ready storage libraries. Update/delete APIs now exist in the current scaffold and are covered by write-matrix update/delete scenarios. Key lifecycle work (key rotation, decrypt-only migration, key destruction, rewrap), additional unlock providers, blind index, and production public API maturity remain future work.
-**Expected or intended state:** Go and Rust implementations are complete, production-ready storage libraries integrated into the cross-language roundtrip matrix.
+**Current state:** Go/Rust writer scaffolds exist. They implement database creation and payload insertion. A write-matrix harness validates 8 combinations (Go/Rust writer scaffolds vs Go/Rust/Python/Node readers) and passes locally. A GitHub Actions workflow for this write-matrix has been added and runs on path-filtered `pull_request` and `push` events (as well as `workflow_dispatch`). However, Go/Rust writer scaffolds are strictly for validation and are not full production storage libraries. Update/delete APIs now exist in the current scaffold and are covered by write-matrix update/delete scenarios. Key lifecycle work (key rotation, decrypt-only migration, key destruction, rewrap), additional unlock providers, blind index, and full production public API maturity remain future work. (Note: The incompleteness of Go/Rust APIs does not weaken the Storage Format V1 Stable status).
+**Expected or intended state:** Go and Rust implementations eventually transition from portability validation/scaffolds to complete, full production storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
-**Recommended next action:** Run and stabilize the manual Write Matrix workflow, then decide whether to promote it to path-filtered pull_request / push before proceeding to key lifecycle APIs.
+**Recommended next action:** Monitor the promoted Write Matrix workflow before proceeding to key lifecycle APIs.

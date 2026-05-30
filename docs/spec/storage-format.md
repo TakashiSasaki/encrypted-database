@@ -179,7 +179,7 @@ Implementations of this storage format MUST pass a comprehensive suite of cross-
 *   Semantic Interoperability (Roundtrip) Tests across SQLite profiles (Python ↔ Node.js).
 *   **V1 Metadata/Version Tests**: Automated tests proving metadata writing/reading, and strict rejection of unknown formats and unknown required/optional features.
 
-*Note: While Go and Rust implementations are planned to prove broader portability, they were NOT strictly required to declare the Python, Node.js, and browser-test implementations of V1 stable.*
+*Note: While Go and Rust portability validation scaffolds prove broader portability, they were NOT strictly required to declare the Python/Node.js baseline implementations and browser-test implementations of V1 stable.*
 
 ## 17. Future Hardening (Post-V1)
 The following issues track ongoing future enhancements outside the strict V1 storage format requirements:
