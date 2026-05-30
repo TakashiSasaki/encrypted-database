@@ -123,7 +123,7 @@ pub fn create_new(path: &Path, passphrase: &str, platform: &str) -> Result<Write
 
     // Operational PRAGMAs (recommended, but do not fail if unsupported)
     if let Err(e) = conn.query_row("PRAGMA journal_mode = WAL", [], |_| Ok(())) {
-        // Try to log a warning without bringing in new dependencies, or just ignore.
+        // Print a non-fatal warning to stderr.
         eprintln!("Warning: Failed to enable WAL mode: {}", e);
     }
     let _ = conn.execute("PRAGMA synchronous = NORMAL", []);

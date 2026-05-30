@@ -105,13 +105,8 @@ func CreateNew(path string, passphrase string, platform string) (*Writer, error)
 	}
 
 	// Recommended operational PRAGMAs (do not hard-fail if unsupported)
-	if _, err = db.Exec("PRAGMA journal_mode = WAL"); err != nil {
-		// Log a non-fatal warning if logging was configured, but do not fail
-		// log.Printf("Failed to enable WAL mode: %v", err)
-	}
-	if _, err = db.Exec("PRAGMA synchronous = NORMAL"); err != nil {
-		// Ignore
-	}
+	_ = db.Exec("PRAGMA journal_mode = WAL")
+	_ = db.Exec("PRAGMA synchronous = NORMAL")
 
 	tx, err := db.Begin()
 	if err != nil {
