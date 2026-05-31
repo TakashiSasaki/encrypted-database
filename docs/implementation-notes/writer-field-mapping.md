@@ -90,7 +90,7 @@ These tables contain static seed data populated during schema initialization.
 
 ## Update/Delete Field Handling Rules
 
-When implementations expose update/delete operations, the following is **non-normative implementation guidance** for current scaffold behavior (until normative update/delete spec text is defined). `UpdatePayload` / `DeletePayload` are illustrative names only:
+When implementations expose update/delete operations, the following is **non-normative implementation guidance** for current behavior (until normative update/delete spec text is defined):
 
 * `encrypted_object_tbl.updated_at_ms`: updated to the current timestamp for update operations.
 * `encrypted_object_tbl.created_at_ms`: preserved from original insert (not rewritten on update).

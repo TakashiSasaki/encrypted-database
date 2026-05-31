@@ -54,6 +54,12 @@ run_delete_notfound_check() {
    (cd "$ROOT_DIR/go" && VAULT_SQLITE_V1_FIXTURE_DB="$db" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$object_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECT_NOT_FOUND=1 go test ./internal/sqlitev1 -run TestExternalFixtureReadOnly)
  elif [ "$reader" = "Rust" ]; then
    (cd "$ROOT_DIR/rust" && VAULT_SQLITE_V1_FIXTURE_DB="$db" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$object_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECT_NOT_FOUND=1 cargo test --test sqlitev1_external_fixture)
+ elif [ "$reader" = "Python" ]; then
+   local py_out=$(python3 "$DIR/read_fixture_python.py" "$db" "$PASSPHRASE" "$object_uuid")
+   [ "$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["not_found"])' <<<"$py_out")" = "True" ] || exit 1
+ elif [ "$reader" = "Node" ]; then
+   local no=$(node "$DIR/read_fixture_node.js" "$db" "$PASSPHRASE" "$object_uuid")
+   [ "$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["not_found"])' <<<"$no")" = "True" ] || exit 1
  fi
  echo "$writer -> $reader delete-notfound SUCCESS"
 }
@@ -68,8 +74,12 @@ run_updated_payload_check Rust Go "$DB_RUST" "$DIR/rust_write_matrix"
 run_updated_payload_check Rust Python "$DB_RUST" "$DIR/rust_write_matrix"
 run_updated_payload_check Rust Node "$DB_RUST" "$DIR/rust_write_matrix"
 
-# delete-notfound checks (Go/Rust readers only)
+# delete-notfound checks (all readers)
 run_delete_notfound_check Go Go "$DB_GO" "$DIR/go_write_matrix"
 run_delete_notfound_check Go Rust "$DB_GO" "$DIR/go_write_matrix"
+run_delete_notfound_check Go Python "$DB_GO" "$DIR/go_write_matrix"
+run_delete_notfound_check Go Node "$DB_GO" "$DIR/go_write_matrix"
 run_delete_notfound_check Rust Go "$DB_RUST" "$DIR/rust_write_matrix"
 run_delete_notfound_check Rust Rust "$DB_RUST" "$DIR/rust_write_matrix"
+run_delete_notfound_check Rust Python "$DB_RUST" "$DIR/rust_write_matrix"
+run_delete_notfound_check Rust Node "$DB_RUST" "$DIR/rust_write_matrix"

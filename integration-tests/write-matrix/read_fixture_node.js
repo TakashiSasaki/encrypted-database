@@ -30,16 +30,31 @@ async function main() {
     try {
         storage = new EncryptedStorage(dbPath);
         await storage.unlockDatabase(passphrase);
-        const payload = storage.retrievePayload(objectUuid);
 
-        // Canonicalize using JCS and output hex
-        const canonicalBytes = cryptoUtils.canonicalizeJson(payload);
-        const payloadHex = canonicalBytes.toString('hex').toLowerCase();
+        let payload;
+        let notFound = false;
+        try {
+            payload = storage.retrievePayload(objectUuid);
+        } catch (e) {
+            if (e.name === 'ObjectNotFound' || e.message.includes("not found")) {
+                notFound = true;
+            } else {
+                throw e;
+            }
+        }
 
         const output = {
             object_uuid: objectUuid,
-            payload_hex: payloadHex
+            not_found: notFound
         };
+
+        if (payload) {
+            // Canonicalize using JCS and output hex
+            const canonicalBytes = cryptoUtils.canonicalizeJson(payload);
+            const payloadHex = canonicalBytes.toString('hex').toLowerCase();
+            output.payload_hex = payloadHex;
+        }
+
         console.log(JSON.stringify(output));
     } catch (e) {
         console.error(`Error during Node.js read: ${e.message}`);

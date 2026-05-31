@@ -527,6 +527,113 @@ class EncryptedStorage {
         return objectUuid;
     }
 
+    updatePayload(objectUuid, schemaUuid, contentType, payload) {
+        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+
+        this._validateUuid(objectUuid, "objectUuid");
+        this._validateUuid(schemaUuid, "schemaUuid");
+        this._validateContentType(contentType);
+        this._validatePayload(payload);
+
+        if (!this.activeDbKek) throw new errors.StorageLocked("Database is locked");
+
+        let row;
+        try {
+            const findObjectStmt = this.conn.prepare("SELECT kid, alg, created_at_ms FROM encrypted_object_tbl WHERE object_uuid = ?");
+            row = findObjectStmt.get(objectUuid);
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during update lookup: ${e.message}`);
+        }
+
+        if (!row) throw new errors.ObjectNotFound("Object not found");
+
+        const { kid: recordKid, alg, created_at_ms } = row;
+
+        if (alg !== 'A256GCM') throw new errors.InvalidStorageFormat("Unsupported object alg");
+
+        let keyRow;
+        try {
+            const findKeyStmt = this.conn.prepare("SELECT status FROM key_tbl WHERE kid = ? AND key_class = 'record_dek'");
+            keyRow = findKeyStmt.get(recordKid);
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during record DEK lookup: ${e.message}`);
+        }
+
+        if (!keyRow) throw new errors.ObjectNotFound("Record DEK not found");
+        if (keyRow.status !== 'active') throw new errors.InvalidStorageFormat("Record DEK is not active");
+
+        let wrapRow;
+        try {
+            const findWrapStmt = this.conn.prepare("SELECT nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ? AND wrapping_kid = ?");
+            wrapRow = findWrapStmt.get(recordKid, this.activeDbKid);
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during record key retrieval: ${e.message}`);
+        }
+        if (!wrapRow) throw new errors.IntegrityCheckFailed("Record DEK wrap info not found");
+
+        aadPolicy.getPolicy(wrapRow.aad_policy);
+
+        const wrapAadBytes = aadPolicy.buildAadBytes(wrapRow.aad_policy, {
+            wrapped_kid: recordKid,
+            wrapping_kid: this.activeDbKid
+        });
+
+        let recordDekBytes;
+        try {
+            recordDekBytes = cryptoUtils.decryptAead(this.activeDbKek, wrapRow.nonce, wrapRow.wrapped_key, wrapAadBytes);
+        } catch (e) {
+            throw new errors.CryptoOperationFailed(`Failed to decrypt record DEK: ${e.message}`);
+        }
+
+        const payloadBytes = cryptoUtils.canonicalizeJson(payload);
+        const payloadAadPolicy = aadPolicy.selectPayloadPolicy({ alg });
+        const payloadAadBytes = aadPolicy.buildAadBytes(payloadAadPolicy, {
+            object_uuid: objectUuid,
+            schema_uuid: schemaUuid,
+            content_type: contentType,
+            kid: recordKid,
+            alg
+        });
+
+        const { nonce: noncePayload, ciphertext } = cryptoUtils.encryptAead(recordDekBytes, payloadBytes, payloadAadBytes);
+
+        const runTransaction = this.conn.transaction(() => {
+            const updateStmt = this.conn.prepare("UPDATE encrypted_object_tbl SET schema_uuid = ?, content_type = ?, nonce = ?, ciphertext = ?, aad_policy = ?, updated_at_ms = ? WHERE object_uuid = ?");
+            updateStmt.run(schemaUuid, contentType, noncePayload, ciphertext, payloadAadPolicy, this._currentMs(), objectUuid);
+        });
+
+        try {
+            runTransaction();
+        } catch (e) {
+            throw new errors.DatabaseBackendError(`Database error during update: ${e.message}`);
+        }
+    }
+
+    deletePayload(objectUuid) {
+        if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
+
+        this._validateUuid(objectUuid, "objectUuid");
+
+        if (!this.activeDbKek) throw new errors.StorageLocked("Database is locked");
+
+        const runTransaction = this.conn.transaction(() => {
+            const deleteStmt = this.conn.prepare("DELETE FROM encrypted_object_tbl WHERE object_uuid = ?");
+            const result = deleteStmt.run(objectUuid);
+            if (result.changes === 0) {
+                throw new errors.ObjectNotFound("Object not found");
+            }
+        });
+
+        try {
+            runTransaction();
+        } catch (e) {
+            if (e instanceof errors.ObjectNotFound) {
+                throw e;
+            }
+            throw new errors.DatabaseBackendError(`Database error during delete: ${e.message}`);
+        }
+    }
+
     retrievePayload(objectUuid) {
         if (this._isClosed) throw new errors.StorageClosed("Storage is closed");
 
