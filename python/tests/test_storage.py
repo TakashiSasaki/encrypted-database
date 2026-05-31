@@ -123,6 +123,17 @@ def test_update_payload_fails_if_no_key(temp_db):
         storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
     storage.close()
 
+def test_update_payload_fails_on_record_key_lookup_error(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.conn.execute("PRAGMA foreign_keys = OFF")
+    storage.conn.execute("DROP TABLE key_tbl")
+    storage.conn.commit()
+    with pytest.raises(errors.DatabaseBackendError):
+        storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.close()
+
 def test_update_payload_fails_if_key_inactive(temp_db):
     storage = EncryptedStorage(temp_db)
     storage.initialize_database("pass", "linux")
@@ -141,6 +152,17 @@ def test_update_payload_fails_if_no_wrap_info(temp_db):
     storage.conn.execute("DELETE FROM wrapped_key_tbl")
     storage.conn.commit()
     with pytest.raises(errors.IntegrityCheckFailed):
+        storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.close()
+
+def test_update_payload_fails_on_wrap_info_sql_error(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {})
+    storage.conn.execute("PRAGMA foreign_keys = OFF")
+    storage.conn.execute("DROP TABLE wrapped_key_tbl")
+    storage.conn.commit()
+    with pytest.raises(errors.DatabaseBackendError):
         storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
     storage.close()
 

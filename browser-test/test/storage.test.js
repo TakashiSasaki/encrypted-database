@@ -110,6 +110,32 @@ describe('EncryptedStorage', () => {
         storage.close();
     });
 
+    test('updatePayload fails on record dek lookup error', async () => {
+        const storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase('pass', 'linux');
+        const objectUuid = storage.storePayload('00000000-0000-4000-8000-000000000001', 'application/json', { a: 1 });
+
+        storage.db.exec("PRAGMA foreign_keys = OFF");
+        storage.db.exec("DROP TABLE key_tbl");
+
+        expect(() => storage.updatePayload(objectUuid, '00000000-0000-4000-8000-000000000001', 'application/json', {})).toThrow(errors.DatabaseBackendError);
+        storage.close();
+    });
+
+    test('updatePayload fails on record dek wrap lookup error', async () => {
+        const storage = new EncryptedStorage();
+        await storage.init();
+        await storage.initializeDatabase('pass', 'linux');
+        const objectUuid = storage.storePayload('00000000-0000-4000-8000-000000000001', 'application/json', { a: 1 });
+
+        storage.db.exec("PRAGMA foreign_keys = OFF");
+        storage.db.exec("DROP TABLE wrapped_key_tbl");
+
+        expect(() => storage.updatePayload(objectUuid, '00000000-0000-4000-8000-000000000001', 'application/json', {})).toThrow(errors.DatabaseBackendError);
+        storage.close();
+    });
+
     test('updatePayload fails on update sql error', async () => {
         const storage = new EncryptedStorage();
         await storage.init();
