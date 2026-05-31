@@ -34,6 +34,9 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'nodejs/package-lock.json'
 
+      - name: Check for stale documentation
+        run: ./scripts/check_stale_docs.sh
+
       - name: Run roundtrip integration tests
         run: |
           ./integration-tests/roundtrip/test_roundtrip.sh
