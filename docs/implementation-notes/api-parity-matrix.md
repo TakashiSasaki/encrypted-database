@@ -124,4 +124,5 @@ It intentionally separates:
 
 ## Recommended next actions
 
-1. Proceed to key lifecycle API design and production API polishing.
+1. Expand write-matrix delete assertions to Python/Node readers if delete API/read behavior policy requires it.
+2. Proceed to key lifecycle API design and production API polishing.
