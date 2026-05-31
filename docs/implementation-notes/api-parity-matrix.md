@@ -52,7 +52,7 @@ It intentionally separates:
 | Retrieve/decrypt payload | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Go/Rust retrieval is via read-only reader API. |
 | Update payload | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Browser-test also implemented. |
 | Delete payload | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Browser-test also implemented. |
-| Delete NotFound behavior | implemented-public | implemented-public | implemented-scaffold, verified-by-matrix | implemented-scaffold, verified-by-matrix | write-matrix verifies delete NotFound for Go/Rust readers only. |
+| Delete NotFound behavior | implemented-public | implemented-public | implemented-scaffold, verified-by-matrix | implemented-scaffold, verified-by-matrix | Verified by write-matrix for all readers. |
 | `schema_uuid`/`content_type` update support | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
 | `object_uuid` preservation on update | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
 
