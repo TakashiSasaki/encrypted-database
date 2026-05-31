@@ -1,5 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
+
+# Check for Bash >= 4.0 (required for associative arrays)
+if (( BASH_VERSINFO[0] < 4 )); then
+  echo "ERROR: This script requires Bash version 4.0 or higher."
+  echo "Current version: $BASH_VERSION"
+  echo "On macOS, you can install a newer Bash via Homebrew: brew install bash"
+  exit 1
+fi
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(dirname "$DIR")"
@@ -34,9 +42,21 @@ FOUND_STALE=0
 
 for pattern in "${!STALE_PHRASES[@]}"; do
   # Run grep on the paths. -r recursive, -n line numbers, -I ignore binary, -E extended regex
-  if grep -rnIE "$pattern" "${SEARCH_PATHS[@]}" 2>/dev/null; then
+  # We suppress stdout to avoid printing matches directly, but capture stderr to detect true errors.
+  set +e
+  output=$(grep -rnIE -- "$pattern" "${SEARCH_PATHS[@]}" 2>&1)
+  exit_status=$?
+  set -e
+
+  # grep exits 0 if matched, 1 if no match, 2 if error
+  if [ "$exit_status" -eq 2 ]; then
+    echo "ERROR: grep failed while searching for pattern: '$pattern'"
+    echo "$output"
+    exit 2
+  elif [ "$exit_status" -eq 0 ]; then
     echo "ERROR: Found stale phrase matching pattern: '$pattern'"
     echo "Reason: ${STALE_PHRASES[$pattern]}"
+    echo "$output"
     FOUND_STALE=1
   fi
 done
