@@ -179,18 +179,20 @@ def test_update_payload_fails_on_sql_error(temp_db):
         storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
     storage.close()
 
-def test_update_payload_fails_on_update_sql_error(temp_db):
+def test_update_payload_fails_on_update_generic_error(temp_db):
     storage = EncryptedStorage(temp_db)
     storage.initialize_database("pass", "linux")
     object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {})
 
-    # We want to force an error during the UPDATE statement.
-    # A simple way to do this is to add a constraint or trigger to the table that fails, or drop a required column.
-    storage.conn.execute("ALTER TABLE encrypted_object_tbl RENAME COLUMN ciphertext TO missing_col")
-    storage.conn.commit()
+    original_current_ms = storage._current_ms
+    def failing_current_ms():
+        raise ValueError("Mock generic error")
+    storage._current_ms = failing_current_ms
 
-    with pytest.raises(errors.DatabaseBackendError):
+    with pytest.raises(ValueError):
         storage.update_payload(object_uuid, "00000000-0000-4000-8000-000000000001", "application/json", {})
+
+    storage._current_ms = original_current_ms
     storage.close()
 
 def test_delete_payload_fails_if_closed(temp_db):
@@ -211,6 +213,23 @@ def test_delete_payload_fails_on_sql_error(temp_db):
 
     with pytest.raises(errors.DatabaseBackendError):
         storage.delete_payload(object_uuid)
+    storage.close()
+
+def test_delete_payload_fails_on_generic_error(temp_db):
+    storage = EncryptedStorage(temp_db)
+    storage.initialize_database("pass", "linux")
+    object_uuid = storage.store_payload("00000000-0000-4000-8000-000000000001", "application/json", {})
+
+    # We can mock the internal validate method to raise a generic error
+    original_validate = storage._validate_uuid
+    def failing_validate(*args, **kwargs):
+        raise ValueError("Mock generic error")
+    storage._validate_uuid = failing_validate
+
+    with pytest.raises(ValueError):
+        storage.delete_payload(object_uuid)
+
+    storage._validate_uuid = original_validate
     storage.close()
 
 def test_update_payload_fails_if_not_found(temp_db):

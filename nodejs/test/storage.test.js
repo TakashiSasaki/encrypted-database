@@ -188,6 +188,21 @@ describe('EncryptedStorage', () => {
         storage.close();
     });
 
+    test('updatePayload fails on generic error', async () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('pass', 'linux');
+        const objectUuid = storage.storePayload('00000000-0000-4000-8000-000000000001', 'application/json', { a: 1 });
+
+        const originalMs = storage._currentMs;
+        storage._currentMs = function() {
+            throw new Error("Mock generic error");
+        };
+
+        expect(() => storage.updatePayload(objectUuid, '00000000-0000-4000-8000-000000000001', 'application/json', {})).toThrow(Error);
+        storage._currentMs = originalMs;
+        storage.close();
+    });
+
     test('deletePayload success', async () => {
         const storage = new EncryptedStorage(tempDbPath);
         await storage.initializeDatabase('pass', 'linux');
@@ -215,6 +230,21 @@ describe('EncryptedStorage', () => {
         storage.conn.exec('DROP TABLE encrypted_object_tbl');
 
         expect(() => storage.deletePayload(objectUuid)).toThrow(errors.DatabaseBackendError);
+        storage.close();
+    });
+
+    test('deletePayload fails on generic error', async () => {
+        const storage = new EncryptedStorage(tempDbPath);
+        await storage.initializeDatabase('pass', 'linux');
+        const objectUuid = storage.storePayload('00000000-0000-4000-8000-000000000001', 'application/json', { a: 1 });
+
+        const originalValidate = storage._validateUuid;
+        storage._validateUuid = function() {
+            throw new Error("Mock generic error");
+        };
+
+        expect(() => storage.deletePayload(objectUuid)).toThrow(Error);
+        storage._validateUuid = originalValidate;
         storage.close();
     });
 
