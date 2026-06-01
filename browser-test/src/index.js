@@ -331,9 +331,35 @@ const steps = [
         const retrievedPayload2 = currentStorage.retrievePayload(testState.objectUuid);
         if (retrievedPayload2.message === testState.payload.message) {
             logOutput("✅ 再解錠後のデータ取得テスト成功！");
-            logOutput("テスト完了！データベースは開いたままです。確認が終わったら「データベースを閉じる」ボタンを押してください。");
         } else {
             throw new Error("再解錠後のデータ取得失敗。");
+        }
+    },
+    async () => {
+        logOutput("ステップ 8: ペイロードの更新中...");
+        const newPayload = { message: "Updated message via WebAssembly SQLite!", timestamp: Date.now() };
+        currentStorage.updatePayload(testState.objectUuid, testState.schemaUuid, "application/json", newPayload);
+        const updatedPayload = currentStorage.retrievePayload(testState.objectUuid);
+        if (updatedPayload.message === newPayload.message) {
+            logOutput("✅ ペイロードの更新成功！");
+        } else {
+            throw new Error("更新後のペイロードが一致しません。");
+        }
+    },
+    async () => {
+        logOutput("ステップ 9: ペイロードの削除中...");
+        currentStorage.deletePayload(testState.objectUuid);
+        let thrown = false;
+        try {
+            currentStorage.retrievePayload(testState.objectUuid);
+        } catch (e) {
+            thrown = true;
+        }
+        if (thrown) {
+            logOutput("✅ ペイロードの削除成功！");
+            logOutput("テスト完了！データベースは開いたままです。確認が終わったら「データベースを閉じる」ボタンを押してください。");
+        } else {
+            throw new Error("削除されたはずのペイロードが取得できてしまいました。");
         }
     }
 ];
