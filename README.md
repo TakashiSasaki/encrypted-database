@@ -8,6 +8,8 @@
 
 **Status:** Storage Format V1 は Stable です。ただし、ライブラリの packaging、追加 unlock provider、key rotation、blind index、追加言語実装などは引き続き開発中です。
 
+**公開サイト / ドキュメント:** [https://vault.moukaeritai.work/](https://vault.moukaeritai.work/)
+
 これは新しく作成する暗号化データベース（暗号化ストレージ）のライブラリです。
 SQLite などのローカル永続化層に秘匿対象データを保存するアプリケーション向けに、アプリケーション層暗号化、鍵階層、鍵ラッピング、アンロック手段、復旧経路、検索用補助鍵を統一的に扱う機能を提供します。
 
@@ -19,18 +21,41 @@ SQLite などのローカル永続化層に秘匿対象データを保存する�
 
 ```text
 .
-├── docs/       # 仕様書・設計ドキュメント
-├── python/     # Python 向けライブラリ実装
-└── nodejs/     # Node.js 向けライブラリ実装
+├── docs/               # 仕様書・設計ドキュメント
+├── python/             # Python 向け baseline implementation
+├── nodejs/             # Node.js 向け baseline implementation
+├── browser-test/       # browser/sql.js 向けテスト実装・検証ハーネス
+├── go/                 # Go ポータビリティ検証・writer scaffold
+├── rust/               # Rust ポータビリティ検証・writer scaffold
+├── integration-tests/  # クロス言語 roundtrip / read-only matrix / write-matrix 検証
+└── scripts/            # ローカル実行スクリプトとドキュメント guardrail
 ```
 
+### docs/
+仕様書や設計ドキュメントを配置しています。
+
 ### Python
-Python 用の実装は `python/` ディレクトリに配置されています。
+Python 向けの baseline implementation です。
 詳細は [Python用 README](python/README.md) を参照してください。
 
 ### Node.js
-Node.js 用の実装は `nodejs/` ディレクトリに配置されています。
+Node.js 向けの baseline implementation です。
 詳細は [Node.js用 README](nodejs/README.md) を参照してください。
+
+### browser-test/
+browser/sql.js 向けのテスト実装・検証ハーネスです。Jest JSDOM/sql.js 環境での検証を含みますが、完全な real-browser WebCrypto runtime coverage を意味するものではありません。
+
+### Go
+Go 実装は Storage Format V1 のポータビリティ検証と writer scaffold を目的としたものです。現時点では full production storage library ではありません。
+
+### Rust
+Rust 実装も同様に、Storage Format V1 のポータビリティ検証と writer scaffold を目的としたものです。現時点では full production storage library ではありません。
+
+### integration-tests/
+クロス言語の roundtrip、read-only matrix、write-matrix 検証ハーネスを含みます。
+
+### scripts/
+ローカル環境でのテスト実行やカバレッジ測定、ドキュメントの鮮度確認などを行うスクリプト群です。
 
 ## 主な特徴
 
