@@ -14,7 +14,9 @@ It intentionally separates:
 - Public API parity is **not** complete across four languages. (Note: This public API incompleteness does not weaken the Storage Format V1 Stable baseline).
 - Python and Node.js expose baseline storage library APIs (initialize/open/unlock/store/retrieve/lock/close/status).
 - Go and Rust currently expose portability validation and writer scaffolds; they are **not full production storage libraries** yet.
-- Update/delete support is currently public in Go/Rust writer scaffolds, but not present as public APIs in Python/Node.js baseline libraries.
+- Core payload operation parity is largely achieved across Python, Node.js, and browser-test implementations.
+- Update/delete support is implemented and public across Python, Node.js, and browser-test, and remains scaffolded in Go/Rust.
+- Go/Wasm is an explicit development target, though current support is blocked by SQLite driver constraints (see `go-wasm.md`).
 
 ## Terminology / classification labels
 
@@ -50,8 +52,8 @@ It intentionally separates:
 |---|---|---|---|---|---|
 | Store/insert payload | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
 | Retrieve/decrypt payload | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Go/Rust retrieval is via read-only reader API. |
-| Update payload | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Browser-test also implemented. |
-| Delete payload | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | Browser-test also implemented. |
+| Update payload | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | browser-test also implemented. |
+| Delete payload | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | browser-test also implemented. |
 | Delete NotFound behavior | implemented-public | implemented-public | implemented-scaffold, verified-by-matrix | implemented-scaffold, verified-by-matrix | Verified by write-matrix for all readers. |
 | `schema_uuid`/`content_type` update support | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
 | `object_uuid` preservation on update | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
@@ -124,5 +126,5 @@ It intentionally separates:
 
 ## Recommended next actions
 
-1. Expand write-matrix delete assertions to Python/Node readers if delete API/read behavior policy requires it.
+1. Extend write-matrix interoperability coverage to include Python/Node.js writer outputs against all readers.
 2. Proceed to key lifecycle API design and production API polishing.

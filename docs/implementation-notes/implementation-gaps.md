@@ -65,7 +65,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 **Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js. Go/Rust now have substantial portability-validation coverage, SQLite V1 read-only metadata validators, initial read-only unlock/decrypt readers, and initial writer scaffolds that support database creation, payload insert, payload update, and payload delete. A local/manual write-matrix harness exists and validates update outputs across Go/Rust/Python/Node readers and delete NotFound behavior in Go/Rust readers. Write-matrix now has local/manual harness coverage, manual `workflow_dispatch`, and path-filtered automatic `pull_request` / `push` CI for relevant code/schema/spec/harness/doc changes.
 **Expected or intended state:** Write-matrix coverage is reliably exercised and monitored in CI for relevant changes, and eventually expanded to full production-grade roundtrip coverage across Python, Node.js, Go, Rust, and browser export/import paths.
 **Why it matters:** To guarantee true V1 interoperability.
-**Recommended next action:** Monitor the path-filtered Write Matrix CI (and manual workflow) for update/delete scenarios. Decide on next-phase API parity for update/delete across Python/Node.js.
+**Recommended next action:** Monitor the path-filtered Write Matrix CI (and manual workflow) for update/delete scenarios. Extend write-matrix interoperability coverage to include Python/Node.js writer outputs against all readers.
 
 ### JWE/JOSE compatibility is not implemented
 
@@ -123,14 +123,14 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 
 
-### Public API parity across Python/Node/Go/Rust is incomplete
+### Public API parity across implementations is incomplete
 
 **Status:** Active
 **Area:** API Design / Interoperability
-**Current state:** Storage Format V1 interoperability has advanced via read-only matrix and write-matrix coverage, but public library API parity is still incomplete. Python/Node expose initialize/unlock/store/retrieve/lock/close/status baseline APIs. Go/Rust currently expose read-only reader + writer scaffold APIs (including update/delete). Python/Node currently do not expose public update/delete payload APIs.
-**Expected or intended state:** A clearly defined cross-language public API contract (or explicit documented intentional non-parity) for lifecycle and payload operations.
-**Why it matters:** Interoperable bytes on disk are necessary but not sufficient for developer ergonomics and predictable multi-language integration contracts.
-**Recommended next action:** Use [`api-parity-matrix.md`](api-parity-matrix.md) as the source of truth for parity decisions, then implement or explicitly defer Python/Node update/delete parity.
+**Current state:** Storage Format V1 interoperability has advanced via read-only matrix and write-matrix coverage. Core payload operation parity (store, retrieve, update, delete) is largely achieved across Python, Node.js, and browser-test baseline libraries. However, public API parity is still not complete in the broader product sense because Go/Rust remain scaffolds, Go/Wasm support maturity is incomplete, and production maturity is incomplete.
+**Expected or intended state:** Consistent core payload and key-lifecycle APIs available as stable, public library interfaces across the supported languages. Go/Wasm development-target support maturity is achieved.
+**Why it matters:** Users expect equivalent features regardless of which library they use.
+**Recommended next action:** Use [`api-parity-matrix.md`](api-parity-matrix.md) as the source of truth for parity decisions, expand write-matrix tests, and proceed with Go/Rust maturity and key-lifecycle APIs.
 
 ## Resolved Gaps
 
@@ -230,10 +230,10 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and are executed by the GitHub Actions integration workflow. A read-only matrix harness also exists (`integration-tests/read-only-matrix`) for verifying Python and Node-generated DBs against Go and Rust readers. Following successful manual verification, this workflow has been promoted to run automatically on path-filtered `pull_request` and `push` events to monitor stability without running on unrelated changes. A local `integration-tests/write-matrix` harness exists and validates that Go/Rust initial writer scaffolds successfully produce databases fully readable by Go, Rust, Python, and Node.js readers. However, write-matrix is not yet integrated into CI. Browser DB export/import interoperability remains future work.
-**Expected or intended state:** Automated tests ensuring DB files created in one platform can be successfully read and decrypted in another.
+**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and are executed by the GitHub Actions integration workflow. A read-only matrix harness also exists (`integration-tests/read-only-matrix`) for verifying Python and Node-generated DBs against Go and Rust readers. This workflow runs automatically on path-filtered `pull_request` and `push` events. A `integration-tests/write-matrix` harness exists and validates that Go/Rust initial writer scaffolds successfully produce databases fully readable by Go, Rust, Python, and Node.js readers. Write-matrix runs automatically on path-filtered `pull_request` and `push` events. Python/Node writers are not yet included in the write-matrix. Browser DB export/import interoperability remains future work.
+**Expected or intended state:** Automated tests ensuring DB files created in one platform can be successfully read and decrypted in another, including Python/Node writers in the write-matrix.
 **Why it matters:** Interoperability is the core value proposition of the library.
-**Recommended next action:** Stabilize the local write-matrix harness, then decide whether to add a manual/path-filtered CI workflow before proceeding to key lifecycle APIs. Expand to include browser interoperability tests.
+**Recommended next action:** Extend write-matrix interoperability coverage to include Python/Node.js writer outputs against all readers. Expand to include browser interoperability tests.
 
 ### Coverage badge publication
 

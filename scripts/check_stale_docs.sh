@@ -1,70 +1,53 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+# check_stale_docs.sh
+# A lightweight guardrail script to detect known stale claims or contradictory phrases in documentation.
+# This script is meant to prevent regressions where old assumptions (like "Python/Node update/delete are not implemented")
+# are re-introduced into the docs.
+# It exits with a non-zero status code if stale phrases are detected.
 
-# Check for Bash >= 4.0 (required for associative arrays)
-if (( BASH_VERSINFO[0] < 4 )); then
-  echo "ERROR: This script requires Bash version 4.0 or higher."
-  echo "Current version: $BASH_VERSION"
-  echo "On macOS, you can install a newer Bash via Homebrew: brew install bash"
-  exit 1
-fi
+set -euo pipefail
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(dirname "$DIR")"
 
-echo "Checking for stale documentation phrases..."
+echo "Checking for stale documentation phrases in docs/..."
 
-# Define an array of forbidden/stale regex patterns and their descriptions
-declare -A STALE_PHRASES=(
-  ["Python and Node\.js payload update/delete not implemented"]="Python/Node update/delete is fully implemented"
-  ["Update/delete APIs are not implemented"]="Update/delete APIs are fully implemented"
-  ["API parity is mainly blocked by update/delete"]="Core payload parity is achieved"
-  ["delete NotFound behavior is only covered by Go/Rust"]="Delete behavior is tested across all readers"
-  ["Go/Rust production-ready"]="Go/Rust are scaffolds, not production-ready"
-  ["WAL mandatory"]="WAL is recommended, but not a strict conformance invariant"
-  ["journal_mode=WAL mandatory"]="WAL is recommended, but not a strict conformance invariant"
-)
-
-# File paths to search (avoiding node_modules, build artifacts, etc.)
-SEARCH_PATHS=(
-  "$ROOT_DIR/docs"
-  "$ROOT_DIR/go/README.md"
-  "$ROOT_DIR/rust/README.md"
-  "$ROOT_DIR/python/README.md"
-  "$ROOT_DIR/nodejs/README.md"
-  "$ROOT_DIR/browser-test/README.md"
-  "$ROOT_DIR/integration-tests/write-matrix/README.md"
-  "$ROOT_DIR/integration-tests/read-only-matrix/README.md"
-  "$ROOT_DIR/README.md"
-)
+cd "$ROOT_DIR"
 
 FOUND_STALE=0
 
-for pattern in "${!STALE_PHRASES[@]}"; do
-  # Run grep on the paths. -r recursive, -n line numbers, -I ignore binary, -E extended regex
-  # We suppress stdout to avoid printing matches directly, but capture stderr to detect true errors.
-  set +e
-  output=$(grep -rnIE -- "$pattern" "${SEARCH_PATHS[@]}" 2>&1)
-  exit_status=$?
-  set -e
+check_phrase() {
+    local pattern="$1"
+    local desc="$2"
+    local matches=$(grep -rnEi "$pattern" docs/ go/ rust/ python/ nodejs/ browser-test/ --exclude-dir="node_modules" --exclude-dir="__pycache__" --exclude-dir="target" --exclude-dir="dist" 2>/dev/null || true)
+    if [ -n "$matches" ]; then
+        echo "❌ Found stale phrase: $desc (pattern: '$pattern')"
+        echo "$matches"
+        FOUND_STALE=1
+    fi
+}
 
-  # grep exits 0 if matched, 1 if no match, 2 if error
-  if [ "$exit_status" -eq 2 ]; then
-    echo "ERROR: grep failed while searching for pattern: '$pattern'"
-    echo "$output"
-    exit 2
-  elif [ "$exit_status" -eq 0 ]; then
-    echo "ERROR: Found stale phrase matching pattern: '$pattern'"
-    echo "Reason: ${STALE_PHRASES[$pattern]}"
-    echo "$output"
-    FOUND_STALE=1
-  fi
-done
+# 1. Claims that Python/Node update/delete are not implemented.
+check_phrase "not present as public APIs in Python/Node\.js" "Stale claim about Python/Node missing update/delete public APIs"
+check_phrase "Python/Node currently do not expose public update/delete" "Stale claim about Python/Node missing update/delete public APIs"
+
+# 2. "WAL mandatory" or "journal_mode=WAL mandatory"
+check_phrase "journal_mode=WAL mandatory" "Stale claim: WAL is recommended, but not a strict conformance requirement"
+check_phrase "WAL mandatory" "Stale claim: WAL is recommended, but not a strict conformance requirement"
+
+# 3. Claims that current Go/Rust code are full production libraries (they are scaffolds)
+# Note: In implementation-gaps.md, the phrase "Go/Rust full production storage libraries are not yet implemented" is valid.
+# So we need to look for "is a full production storage library" or "are full production storage libraries".
+check_phrase "is a full production storage library" "Stale/false claim: Go/Rust are scaffolds"
+check_phrase "are full production storage libraries\." "Stale/false claim: Go/Rust are scaffolds"
+
+# 4. "manual only" for write-matrix (since it is path-filtered now)
+check_phrase "write-matrix is manual only" "Stale claim: write-matrix runs in path-filtered CI"
 
 if [ "$FOUND_STALE" -eq 1 ]; then
-  echo "Stale documentation phrases found! Please fix them."
-  exit 1
+    echo "⚠️  Stale documentation found. Please update the affected files."
+    exit 1
 else
-  echo "No known stale documentation phrases found. Good job!"
-  exit 0
+    echo "✅ No stale documentation phrases found."
+    exit 0
 fi

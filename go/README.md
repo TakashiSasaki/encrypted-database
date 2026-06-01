@@ -4,6 +4,8 @@ This directory contains the Go portability validation and writer scaffold for St
 
 The Go implementation is strictly a portability validation and writer scaffold; it is **not a full production storage library**. Its incompleteness does not weaken the Storage Format V1 Stable status. Currently, a minimal JCS canonicalizer, an Argon2id KDF test, AES-256-GCM AEAD primitive vector validation, Key-Wrap conformance validation, and Payload vector conformance validation are implemented to satisfy the basic test vectors.
 
+**Go/Wasm (`GOOS=js GOARCH=wasm`) is an explicit development target.** However, full support is currently blocked by CGO constraints in the SQLite driver (`modernc.org/sqlite`). For details on the Wasm feasibility and current status, see `docs/implementation-notes/go-wasm.md`.
+
 Additionally, a SQLite V1 read-only database unlock/decrypt reader and an experimental database writer scaffold have been added.
 
 **Supported API / capability scope (current scaffold):**
