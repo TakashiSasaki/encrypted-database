@@ -4,6 +4,10 @@
 [![Integration Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-integration.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-integration.yml)
 [![Node.js Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-nodejs.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-nodejs.yml)
 [![Browser Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-browser.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-browser.yml)
+[![Go Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-go.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-go.yml)
+[![Rust Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-rust.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-rust.yml)
+[![Read-Only Matrix Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-readonly-matrix.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-readonly-matrix.yml)
+[![Write Matrix Tests](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-write-matrix.yml/badge.svg)](https://github.com/TakashiSasaki/vault.moukaeritai.work/actions/workflows/test-write-matrix.yml)
 [![Coverage](https://codecov.io/gh/TakashiSasaki/vault.moukaeritai.work/branch/vault.moukaeritai.work/graph/badge.svg)](https://codecov.io/gh/TakashiSasaki/vault.moukaeritai.work/tree/vault.moukaeritai.work)
 
 **Status:** Storage Format V1 は Stable です。ただし、ライブラリの packaging、追加 unlock provider、key rotation、blind index、追加言語実装などは引き続き開発中です。
