@@ -75,18 +75,22 @@ Rust 実装も同様に、Storage Format V1 のポータビリティ検証と wr
 
 ### Local Test Commands
 
-You can run the full suite of tests using the top-level orchestration script:
+You can run a baseline aggregate test command for the core languages using the top-level orchestration script:
 
 ```bash
-# Run all tests (Python, Node.js, Browser, and Roundtrip Integration)
+# Run baseline tests (Python, Node.js, Browser, and Roundtrip Integration)
 ./scripts/test_all.sh
 ```
 
-Alternatively, you can run individual tests manually for troubleshooting:
-- **Python**: `cd python && pytest`
-- **Node.js**: `cd nodejs && npm test`
-- **Browser**: `cd browser-test && npm test`
-- **Roundtrip**: `./integration-tests/roundtrip/test_roundtrip.sh`
+Alternatively, you can run individual tests or matrices manually for troubleshooting:
+- **Python tests**: `cd python && pytest`
+- **Node.js tests**: `cd nodejs && npm test`
+- **browser-test tests**: `cd browser-test && npm test`
+- **Go tests**: `cd go && go test ./...`
+- **Rust tests**: `cd rust && cargo test`
+- **roundtrip integration tests**: `./integration-tests/roundtrip/test_roundtrip.sh`
+- **read-only matrix tests**: `./integration-tests/read-only-matrix/test_readonly_matrix.sh`
+- **write-matrix tests**: `bash integration-tests/write-matrix/test_writer_matrix.sh`
 
 ### Local Coverage Commands
 
@@ -110,7 +114,11 @@ Our CI workflows run on standard `ubuntu-latest` environments and are split into
 - Python Tests
 - Node.js Tests
 - Browser Tests
-- Integration Roundtrip Tests
+- Go Tests
+- Rust Tests
+- Integration Tests / Roundtrip
+- Read-only Matrix
+- Write Matrix
 
 Coverage results are generated during the test runs and uploaded to GitHub Actions artifacts as `python-coverage`, `nodejs-coverage`, and `browser-test-coverage`.
 

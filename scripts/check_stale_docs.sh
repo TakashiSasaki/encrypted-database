@@ -44,6 +44,21 @@ check_phrase "are full production storage libraries\." "Stale/false claim: Go/Ru
 # 4. "manual only" for write-matrix (since it is path-filtered now)
 check_phrase "write-matrix is manual only" "Stale claim: write-matrix runs in path-filtered CI"
 
+# 5. Overstatements of test_all.sh
+check_phrase "full suite of tests using .*test_all\.sh" "Stale claim: test_all.sh is a baseline aggregate, not the complete full suite"
+
+# 6. Go/Wasm as vague idea
+check_phrase "Go/Wasm .* vague future" "Stale claim: Go/Wasm is an explicit development target"
+check_phrase "vague future .* Go/Wasm" "Stale claim: Go/Wasm is an explicit development target"
+check_phrase "Go/Wasm .* vague idea" "Stale claim: Go/Wasm is an explicit development target"
+check_phrase "vague idea .* Go/Wasm" "Stale claim: Go/Wasm is an explicit development target"
+
+# 7. Pre-v1 "Draft" or "Candidate" terminology in docs
+check_phrase "Storage Format V1 .* Draft" "Stale claim: V1 is Stable"
+check_phrase "Storage Format V1 .* Candidate" "Stale claim: V1 is Stable"
+check_phrase "V1 is a Draft" "Stale claim: V1 is Stable"
+check_phrase "V1 is a Candidate" "Stale claim: V1 is Stable"
+
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
     exit 1

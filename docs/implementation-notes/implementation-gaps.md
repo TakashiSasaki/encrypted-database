@@ -58,11 +58,11 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 **Why it matters:** The storage format core is designed for multi-language support. Proving it in stricter compiled languages (Go/Rust) provides strong confidence.
 **Recommended next action:** Run and monitor the promoted Write Matrix CI (and manual workflow) for update/delete scenarios before proceeding to key lifecycle APIs or production API polishing.
 
-### Write-matrix is promoted to path-filtered PR/push CI
+### Write-matrix coverage expansion remains incomplete
 
 **Status:** Active
 **Area:** Interoperability
-**Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js. Go/Rust now have substantial portability-validation coverage, SQLite V1 read-only metadata validators, initial read-only unlock/decrypt readers, and initial writer scaffolds that support database creation, payload insert, payload update, and payload delete. A local/manual write-matrix harness exists and validates update outputs across Go/Rust/Python/Node readers and delete NotFound behavior in Go/Rust readers. Write-matrix now has local/manual harness coverage, manual `workflow_dispatch`, and path-filtered automatic `pull_request` / `push` CI for relevant code/schema/spec/harness/doc changes.
+**Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js. Go/Rust now have substantial portability-validation coverage, SQLite V1 read-only metadata validators, initial read-only unlock/decrypt readers, and initial writer scaffolds that support database creation, payload insert, payload update, and payload delete. A local/manual write-matrix harness exists and validates update outputs across Go/Rust/Python/Node readers and delete NotFound behavior in Go/Rust readers. Write-matrix now has local/manual harness coverage, manual `workflow_dispatch`, and path-filtered automatic `pull_request` / `push` CI for relevant code/schema/spec/harness/doc changes. Python and Node.js writers are not yet included in the write-matrix.
 **Expected or intended state:** Write-matrix coverage is reliably exercised and monitored in CI for relevant changes, and eventually expanded to full production-grade roundtrip coverage across Python, Node.js, Go, Rust, and browser export/import paths.
 **Why it matters:** To guarantee true V1 interoperability.
 **Recommended next action:** Monitor the path-filtered Write Matrix CI (and manual workflow) for update/delete scenarios. Extend write-matrix interoperability coverage to include Python/Node.js writer outputs against all readers.
