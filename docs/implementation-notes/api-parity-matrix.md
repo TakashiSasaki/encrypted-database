@@ -95,8 +95,8 @@ It intentionally separates:
 |---|---|---|---|---|---|
 | Shared vector conformance | implemented-public | implemented-public | implemented-scaffold | implemented-scaffold | |
 | Read-only matrix (Py/Node fixtures -> Go/Rust readers) | verified-by-matrix | verified-by-matrix | verified-by-matrix | verified-by-matrix | CI harness under `integration-tests/read-only-matrix/`. |
-| Write-matrix updated payload read compatibility | partially-implemented | partially-implemented | verified-by-matrix | verified-by-matrix | Go/Rust writers -> all four readers (Path-filtered CI). Python/Node.js writer outputs pending. |
-| Write-matrix delete NotFound compatibility | partially-implemented | partially-implemented | verified-by-matrix | verified-by-matrix | Confirmed in write-matrix. Python/Node.js writer outputs pending. |
+| Write-matrix updated payload read compatibility | verified-by-matrix | verified-by-matrix | verified-by-matrix | verified-by-matrix | Go/Rust writers -> all four readers (Path-filtered CI). Python/Node.js writer outputs pending. |
+| Write-matrix delete NotFound compatibility | verified-by-matrix | verified-by-matrix | verified-by-matrix | verified-by-matrix | Confirmed in write-matrix. Python/Node.js writer outputs pending. |
 | Python <-> Node roundtrip | verified-by-matrix | verified-by-matrix | out-of-scope | out-of-scope | Covered by `integration-tests/roundtrip/`. |
 
 ### 7) Unsupported future functionality
