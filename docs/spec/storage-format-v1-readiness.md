@@ -11,7 +11,7 @@ This document serves as the formal Stable declaration review for the V1 format. 
 **Status:** Stable
 **V1-blocking storage-format gaps:** None known.
 
-Implementations for Python, Node.js, and browser-test have been successfully implemented, and cross-language equivalence is guaranteed by a comprehensive test suite of cryptographic primitives and roundtrip integration tests.
+Implementations for Python, Node.js, and browser-test have been successfully implemented, and cross-language equivalence is materially validated for current implemented paths by a comprehensive test suite of cryptographic primitives, roundtrip integration tests, and Go/Rust read-only/write-matrix harnesses.
 
 ## 3. Stable Declaration Scope
 
@@ -100,16 +100,21 @@ While V1 stabilization expects strict conformance, the following intentional exc
 
 The following items are recognized as important future enhancements or active work items but are explicitly classified as **non-blocking** for declaring Storage Format V1 stable. See [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md) for more details.
 
-- Go portability validation and writer scaffold
-- Rust portability validation and writer scaffold
-- Go/Rust roundtrip integration tests
+**Existing Non-Blocking Validation Progress:**
+- Go/Rust portability validation and writer scaffolds
+- Go/Rust read-only unlock/decrypt readers
+- Read-only matrix and write-matrix CI harnesses
+
+**Still Future / Incomplete (Non-Blocking):**
+- Full production-grade Go/Rust read/write library maturity
+- Complete cross-language roundtrip coverage including Python/Node writer outputs in write-matrix
 - Browser export/import roundtrip testing
 - Browser real-runtime (WebCrypto) coverage
 - Dynamic `created_by_version` discovery
 - Schema fingerprint / hash (DDL integrity)
 - Optional feature read-only fallback
 - Safe integer policy
-- Key rotation
+- Key lifecycle operations (e.g., rotation, rewrap)
 - Additional unlock providers
 - Blind index searchability
 - Packaging/distribution maturity

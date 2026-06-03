@@ -62,6 +62,12 @@ check_phrase "V1 is a Candidate" "Stale claim: V1 is Stable"
 # 8. Claims that V1 format can be mutated ("controlled amendments")
 check_phrase "controlled amendments may be considered" "Stale claim: Storage Format V1 is strictly Stable; breaking changes must be V2"
 check_phrase "controlled V1 amendments may be considered" "Stale claim: Storage Format V1 is strictly Stable; breaking changes must be V2"
+check_phrase "Amendment rules" "Stale claim: V1 has no active amendment rules; breaking changes are V2"
+
+# 9. Claims that Go/Rust phases are restricted to test vectors only
+check_phrase "current phase focuses solely on test vector discovery" "Stale claim: Go/Rust have read/write matrix scaffolds"
+check_phrase "eventually full database interaction" "Stale claim: Go/Rust have read/write matrix scaffolds"
+check_phrase "before full read/write implementations are developed" "Stale claim: Go/Rust have read/write matrix scaffolds"
 
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
