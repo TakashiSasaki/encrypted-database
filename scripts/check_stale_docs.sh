@@ -59,6 +59,10 @@ check_phrase "Storage Format V1 .* Candidate" "Stale claim: V1 is Stable"
 check_phrase "V1 is a Draft" "Stale claim: V1 is Stable"
 check_phrase "V1 is a Candidate" "Stale claim: V1 is Stable"
 
+# 8. Claims that V1 format can be mutated ("controlled amendments")
+check_phrase "controlled amendments may be considered" "Stale claim: Storage Format V1 is strictly Stable; breaking changes must be V2"
+check_phrase "controlled V1 amendments may be considered" "Stale claim: Storage Format V1 is strictly Stable; breaking changes must be V2"
+
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
     exit 1
