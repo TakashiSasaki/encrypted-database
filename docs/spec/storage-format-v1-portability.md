@@ -32,7 +32,7 @@ Incompatible changes to bytes-on-disk semantics, metadata semantics, JCS rules, 
 However, evolution within V1 is permitted under strict conditions:
 - **Non-breaking clarifications** are allowed when they clarify current V1 behavior without changing semantics.
 - **Implementation bug fixes** are allowed when they bring code into conformance with the existing V1 specification.
-- **Test/vector corrections** are allowed when they correct tests or fixtures to match the existing V1 specification.
+- **Test vector corrections** are allowed when they correct tests or fixtures to match the existing V1 specification.
 
 ## 6. Non-Breaking Clarifications
 Clarifications to the written specification that do not alter physical bytes on disk, constraint rules, or cryptographic algorithms will be accepted freely. This ensures documentation accuracy is maintained without destabilizing V1.
