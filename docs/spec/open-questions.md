@@ -7,7 +7,7 @@ This document tracks unresolved design questions, ongoing considerations, and fu
 *   **[PARTIALLY RESOLVED] `kid` Generation:** With `kid` accepted as UUIDv4, it remains to be decided whether the library internally generates the UUIDv4 exclusively, or if the caller is allowed to provide a pre-generated UUIDv4.
     **Resolution:** UUID format is resolved. Caller-provided vs library-generated API remains open.
     **Reference:** `docs/decisions/ADR-0001-use-uuid-canonical-kid.md`
-*   **[RESOLVED FOR V1] UUIDv4 Validation Location:** While ADR-0001 defines the format, it is an open detail whether to enforce this canonical lowercase hyphen-separated string format strictly via SQLite `CHECK` constraints, or solely via library validation. Additionally, whether 16-byte BLOBs could be used internally within SQLite is still debated.
+*   **[RESOLVED FOR V1] UUIDv4 Validation Location:** ADR-0001 defines the UUIDv4 format. For V1, the canonical lowercase hyphen-separated string format is strictly validated at the library level before storage. However, whether 16-byte BLOBs should be used internally within SQLite is still debated.
     **Resolution:** Canonical text validation and strict version/variant enforcement are implemented across all environments for V1. Internal 16-byte BLOBs are deferred to a future V2.
     **Reference:** `docs/implementation-notes/implementation-gaps.md` (Metadata/versioning table)
 *   **[PARTIALLY RESOLVED] JSON Canonicalization Compliance:** RFC 8785 JCS is accepted as the standard. The remaining work involves fully implementing this standard strictly in all languages and resolving whether any legacy non-strict canonical JSON approaches need backwards compatibility during migration.
