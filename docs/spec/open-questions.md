@@ -4,10 +4,10 @@ This document tracks unresolved design questions, ongoing considerations, and fu
 
 ## 1. Accepted Directions with Remaining Implementation Details
 
-*   **`kid` Generation:** With `kid` accepted as UUIDv4 (ADR-0001), it remains to be decided whether the library internally generates the UUIDv4 exclusively, or if the caller is allowed to provide a pre-generated UUIDv4.
-*   **UUIDv4 Validation Location:** While ADR-0001 defines the format, it is an open detail whether to enforce this canonical lowercase hyphen-separated string format strictly via SQLite `CHECK` constraints, or solely via library validation. Additionally, whether 16-byte BLOBs could be used internally within SQLite is still debated.
-*   **JSON Canonicalization Compliance:** RFC 8785 JCS is accepted as the standard (ADR-0002). The remaining work involves fully implementing this standard strictly in all languages and resolving whether any legacy non-strict canonical JSON approaches (like Python's `sort_keys=True`, `separators=(",", ":")`) need backwards compatibility during migration.
-*   **Normalization Timing:** Whether `description_json`, `provider_config_json` should be fully JCS-normalized *before* saving to the DB, or if they are just validated upon write and normalized upon reading. (Save-time normalization is recommended).
+*   **[PARTIALLY RESOLVED] `kid` Generation:** With `kid` accepted as UUIDv4 (ADR-0001), it remains to be decided whether the library internally generates the UUIDv4 exclusively, or if the caller is allowed to provide a pre-generated UUIDv4. (UUID format is resolved by ADR-0001, but caller-provided vs library-generated API remains open).
+*   **[RESOLVED FOR V1] UUIDv4 Validation Location:** While ADR-0001 defines the format, it is an open detail whether to enforce this canonical lowercase hyphen-separated string format strictly via SQLite `CHECK` constraints, or solely via library validation. Additionally, whether 16-byte BLOBs could be used internally within SQLite is still debated. (Canonical text validation and strict version/variant enforcement are implemented across all environments for V1. Internal 16-byte BLOBs are deferred to a future V2).
+*   **[PARTIALLY RESOLVED] JSON Canonicalization Compliance:** RFC 8785 JCS is accepted as the standard (ADR-0002). The remaining work involves fully implementing this standard strictly in all languages and resolving whether any legacy non-strict canonical JSON approaches (like Python's `sort_keys=True`, `separators=(",", ":")`) need backwards compatibility during migration. (JCS is required and validated for V1, but complete multi-language production-grade JCS maturity may still require future hardening).
+*   **[PARTIALLY RESOLVED] Normalization Timing:** Whether `description_json`, `provider_config_json` should be fully JCS-normalized *before* saving to the DB, or if they are just validated upon write and normalized upon reading. (Save-time normalization is recommended). (Save-time validation is strictly implemented for `provider_config_json`, but `description_json` and broader save-time normalizations remain open).
 *   **Provider Config Schema Registry:** Whether the schema registry for `provider_config_json` validation should be stored inside the database, or fixed within the code.
 
 ## 2. Key Wrapping and Schema
@@ -22,8 +22,8 @@ This document tracks unresolved design questions, ongoing considerations, and fu
 ## 3. Cryptography and Algorithms
 
 *   **Blind Index Details:** Specifications around blind indexes (e.g., HMAC) need definition. This includes deciding which fields can be blind indexed, prohibiting low-entropy values, and managing index key rotation.
-*   **AAD Policy Versioning:** How to define and migrate AAD policies like `record-payload-v1`, `wrap-record-key-v1`, `wrap-database-key-v1`.
-*   **Algorithm Verification:** Formalizing the implementation rules that reject operations if the envelope `alg`, `key_tbl.alg`, and `key_profile_tbl.alg` do not match.
+*   **[PARTIALLY RESOLVED] AAD Policy Versioning:** How to define and migrate AAD policies like `record-payload-v1`, `wrap-record-key-v1`, `wrap-database-key-v1`. (V1 AAD policies are fixed and validated, but migration/versioning policy for future AAD versions remains future work).
+*   **[RESOLVED FOR V1] Algorithm Verification:** Formalizing the implementation rules that reject operations if the envelope `alg`, `key_tbl.alg`, and `key_profile_tbl.alg` do not match. (Strict parameter validation and mismatch rejection are implemented across readers for V1 A256GCM).
 *   **AEAD Extension:** Planning the roadmap for supporting algorithms beyond `A256GCM` (e.g., `XCHACHA20-POLY1305`) or unwrap methods native to platform key handles.
 *   **Nonce Generation and Limits:** Defining rules for the standard 96-bit random nonce, including encryption limits, rotation thresholds, and prohibiting deterministic nonces in production.
 
@@ -32,7 +32,7 @@ This document tracks unresolved design questions, ongoing considerations, and fu
 *   **API Error Model:** Defining a standard internal categorization for errors (e.g., auth tag mismatch, key not found, provider unavailable, policy violation) while ensuring that external error messages do not leak excessive information.
 *   **Event/Audit Log:** Determining whether key creation, wrap creation, provider updates, and recovery events should be recorded in a dedicated audit log.
 *   **Memory Handling Limitations:** Acknowledging the limitations of memory wiping in certain languages (like Python) and establishing threat models and guidelines for scope limiting and minimizing the lifetime of secret material.
-*   **Log Restrictions:** Formalizing rules forbidding the logging of plaintext keys, passwords, recovery codes, nonces, ciphertexts, or decrypted payloads. Determining the strict boundary between debug and production logs regarding metadata (like UUIDs).
+*   **[OPEN / NEEDS SECURITY POLICY] Log Restrictions:** Formalizing rules forbidding the logging of plaintext keys, passwords, recovery codes, nonces, ciphertexts, or decrypted payloads. Determining the strict boundary between debug and production logs regarding metadata (like UUIDs).
 *   **Key Destruction Semantics:** Clarifying what `status = 'destroyed'` entails. Is it just a logical flag, or must the underlying wrap blobs be physically erased? How is referential integrity maintained if physically deleted?
 *   **Backup and Recovery Semantics:** Documenting failure scenarios (what happens if the SQLite file, OS store, Shamir shares, or KMS policy is lost) and establishing testing procedures for full recovery.
 *   **Payload Encryption Granularity:** Whether to encrypt entire JSON objects as a single payload, or support field-level encryption. This impacts searchability, syncing, and metadata leakage.
@@ -51,5 +51,5 @@ This document tracks unresolved design questions, ongoing considerations, and fu
 *   **KMS Dependencies:** Accounting for offline unavailability, revocation, region failures, and API limits when using remote KMS providers.
 *   **Ciphertext Portability:** Defining how strictly canonical JSON, base64url, and date formats must be enforced to ensure cross-language decryption compatibility.
 *   **Failure UX:** Designing user experiences for distinguishing between incorrect passwords, failed OS unlocks, missing hardware tokens, and insufficient Shamir shares.
-*   **Verification Test Vectors:** Generating fixed test vectors for keys, nonces, AAD, and ciphertexts to verify cross-implementation compatibility.
+*   **[PARTIALLY RESOLVED] Verification Test Vectors:** Generating fixed test vectors for keys, nonces, AAD, and ciphertexts to verify cross-implementation compatibility. (Existing test vectors and matrix tests satisfy V1 conformance needs, but coverage expansion for future providers/features remains open).
 *   **Security Review Boundary:** Explicitly defining the library's security scope (envelopes, key hierarchy, DB constraints) versus delegating raw crypto primitives to established underlying libraries.

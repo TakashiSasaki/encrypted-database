@@ -62,6 +62,14 @@ check_phrase "V1 is a Candidate" "Stale claim: V1 is Stable"
 # 8. Claims that V1 format can be mutated ("controlled amendments")
 check_phrase "controlled amendments may be considered" "Stale claim: Storage Format V1 is strictly Stable; breaking changes must be V2"
 check_phrase "controlled V1 amendments may be considered" "Stale claim: Storage Format V1 is strictly Stable; breaking changes must be V2"
+check_phrase "Amendment rules" "Stale claim: 'Amendment rules' implies an active policy, which is no longer true for V1"
+
+# 9. Claims that Go/Rust are only in the initial test vector discovery phase
+check_phrase "current phase focuses solely on test vector discovery" "Stale claim: Go/Rust have advanced beyond test vector discovery"
+check_phrase "eventually full database interaction" "Stale claim: Go/Rust have already reached database interaction"
+
+# 10. Claims that read/write implementations don't exist at all yet
+check_phrase "before full read/write implementations are developed" "Stale claim: Go/Rust now have read-only readers and writer scaffolds, even if not full production libraries"
 
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."

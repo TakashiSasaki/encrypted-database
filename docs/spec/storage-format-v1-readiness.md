@@ -11,7 +11,7 @@ This document serves as the formal Stable declaration review for the V1 format. 
 **Status:** Stable
 **V1-blocking storage-format gaps:** None known.
 
-Implementations for Python, Node.js, and browser-test have been successfully implemented, and cross-language equivalence is guaranteed by a comprehensive test suite of cryptographic primitives and roundtrip integration tests.
+Implementations for Python, Node.js, and browser-test have been successfully implemented. Cross-language equivalence is materially validated for current implemented paths via a comprehensive test suite of shared cryptographic primitives (across all three environments) and Python ↔ Node.js roundtrip integration tests.
 
 ## 3. Stable Declaration Scope
 
@@ -100,19 +100,27 @@ While V1 stabilization expects strict conformance, the following intentional exc
 
 The following items are recognized as important future enhancements or active work items but are explicitly classified as **non-blocking** for declaring Storage Format V1 stable. See [`implementation-gaps.md`](../implementation-notes/implementation-gaps.md) for more details.
 
-- Go portability validation and writer scaffold
-- Rust portability validation and writer scaffold
-- Go/Rust roundtrip integration tests
-- Browser export/import roundtrip testing
-- Browser real-runtime (WebCrypto) coverage
-- Dynamic `created_by_version` discovery
-- Schema fingerprint / hash (DDL integrity)
-- Optional feature read-only fallback
-- Safe integer policy
-- Key rotation
-- Additional unlock providers
-- Blind index searchability
-- Packaging/distribution maturity
+**Existing / non-blocking validation progress:**
+- Go/Rust portability validation scaffolds exist.
+- Go/Rust read-only validation/readers exist.
+- Go/Rust writer scaffolds exist.
+- read-only matrix and write-matrix exist and are CI-integrated.
+
+**Remaining non-blocking future work:**
+- production-grade Go/Rust storage library maturity
+- stable public API parity
+- complete cross-language writer coverage including Python/Node writer outputs in write-matrix
+- browser export/import roundtrip/matrix coverage
+- key lifecycle APIs
+- rewrap
+- additional unlock providers
+- blind index
+- packaging/distribution maturity
+- browser real-runtime WebCrypto coverage
+- safe integer policy
+- optional feature read-only fallback
+- schema fingerprint/hash
+- dynamic `created_by_version` discovery
 
 ## 8. Post-Declaration Monitoring
 

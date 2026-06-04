@@ -41,7 +41,30 @@ Clarifications to the written specification that do not alter physical bytes on 
 Any issue that requires breaking backwards compatibility with databases created by the current stable Python, Node.js, or browser-test implementations will be strictly deferred to a future V2 format.
 
 ## 8. Go/Rust Validation Milestones
-The current phase focuses solely on test vector discovery and execution (the scaffold/harness). Subsequent phases will build cryptographic primitives and eventually full database interaction (roundtrips).
+The Go and Rust portability validation efforts have advanced beyond initial test vector discovery. The current milestones are tracked as follows:
+
+**Already materially implemented / validated:**
+- shared test-vector consumption
+- JCS / AAD / KDF / AEAD / key-wrap / payload vector validation
+- SQLite V1 metadata validation
+- read-only unlock/decrypt readers
+- writer scaffolds for create / insert / update / delete
+- read-only matrix harness
+- write-matrix harness
+- path-filtered CI for relevant matrix workflows
+
+**Still incomplete / future work:**
+- full production Go/Rust storage libraries
+- stable public API parity
+- full key lifecycle operations
+- rewrap
+- additional unlock providers
+- blind index
+- Python/Node.js writer outputs in write-matrix
+- browser export/import matrix coverage
+- Go/Wasm full SQLite-backed support
+
+Note: Go and Rust implementations remain strictly portability validation and writer scaffolds, not full production storage libraries.
 
 ## 9. Relationship to Stable Declaration
 The Go/Rust validation efforts do not revoke the Storage Format V1 Stable declaration. The stable format serves as the canonical target for these new implementations to aim for.

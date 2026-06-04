@@ -33,7 +33,7 @@ The documentation has been refactored into focused modules.
 
 ## Existing Documents
 
-*Note: Go and Rust directories are currently portability-validation scaffolds (now including SQLite V1 read-only metadata validators). They are intended to consume shared conformance vectors and uncover portability issues before full read/write implementations are developed. Storage Format V1 is Stable. Go/Rust portability work validates the stable format. Remaining issues should be tracked as implementation gaps, non-breaking clarifications, implementation bugs, test gaps, test vector corrections, driver/library limitations, or future V2 items. The library as a whole is not yet declared production-ready.*
+*Note: Go and Rust directories are currently portability-validation scaffolds (now including SQLite V1 read-only metadata validators). They are intended to consume shared conformance vectors, validate read/write scaffold interoperability, and uncover portability issues before full production storage libraries are developed. Storage Format V1 is Stable. Go/Rust portability work validates the stable format. Remaining issues should be tracked as implementation gaps, non-breaking clarifications, implementation bugs, test gaps, test vector corrections, driver/library limitations, or future V2 items. The library as a whole is not yet declared production-ready.*
 
 ### Specifications
 - [`spec/overview.md`](./spec/overview.md): High-level system overview and principles.
@@ -49,7 +49,7 @@ The documentation has been refactored into focused modules.
 - [`spec/security-model.md`](./spec/security-model.md): Threat model, in-scope protections, and material handling policies.
 - [`spec/test-vectors.md`](./spec/test-vectors.md): Requirements for cross-language compatibility testing.
 - [`spec/storage-format-v1-readiness.md`](./spec/storage-format-v1-readiness.md): Storage Format V1 Stable Declaration Review.
-- [`spec/storage-format-v1-portability.md`](./spec/storage-format-v1-portability.md): Go/Rust Portability Validation Policy and Amendment rules.
+- [`spec/storage-format-v1-portability.md`](./spec/storage-format-v1-portability.md): Go/Rust Portability Validation Policy and V1/V2 issue classification.
 - [`spec/open-questions.md`](./spec/open-questions.md): Extracted unresolved design questions and ongoing considerations.
 
 ### Backend & Storage
