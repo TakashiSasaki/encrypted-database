@@ -11,7 +11,7 @@ This document serves as the formal Stable declaration review for the V1 format. 
 **Status:** Stable
 **V1-blocking storage-format gaps:** None known.
 
-Implementations for Python, Node.js, and browser-test have been successfully implemented, and cross-language equivalence is materially validated for current implemented paths by a comprehensive test suite of cryptographic primitives and roundtrip integration tests.
+Implementations for Python, Node.js, and browser-test have been successfully implemented. Cross-language equivalence is materially validated for current implemented paths via a comprehensive test suite of shared cryptographic primitives (across all three environments) and Python ↔ Node.js roundtrip integration tests.
 
 ## 3. Stable Declaration Scope
 
