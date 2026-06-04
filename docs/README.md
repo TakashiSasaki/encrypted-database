@@ -33,7 +33,7 @@ The documentation has been refactored into focused modules.
 
 ## Existing Documents
 
-*Note: Go and Rust directories are currently portability-validation scaffolds (now including SQLite V1 read-only metadata validators). They are intended to consume shared conformance vectors, validate read/write scaffold interoperability, and uncover portability issues before full production storage libraries are developed. Storage Format V1 is Stable. Go/Rust portability work validates the stable format. Remaining issues should be tracked as implementation gaps, non-breaking clarifications, implementation bugs, test gaps, test vector corrections, driver/library limitations, or future V2 items. The library as a whole is not yet declared production-ready.*
+*Note: Go and Rust directories are currently portability-validation scaffolds. They include SQLite V1 read-only metadata validators/readers and writer scaffolds. They are intended to consume shared conformance vectors, validate read/write scaffold interoperability, and uncover portability issues. They are not yet full production storage libraries. Storage Format V1 is Stable. Go/Rust portability work validates the stable format. Remaining issues should be tracked as implementation gaps, non-breaking clarifications, implementation bugs, test gaps, test vector corrections, driver/library limitations, or future V2 items. The library as a whole is not yet declared production-ready.*
 
 ### Specifications
 - [`spec/overview.md`](./spec/overview.md): High-level system overview and principles.

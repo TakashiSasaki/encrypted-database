@@ -63,6 +63,7 @@ check_phrase "V1 is a Candidate" "Stale claim: V1 is Stable"
 check_phrase "controlled amendments may be considered" "Stale claim: Storage Format V1 is strictly Stable; breaking changes must be V2"
 check_phrase "controlled V1 amendments may be considered" "Stale claim: Storage Format V1 is strictly Stable; breaking changes must be V2"
 check_phrase "Amendment rules" "Stale claim: 'Amendment rules' implies an active policy, which is no longer true for V1"
+check_phrase "Go/Rust Portability Validation Policy and Amendment rules" "Stale claim: 'Amendment rules' implies an active policy, which is no longer true for V1"
 
 # 9. Claims that Go/Rust are only in the initial test vector discovery phase
 check_phrase "current phase focuses solely on test vector discovery" "Stale claim: Go/Rust have advanced beyond test vector discovery"
