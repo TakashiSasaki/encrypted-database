@@ -9,7 +9,7 @@ Storage Format V1 has been formally declared **Stable**. This stability designat
 The `tag-1.z.z` tag marks the Storage Format V1 stable baseline used for Go/Rust portability validation. Any findings are evaluated as deviations from this `tag-1.z.z` baseline.
 
 ## 3. Portability Validation Scope
-The initial Go and Rust efforts focus on building a portability validation harness and consuming existing test vectors (JCS, AAD, KDF, AEAD, etc.) rather than immediately delivering full-featured read/write database libraries. The goal is to surface any hidden ambiguities, type assumptions, or standard library limitations that exist in stricter compiled ecosystems.
+The Go and Rust portability validation efforts focus on building a portability validation harness, consuming existing test vectors (JCS, AAD, KDF, AEAD, etc.), and developing read-only readers and writer scaffolds. The goal is to surface any hidden ambiguities, type assumptions, or standard library limitations that exist in stricter compiled ecosystems.
 
 ## 4. Issue Classification
 Issues discovered during portability validation will be recorded in the `docs/implementation-notes/portability-findings.md` log and classified using one of the following tags:
