@@ -77,8 +77,8 @@ check_phrase "all languages have full public API parity" "Stale claim: API parit
 check_phrase "store/retrieve/update/delete parity implies full API parity" "Stale claim: payload operation parity does not imply full public API parity"
 
 # 12. Claims about browser-test being full real-browser WebCrypto
-check_phrase "browser-test provides full real-browser WebCrypto coverage" "Stale claim: browser-test is a test harness using sql.js and mock crypto"
-check_phrase "browser-test is full real-browser WebCrypto coverage" "Stale claim: browser-test is a test harness using sql.js and mock crypto"
+check_phrase "browser-test provides full real-browser WebCrypto coverage" "Stale claim: browser-test is a test harness using sql.js and a Node crypto shim"
+check_phrase "browser-test is full real-browser WebCrypto coverage" "Stale claim: browser-test is a test harness using sql.js and a Node crypto shim"
 
 # 13. Claims about write-matrix coverage including Python/Node writers
 check_phrase "write-matrix includes Python/Node writer outputs" "Stale claim: Python/Node writer generated databases are not yet included in the write-matrix"

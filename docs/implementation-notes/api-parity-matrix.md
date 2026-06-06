@@ -109,7 +109,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 ## Language-specific notes
 
 - **Python / Node.js**: Baseline implementations. Lifecycle, store, retrieve, update, and delete APIs are exposed publicly.
-- **browser-test**: Test-harness implementation with payload operation parity. Does not represent full real-browser WebCrypto runtime coverage (it relies on sql.js and Node crypto mock).
+- **browser-test**: Test-harness implementation with payload operation parity. Does not represent full real-browser WebCrypto runtime coverage (it relies on sql.js and a Node `crypto` shim, not browser `crypto.subtle`).
 - **Go / Rust**: Portability validation and writer scaffolds. Useful for Storage Format V1 Stable verification; not full production storage libraries.
 
 ## Known gaps
