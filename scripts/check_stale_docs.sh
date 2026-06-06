@@ -83,6 +83,15 @@ check_phrase "browser-test is full real-browser WebCrypto coverage" "Stale claim
 # 13. Claims about write-matrix coverage including Python/Node writers
 check_phrase "write-matrix includes Python/Node writer outputs" "Stale claim: Python/Node writer generated databases are not yet included in the write-matrix"
 
+
+# 14. Claims about Python/Node writer APIs missing vs matrix coverage
+check_phrase "Python/Node writer APIs are missing" "Stale claim: Python/Node public writer APIs exist, but Python/Node writer-generated databases are not yet included in write-matrix coverage"
+check_phrase "Node writer APIs are missing" "Stale claim: Node public writer APIs exist, but writer-generated databases are not yet included in write-matrix coverage"
+check_phrase "Python writer APIs are missing" "Stale claim: Python public writer APIs exist, but writer-generated databases are not yet included in write-matrix coverage"
+
+# 15. Claims that stability means whole library production-ready
+check_phrase "Storage Format V1 stability means the whole library is production-ready" "Stale claim: Storage Format V1 is Stable, but whole library is not yet declared production-ready"
+
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
     exit 1
