@@ -25,6 +25,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 | close | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | All have close path, parity semantics differ. |
 | lock database | implemented-public | implemented-public | implemented-test-harness | missing | missing | Go/Rust scaffold writer does not expose Python/Node-style lock state lifecycle. |
 | status / state inspection | implemented-public | implemented-public | implemented-test-harness | missing | missing | No equivalent end-user status API in Go/Rust scaffold. |
+| read-only open mode | partial | partial | missing | implemented-scaffold | implemented-scaffold | Go/Rust have explicit `ReadOnlyReader` / `open_read_only`. Python/Node.js lack explicit read-only open mode. |
 
 ### 2) Unlock and key availability
 
@@ -47,6 +48,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 | object UUID handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Preservation on update. |
 | content type handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | |
 | metadata handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | `schema_uuid` / `content_type` support. |
+| payload listing | missing | missing | missing | missing | missing | Currently no API to list payloads. |
+| payload existence checks | missing | missing | missing | missing | missing | Must read to check existence. |
 
 ### 4) Validation
 
@@ -59,6 +62,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 | SQLite profile validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | `PRAGMA application_id` handling. |
 | required/optional feature handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | |
 | unknown feature rejection | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | |
+| MIME/content-type validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Basic format checks. |
+| schema/version validation | partial | partial | partial | partial | partial | Full dynamic discovery not yet implemented. |
 
 ### 5) Error model
 
@@ -69,6 +74,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 | not-found behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Confirmed in write-matrix. |
 | validation failure behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | |
 | provider unavailable behavior | missing | missing | missing | missing | missing | Needs implementation alongside additional providers. |
+| unsupported feature behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Reject unknown. |
+| SQLite/profile violation behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Missing/bad PRAGMAs rejected. |
 | standardized error types | partial | partial | partial | partial | partial | Error model is mostly language-specific currently. |
 
 ### 6) Transaction and persistence semantics
@@ -78,7 +85,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 | transaction boundary for operations | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | |
 | WAL/PRAGMA behavior | implemented-public | implemented-public | out-of-scope | implemented-scaffold | implemented-scaffold | Operational PRAGMAs (WAL/synchronous) are recommended, not required for V1 conformance. |
 | sql.js/browser exceptions | out-of-scope | out-of-scope | implemented-test-harness | out-of-scope | out-of-scope | browser-test skips explicit file PRAGMA checks. |
-| read-only mode support | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Go/Rust ReadOnlyReader exists. |
+| rollback behavior on failure | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Verified in unit tests. |
 
 ### 7) Cross-language tests
 
@@ -86,10 +93,12 @@ The following controlled vocabulary is strictly used to classify API implementat
 |---|---|---|---|---|---|---|
 | Shared vector conformance | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | |
 | Python ↔ Node roundtrip | implemented-public | implemented-public | out-of-scope | out-of-scope | out-of-scope | `integration-tests/roundtrip/` |
+| Python writer outputs matrix | partial | missing | out-of-scope | out-of-scope | out-of-scope | Python public writer APIs exist, but Python writer outputs are not included in write-matrix coverage. |
+| Node.js writer outputs matrix | missing | partial | out-of-scope | out-of-scope | out-of-scope | Node.js public writer APIs exist, but Node.js writer outputs are not included in write-matrix coverage. |
 | browser-test parity coverage | out-of-scope | out-of-scope | implemented-test-harness | out-of-scope | out-of-scope | Does not cover export/import matrix yet. |
 | Go/Rust read-only matrix | partial | partial | out-of-scope | implemented-scaffold | implemented-scaffold | Py/Node fixtures read by Go/Rust. |
-| Go/Rust write-matrix | missing | missing | out-of-scope | implemented-scaffold | implemented-scaffold | Go/Rust writer outputs validated against all 4 readers. **Python and Node.js public writer APIs exist, but Python/Node writer-generated databases are not yet included in the write-matrix coverage.** |
-| browser-test writer outputs matrix | out-of-scope | out-of-scope | missing | out-of-scope | out-of-scope | Browser export outputs remain future work. |
+| Go/Rust write-matrix | missing | missing | out-of-scope | implemented-scaffold | implemented-scaffold | Go/Rust writer outputs validated against Go/Rust/Python/Node.js readers. **Python and Node.js public writer APIs exist, but Python/Node writer-generated databases are not yet included in the write-matrix coverage.** |
+| browser-test writer outputs matrix | out-of-scope | out-of-scope | missing | out-of-scope | out-of-scope | Browser export/import outputs remain future work. |
 
 ### 8) Packaging / maturity
 
@@ -118,7 +127,14 @@ The following controlled vocabulary is strictly used to classify API implementat
 2. Python and Node.js public writer APIs exist, but Python/Node writer-generated databases are not yet included in the write-matrix coverage.
 3. Key lifecycle APIs, rewrap, additional unlock providers, blind index, packaging/distribution maturity, safe integer policy, schema fingerprint/hash, optional feature read-only fallback, and dynamic `created_by_version` remain future/general gaps.
 
-## Recommended next actions
+## Recommended API convergence follow-ups
 
-1. Extend write-matrix interoperability coverage to include Python/Node.js writer outputs against all readers.
-2. Proceed to key lifecycle API design and production API polishing.
+* `recommended-api-parity`: Standardized error taxonomy across Python/Node/browser-test/Go/Rust.
+* `recommended-api-parity`: Explicit read-only open API for Python/Node.js to match Go/Rust semantics.
+* `recommended-api-parity`: Consistent `status` / state inspection API and `lock`/`close` semantics across all implementations.
+* `future-feature`: Payload listing and payload existence checks.
+* `recommended-test-coverage`: Write-matrix expansion to include Python writer outputs.
+* `recommended-test-coverage`: Write-matrix expansion to include Node.js writer outputs.
+* `recommended-test-coverage`: Browser export/import real-browser runtime validation.
+* `needs-decision`: Standardized error taxonomy for validation failures, auth failures, and not-found behavior.
+* `future-feature`: Go/Rust public API maturation, if and only if the project wants production libraries in those languages.

@@ -127,7 +127,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Active
 **Area:** API Design / Interoperability
-**Current state:** Storage Format V1 interoperability has advanced via read-only matrix and write-matrix coverage. Core payload operation parity (store, retrieve, update, delete) is largely achieved across Python, Node.js, and browser-test baseline libraries. However, public API parity is still not complete in the broader product sense because Go/Rust remain scaffolds, Go/Wasm support maturity is incomplete, and production maturity is incomplete.
+**Current state:** Storage Format V1 interoperability has advanced via read-only matrix and write-matrix coverage. Core payload operation parity (store, retrieve, update, delete) is largely achieved across Python, Node.js, and browser-test baseline libraries. However, public API parity is still not complete. Python and Node.js are the closest pair for public API equivalence. Go/Rust remain scaffolds, browser-test remains a test-harness, and lifecycle/error-model APIs remain inconsistent or missing. Furthermore, store/retrieve/update/delete parity does not imply full public API parity.
 **Expected or intended state:** Consistent core payload and key-lifecycle APIs available as stable, public library interfaces across the supported languages. Go/Wasm development-target support maturity is achieved.
 **Why it matters:** Users expect equivalent features regardless of which library they use.
 **Recommended next action:** Use [`api-parity-matrix.md`](api-parity-matrix.md) as the source of truth for parity decisions, expand write-matrix tests, and proceed with Go/Rust maturity and key-lifecycle APIs.
