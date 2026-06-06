@@ -72,6 +72,17 @@ check_phrase "eventually full database interaction" "Stale claim: Go/Rust have a
 # 10. Claims that read/write implementations don't exist at all yet
 check_phrase "before full read/write implementations are developed" "Stale claim: Go/Rust now have read-only readers and writer scaffolds, even if not full production libraries"
 
+# 11. Overclaims about full public API parity
+check_phrase "all languages have full public API parity" "Stale claim: API parity is mostly limited to payload operations, not full lifecycle parity"
+check_phrase "store/retrieve/update/delete parity implies full API parity" "Stale claim: payload operation parity does not imply full public API parity"
+
+# 12. Claims about browser-test being full real-browser WebCrypto
+check_phrase "browser-test provides full real-browser WebCrypto coverage" "Stale claim: browser-test is a test harness using sql.js and mock crypto"
+check_phrase "browser-test is full real-browser WebCrypto coverage" "Stale claim: browser-test is a test harness using sql.js and mock crypto"
+
+# 13. Claims about write-matrix coverage including Python/Node writers
+check_phrase "write-matrix includes Python/Node writer outputs" "Stale claim: Python/Node writer generated databases are not yet included in the write-matrix"
+
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
     exit 1
