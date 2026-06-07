@@ -9,3 +9,5 @@ __pycache__/
 *.egg-info/
 rust/target/
 go/bin/
+/zig/.zig-cache/
+/zig/zig-out/

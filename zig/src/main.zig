@@ -1,7 +1,7 @@
 const std = @import("std");
 const root = @import("root.zig");
 
-pub fn main() !void {
-    const stdout = std.io.getStdOut().writer();
-    try stdout.print("{s}\n", .{root.smokeMessage()});
+pub fn main(init: std.process.Init) !void {
+    try std.Io.File.stdout().writeStreamingAll(init.io, root.smokeMessage());
+    try std.Io.File.stdout().writeStreamingAll(init.io, "\n");
 }
