@@ -18,29 +18,29 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 ### 1) Database lifecycle
 
-| Capability | Python | Node.js | browser-test | Go | Rust | Notes |
-|---|---|---|---|---|---|---|
-| initialize / create | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Go/Rust are scaffold APIs (`CreateNew`/`create_new`). |
-| open existing DB handle | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Go/Rust reader/writer constructors exist, but scaffold scope. |
-| close | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | All have close path, parity semantics differ. |
-| lock database | implemented-public | implemented-public | implemented-test-harness | missing | missing | Go/Rust scaffold writer does not expose Python/Node-style lock state lifecycle. |
-| status / state inspection | implemented-public | implemented-public | implemented-test-harness | missing | missing | No equivalent end-user status API in Go/Rust scaffold. |
-| read-only open mode | partial | partial | missing | implemented-scaffold | implemented-scaffold | Go/Rust have explicit `ReadOnlyReader` / `open_read_only`. Python/Node.js lack explicit read-only open mode. |
+| Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
+|---|---|---|---|---|---|---|---|
+| initialize / create | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust are scaffold APIs (`CreateNew`/`create_new`). |
+| open existing DB handle | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Go/Rust reader/writer constructors exist, but scaffold scope. |
+| close | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | All have close path, parity semantics differ. |
+| lock database | implemented-public | implemented-public | implemented-test-harness | missing | missing | missing | Go/Rust scaffold writer does not expose Python/Node-style lock state lifecycle. |
+| status / state inspection | implemented-public | implemented-public | implemented-test-harness | missing | missing | missing | No equivalent end-user status API in Go/Rust scaffold. |
+| read-only open mode | partial | partial | missing | implemented-scaffold | implemented-scaffold | implemented-scaffold | Go/Rust have explicit `ReadOnlyReader` / `open_read_only`. Python/Node.js lack explicit read-only open mode. |
 
 ### 2) Unlock and key availability
 
-| Capability | Python | Node.js | browser-test | Go | Rust | Notes |
-|---|---|---|---|---|---|---|
-| passphrase unlock | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Go/Rust unlock is in read-only reader flow. |
-| provider abstraction | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | |
-| platform provider hooks | missing | missing | missing | missing | missing | Future capability |
-| recovery / fallback providers | missing | missing | missing | missing | missing | Future capability |
-| key availability state | implemented-public | implemented-public | implemented-test-harness | missing | missing | Status check |
+| Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
+|---|---|---|---|---|---|---|---|
+| passphrase unlock | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust unlock is in read-only reader flow. |
+| provider abstraction | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | |
+| platform provider hooks | missing | missing | missing | missing | missing | missing | Future capability |
+| recovery / fallback providers | missing | missing | missing | missing | missing | missing | Future capability |
+| key availability state | implemented-public | implemented-public | implemented-test-harness | missing | missing | missing | Status check |
 
 ### 3) Payload operations
 
-| Capability | Python | Node.js | browser-test | Go | Rust | Notes |
-|---|---|---|---|---|---|---|
+| Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
+|---|---|---|---|---|---|---|---|
 | store / insert | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Go/Rust store is an `implemented-scaffold` for writers. |
 | retrieve / read | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Go/Rust retrieval is via read-only reader API. |
 | update / overwrite | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Go/Rust update is an `implemented-scaffold` for writers. |
@@ -53,8 +53,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 ### 4) Validation
 
-| Capability | Python | Node.js | browser-test | Go | Rust | Notes |
-|---|---|---|---|---|---|---|
+| Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
+|---|---|---|---|---|---|---|---|
 | UUID validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Strict UUID policy |
 | JCS canonicalization | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Payload validation boundary. |
 | provider config validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | JCS strictness. |
@@ -67,8 +67,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 ### 5) Error model
 
-| Capability | Python | Node.js | browser-test | Go | Rust | Notes |
-|---|---|---|---|---|---|---|
+| Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
+|---|---|---|---|---|---|---|---|
 | error categories | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Not fully standardized across languages. |
 | auth failure behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | |
 | not-found behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | Confirmed in write-matrix. |
@@ -80,8 +80,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 ### 6) Transaction and persistence semantics
 
-| Capability | Python | Node.js | browser-test | Go | Rust | Notes |
-|---|---|---|---|---|---|---|
+| Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
+|---|---|---|---|---|---|---|---|
 | transaction boundary for operations | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | |
 | WAL/PRAGMA behavior | implemented-public | implemented-public | out-of-scope | implemented-scaffold | implemented-scaffold | Operational PRAGMAs (WAL/synchronous) are recommended, not required for V1 conformance. |
 | sql.js/browser exceptions | out-of-scope | out-of-scope | implemented-test-harness | out-of-scope | out-of-scope | browser-test skips explicit file PRAGMA checks. |
@@ -89,8 +89,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 ### 7) Cross-language tests
 
-| Capability | Python | Node.js | browser-test | Go | Rust | Notes |
-|---|---|---|---|---|---|---|
+| Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
+|---|---|---|---|---|---|---|---|
 | Shared vector conformance | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | |
 | Python ↔ Node roundtrip | implemented-public | implemented-public | out-of-scope | out-of-scope | out-of-scope | `integration-tests/roundtrip/` |
 | Python writer outputs matrix | partial | missing | out-of-scope | out-of-scope | out-of-scope | Python public writer APIs exist, but Python writer outputs are not included in write-matrix coverage. |
@@ -102,8 +102,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 ### 8) Packaging / maturity
 
-| Capability | Python | Node.js | browser-test | Go | Rust | Notes |
-|---|---|---|---|---|---|---|
+| Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
+|---|---|---|---|---|---|---|---|
 | public package readiness | partial | partial | out-of-scope | missing | missing | Python/Node exports/packaging needs polish. |
 | CLI or library entrypoint | implemented-public | implemented-public | out-of-scope | missing | missing | |
 | documentation completeness | partial | partial | partial | partial | partial | |
