@@ -254,11 +254,12 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 **Recommended next action:** Expand `browser-test` tooling to incorporate headless browser tests for coverage metrics.
 
 
-### Go and Rust portability implementation gaps
+### Go, Rust, and Zig portability implementation gaps
 
 **Status:** Active
 **Area:** Cryptography / Interoperability
-**Current state:** Go/Rust portability validation readers and writer scaffolds exist. They implement database creation, payload insertion, and logical updates/deletions. A write-matrix harness validates 8 combinations (Go/Rust writer scaffolds vs Go/Rust/Python/Node readers) and is run automatically via GitHub Actions CI on path-filtered `pull_request` and `push` events. However, Go/Rust implementations are strictly for portability validation and are not full production storage libraries. Python, Node.js, and browser-test baseline libraries have also implemented core APIs for public parity. Key lifecycle work (key rotation, decrypt-only migration, key destruction, rewrap), additional unlock providers, blind index, and full production public API maturity remain future work. (Note: The incompleteness of Go/Rust APIs does not weaken the Storage Format V1 Stable status).
+**Current state:** Go/Rust portability validation readers and writer scaffolds exist. They implement database creation, payload insertion, and logical updates/deletions. A write-matrix harness validates 8 combinations (Go/Rust writer scaffolds vs Go/Rust/Python/Node readers) and is run automatically via GitHub Actions CI on path-filtered `pull_request` and `push` events. However, Go, Rust, and Zig implementations are strictly for portability validation and are not full production storage libraries. Python, Node.js, and browser-test baseline libraries have also implemented core APIs for public parity. Key lifecycle work (key rotation, decrypt-only migration, key destruction, rewrap), additional unlock providers, blind index, and full production public API maturity remain future work. (Note: The incompleteness of Go/Rust APIs does not weaken the Storage Format V1 Stable status).
 **Expected or intended state:** Go and Rust implementations eventually transition from portability validation/scaffolds to complete, full production storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
 **Recommended next action:** Monitor the promoted Write Matrix workflow before proceeding to key lifecycle APIs.
+Zig has advanced from a smoke-test component to an initial read-only validation scaffold. Zig remains non-production and does not provide a public storage API. Remaining gaps include full SQLite fixture matrix integration, payload decrypt validation, writer scaffold, public API, packaging, and broader CI/matrix coverage.
