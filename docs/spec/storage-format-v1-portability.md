@@ -1,15 +1,15 @@
 # Storage Format V1 Portability Validation Policy
 
 ## 1. Purpose
-This document defines the approach and policy for validating the portability of Storage Format V1 as the Encrypted Database project expands its scope to native compiled languages, specifically Go and Rust. It outlines how portability issues discovered during this phase are tracked, classified, and resolved.
+This document defines the approach and policy for validating the portability of Storage Format V1 as the Encrypted Database project expands its scope to native compiled languages, specifically Go, Rust, and Zig. It outlines how portability issues discovered during this phase are tracked, classified, and resolved.
 
 ## 2. Stable Baseline Definition
 Storage Format V1 has been formally declared **Stable**. This stability designation is defined as a tested and verified baseline operating seamlessly across the Python, Node.js, and browser-test environments. The core format schema, metadata table constraints (including strict UUID policy enforcement), strict JCS requirements, and cryptographic compatibility within these domains are considered a mature baseline.
 
-The `tag-1.z.z` tag marks the Storage Format V1 stable baseline used for Go/Rust portability validation. Any findings are evaluated as deviations from this `tag-1.z.z` baseline.
+The `tag-1.z.z` tag marks the Storage Format V1 stable baseline used for Go/Rust/Zig portability validation. Any findings are evaluated as deviations from this `tag-1.z.z` baseline.
 
 ## 3. Portability Validation Scope
-The Go and Rust portability validation efforts focus on building a portability validation harness, consuming existing test vectors (JCS, AAD, KDF, AEAD, etc.), and developing read-only readers and writer scaffolds. The goal is to surface any hidden ambiguities, type assumptions, or standard library limitations that exist in stricter compiled ecosystems.
+The Go, Rust, and Zig portability validation efforts focus on building a portability validation harness, consuming existing test vectors (JCS, AAD, KDF, AEAD, etc.), and developing read-only readers and writer scaffolds. The goal is to surface any hidden ambiguities, type assumptions, or standard library limitations that exist in stricter compiled ecosystems.
 
 ## 4. Issue Classification
 Issues discovered during portability validation will be recorded in the `docs/implementation-notes/portability-findings.md` log and classified using one of the following tags:
@@ -40,10 +40,13 @@ Clarifications to the written specification that do not alter physical bytes on 
 ## 7. Future V2 Deferral Criteria
 Any issue that requires breaking backwards compatibility with databases created by the current stable Python, Node.js, or browser-test implementations will be strictly deferred to a future V2 format.
 
-## 8. Go/Rust Validation Milestones
-The Go and Rust portability validation efforts have advanced beyond initial test vector discovery. The current milestones are tracked as follows:
+## 8. Go/Rust/Zig Validation Milestones
+The Go, Rust, and Zig portability validation efforts have advanced beyond initial test vector discovery. The current milestones are tracked as follows:
 
-**Already materially implemented / validated:**
+Go/Rust have more mature portability validation and writer scaffolds.
+Zig currently has only an initial partial read-only validation scaffold.
+
+**Already materially implemented / validated (Go/Rust):**
 - shared test-vector consumption
 - JCS / AAD / KDF / AEAD / key-wrap / payload vector validation
 - SQLite V1 metadata validation
@@ -52,6 +55,9 @@ The Go and Rust portability validation efforts have advanced beyond initial test
 - read-only matrix harness
 - write-matrix harness
 - path-filtered CI for relevant matrix workflows
+
+**Already materially implemented / validated (Zig):**
+- SQLite V1 metadata validation
 
 **Still incomplete / future work:**
 - full production Go/Rust storage libraries
@@ -63,11 +69,16 @@ The Go and Rust portability validation efforts have advanced beyond initial test
 - Python/Node.js writer outputs in write-matrix
 - browser export/import matrix coverage
 - Go/Wasm full SQLite-backed support
+- Zig JCS/AAD/KDF/AEAD vector validation
+- Zig read-only unlock/decrypt reader
+- Zig writer scaffold
+- Zig read-only matrix integration
+- Zig write-matrix integration
 
-Note: Go and Rust implementations remain strictly portability validation and writer scaffolds, not full production storage libraries.
+Note: Go, Rust, and Zig implementations remain strictly portability validation and writer scaffolds, not full production storage libraries.
 
 ## 9. Relationship to Stable Declaration
-The Go/Rust validation efforts do not revoke the Storage Format V1 Stable declaration. The stable format serves as the canonical target for these new implementations to aim for.
+The Go/Rust/Zig validation efforts do not revoke the Storage Format V1 Stable declaration. The stable format serves as the canonical target for these new implementations to aim for.
 
 ## 10. Reporting and Decision Process
 All issues must be entered into the Portability Findings Log. Complex issues should be reviewed and decided upon before any corresponding implementation changes are initiated.

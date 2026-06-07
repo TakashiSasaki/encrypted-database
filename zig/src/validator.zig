@@ -39,7 +39,7 @@ pub fn validateReadOnly(path: [:0]const u8) !void {
     var stmt = try sqlite.Statement.prepare(&db, "SELECT property, value FROM storage_metadata_tbl");
     defer stmt.finalize();
 
-    var metadata_count: usize = 0;
+
     var allocator = std.heap.page_allocator;
     var metadata = std.StringHashMap([]const u8).init(allocator);
     defer {
@@ -66,7 +66,7 @@ pub fn validateReadOnly(path: [:0]const u8) !void {
                 allocator.free(dup_val);
                 return err;
             };
-            metadata_count += 1;
+
         }
     }
 
