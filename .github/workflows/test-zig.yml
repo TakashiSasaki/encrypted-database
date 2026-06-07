@@ -1,0 +1,25 @@
+name: Zig Smoke Test
+
+on:
+  push:
+    branches: [ vault.moukaeritai.work ]
+  pull_request:
+    branches: [ vault.moukaeritai.work ]
+
+jobs:
+  test-zig:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.14.0
+
+      - name: Run Zig Smoke Tests
+        run: |
+          cd zig
+          zig build run | grep "vault zig smoke test ok"
+          zig build test

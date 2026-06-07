@@ -92,6 +92,10 @@ check_phrase "Python writer APIs are missing" "Stale claim: Python public writer
 # 15. Claims that stability means whole library production-ready
 check_phrase "Storage Format V1 stability means the whole library is production-ready" "Stale claim: Storage Format V1 is Stable, but whole library is not yet declared production-ready"
 
+# 16. Claims that Zig is a full implementation
+check_phrase "Zig is a Storage Format V1 implementation" "Stale claim: Zig is currently just a smoke test component"
+check_phrase "Zig is a full production storage library" "Stale claim: Zig is currently just a smoke test component"
+
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
     exit 1

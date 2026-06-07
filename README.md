@@ -31,6 +31,7 @@ SQLite などのローカル永続化層に秘匿対象データを保存する�
 ├── browser-test/       # browser/sql.js 向けテスト実装・検証ハーネス
 ├── go/                 # Go ポータビリティ検証・writer scaffold
 ├── rust/               # Rust ポータビリティ検証・writer scaffold
+├── zig/                # Zig smoke-test component; not yet a Storage Format V1 implementation
 ├── integration-tests/  # クロス言語 roundtrip / read-only matrix / write-matrix 検証
 └── scripts/            # ローカル実行スクリプトとドキュメント guardrail
 ```
@@ -54,6 +55,9 @@ Go 実装は Storage Format V1 のポータビリティ検証と writer scaffold
 
 ### Rust
 Rust 実装も同様に、Storage Format V1 のポータビリティ検証と writer scaffold を目的としたものです。現時点では full production storage library ではありません。
+
+### Zig
+Zig currently contains only a smoke-test component used to verify Zig source, build, executable, and unit-test support in this repository. It is not yet a Storage Format V1 implementation.
 
 ### integration-tests/
 クロス言語の roundtrip、read-only matrix、write-matrix 検証ハーネスを含みます。
@@ -88,6 +92,7 @@ Alternatively, you can run individual tests or matrices manually for troubleshoo
 - **browser-test tests**: `cd browser-test && npm test`
 - **Go tests**: `cd go && go test ./...`
 - **Rust tests**: `cd rust && cargo test`
+- **Zig tests**: `cd zig && zig build run` and `cd zig && zig build test`
 - **roundtrip integration tests**: `./integration-tests/roundtrip/test_roundtrip.sh`
 - **read-only matrix tests**: `./integration-tests/read-only-matrix/test_readonly_matrix.sh`
 - **write-matrix tests**: `bash integration-tests/write-matrix/test_writer_matrix.sh`
@@ -116,6 +121,7 @@ Our CI workflows run on standard `ubuntu-latest` environments and are split into
 - Browser Tests
 - Go Tests
 - Rust Tests
+- Zig Smoke Test
 - Integration Tests / Roundtrip
 - Read-only Matrix
 - Write Matrix

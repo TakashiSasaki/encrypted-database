@@ -16,4 +16,11 @@ echo "=== Running Browser Tests ==="
 echo "=== Running Integration Roundtrip Tests ==="
 "$ROOT_DIR/integration-tests/roundtrip/test_roundtrip.sh"
 
+if command -v zig >/dev/null 2>&1; then
+  echo "=== Running Zig Smoke Tests ==="
+  (cd "$ROOT_DIR/zig" && zig build run && zig build test)
+else
+  echo "=== Skipping Zig Smoke Tests: zig not found ==="
+fi
+
 echo "=== All Tests Completed Successfully! ==="
