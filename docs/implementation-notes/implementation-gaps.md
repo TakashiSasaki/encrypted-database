@@ -262,4 +262,5 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 **Expected or intended state:** Go and Rust implementations eventually transition from portability validation/scaffolds to complete, full production storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
 **Recommended next action:** Monitor the promoted Write Matrix workflow before proceeding to key lifecycle APIs.
-Zig has advanced from a smoke-test component to an initial read-only validation scaffold. Zig remains non-production and does not provide a public storage API. Remaining gaps include full SQLite fixture matrix integration, payload decrypt validation, writer scaffold, public API, packaging, and broader CI/matrix coverage.
+
+Zig has advanced from smoke-test-only to an initial partial read-only validation scaffold. It validates selected SQLite V1 metadata/profile properties through the system SQLite C ABI, but does not yet provide payload decrypt/read support, JCS/AAD/KDF/AEAD vector validation, writer scaffold, read-only matrix integration, write-matrix integration, packaging, or public API maturity.
