@@ -16,10 +16,12 @@ jobs:
       - name: Setup Zig
         uses: mlugg/setup-zig@v1
         with:
-          version: 0.14.0
+          version: 0.16.0
 
       - name: Run Zig Smoke Tests
         run: |
           cd zig
-          zig build run | grep "vault zig smoke test ok"
+          output="$(zig build run)"
+          printf '%s\n' "$output"
+          test "$output" = "vault zig smoke test ok"
           zig build test
