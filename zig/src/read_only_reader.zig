@@ -56,8 +56,8 @@ pub fn readFixture(allocator: std.mem.Allocator, io: std.Io, db_path: [:0]const 
     const obj_ciphertext_dup = try allocator.dupe(u8, obj_ciphertext); defer allocator.free(obj_ciphertext_dup);
     const obj_aad_policy_dup = try allocator.dupe(u8, obj_aad_policy); defer allocator.free(obj_aad_policy_dup);
 
-    // 2. Resolve database_kek wrapping the record_dek
-    const dek_wrap_sql = "SELECT wrapping_kid, wrap_alg, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ?";
+    // 2. Resolve database_kek wrapping the record_dek (ensuring it is active)
+    const dek_wrap_sql = "SELECT w.wrapping_kid, w.wrap_alg, w.nonce, w.wrapped_key, w.aad_policy FROM wrapped_key_tbl w JOIN key_tbl k ON w.wrapping_kid = k.kid WHERE w.wrapped_kid = ? AND k.status = 'active'";
     var dek_stmt = try sqlite.Statement.prepare(&db, dek_wrap_sql);
     defer dek_stmt.finalize();
 
@@ -70,8 +70,8 @@ pub fn readFixture(allocator: std.mem.Allocator, io: std.Io, db_path: [:0]const 
     const dek_wrapped_key = try allocator.dupe(u8, dek_stmt.columnBlob(3) orelse return ReadOnlyError.MissingData); defer allocator.free(dek_wrapped_key);
     const dek_aad_policy = try allocator.dupe(u8, dek_stmt.columnText(4) orelse return ReadOnlyError.MissingData); defer allocator.free(dek_aad_policy);
 
-    // 3. Resolve unlock_kek wrapping the database_kek
-    const kek_wrap_sql = "SELECT wrapping_kid, wrap_alg, nonce, wrapped_key, aad_policy FROM wrapped_key_tbl WHERE wrapped_kid = ?";
+    // 3. Resolve unlock_kek wrapping the database_kek (ensuring it is active)
+    const kek_wrap_sql = "SELECT w.wrapping_kid, w.wrap_alg, w.nonce, w.wrapped_key, w.aad_policy FROM wrapped_key_tbl w JOIN key_tbl k ON w.wrapping_kid = k.kid WHERE w.wrapped_kid = ? AND k.status = 'active'";
     var kek_stmt = try sqlite.Statement.prepare(&db, kek_wrap_sql);
     defer kek_stmt.finalize();
 
