@@ -45,11 +45,22 @@ pub fn run(allocator: std.mem.Allocator, io: std.Io) !void {
         if (nonce.len != 12) return error.InvalidNonceLength;
 
         const aes_gcm = std.crypto.aead.aes_gcm.Aes256Gcm;
-        aes_gcm.encrypt(ciphertext, &tag, plaintext, aad, nonce[0..12].*, key[0..32].*);
 
-        const cipher_match = std.mem.eql(u8, ciphertext, expected_ciphertext);
-        const tag_match = std.mem.eql(u8, &tag, expected_tag);
-        const operation_success = cipher_match and tag_match;
+        var operation_success = true;
+        if (valid) {
+            aes_gcm.encrypt(ciphertext, &tag, plaintext, aad, nonce[0..12].*, key[0..32].*);
+            const cipher_match = std.mem.eql(u8, ciphertext, expected_ciphertext);
+            const tag_match = std.mem.eql(u8, &tag, expected_tag);
+            operation_success = cipher_match and tag_match;
+        } else {
+            // Negative tests are decryption authentication failures, must decrypt.
+            const out_plaintext = try allocator.alloc(u8, expected_ciphertext.len);
+            defer allocator.free(out_plaintext);
+
+            aes_gcm.decrypt(out_plaintext, expected_ciphertext, expected_tag[0..16].*, aad, nonce[0..12].*, key[0..32].*) catch {
+                operation_success = false;
+            };
+        }
 
         if (valid) {
             if (!operation_success) {

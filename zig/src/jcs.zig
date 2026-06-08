@@ -33,7 +33,13 @@ fn serializeValue(out: *std.ArrayList(u8), allocator: std.mem.Allocator, value: 
                     '\r' => try out.appendSlice(allocator, "\\r"),
                     '\t' => try out.appendSlice(allocator, "\\t"),
                     else => {
-                        try out.append(allocator, c);
+                        if (c < 0x20) {
+                            var buf: [6]u8 = undefined;
+                            const esc = try std.fmt.bufPrint(&buf, "\\u00{x:0>2}", .{c});
+                            try out.appendSlice(allocator, esc);
+                        } else {
+                            try out.append(allocator, c);
+                        }
                     }
                 }
             }
@@ -76,7 +82,54 @@ fn serializeValue(out: *std.ArrayList(u8), allocator: std.mem.Allocator, value: 
     }
 }
 
+fn nextUtf16CodeUnit(utf8: []const u8, index: *usize, pending_low_surrogate: *?u16) ?u16 {
+    if (pending_low_surrogate.*) |low| {
+        pending_low_surrogate.* = null;
+        return low;
+    }
+    if (index.* >= utf8.len) return null;
+
+    const cp_len = std.unicode.utf8ByteSequenceLength(utf8[index.*]) catch 1;
+    if (index.* + cp_len > utf8.len) {
+        const b = utf8[index.*];
+        index.* += 1;
+        return @as(u16, b);
+    }
+
+    const cp = std.unicode.utf8Decode(utf8[index.* .. index.* + cp_len]) catch {
+        const b = utf8[index.*];
+        index.* += 1;
+        return @as(u16, b);
+    };
+
+    index.* += cp_len;
+
+    if (cp <= 0xFFFF) {
+        return @as(u16, @intCast(cp));
+    } else {
+        const high = 0xD800 + @as(u16, @intCast((cp - 0x10000) >> 10));
+        const low = 0xDC00 + @as(u16, @intCast((cp - 0x10000) & 0x3FF));
+        pending_low_surrogate.* = low;
+        return high;
+    }
+}
+
 fn stringLessThan(context: void, a: []const u8, b: []const u8) bool {
     _ = context;
-    return std.mem.order(u8, a, b) == .lt;
+    var idx_a: usize = 0;
+    var idx_b: usize = 0;
+    var pend_a: ?u16 = null;
+    var pend_b: ?u16 = null;
+
+    while (true) {
+        const cu_a = nextUtf16CodeUnit(a, &idx_a, &pend_a);
+        const cu_b = nextUtf16CodeUnit(b, &idx_b, &pend_b);
+
+        if (cu_a == null and cu_b == null) return false;
+        if (cu_a == null) return true;
+        if (cu_b == null) return false;
+
+        if (cu_a.? < cu_b.?) return true;
+        if (cu_a.? > cu_b.?) return false;
+    }
 }
