@@ -49,3 +49,35 @@ jobs:
           test "$output" = "vault zig smoke test ok"
 
           zig build test
+
+      - name: Run Zig Validator CLI Smoke Test
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v sqlite3 >/dev/null 2>&1; then
+            echo "sqlite3 CLI found; running validator CLI smoke test"
+            DB_PATH=$(mktemp)
+            sqlite3 "$DB_PATH" << 'SQL'
+          PRAGMA application_id = 1447906135;
+          PRAGMA user_version = 1;
+          CREATE TABLE storage_metadata_tbl (property TEXT PRIMARY KEY, value TEXT NOT NULL);
+          INSERT INTO storage_metadata_tbl (property, value) VALUES
+          ('storage_format_id', 'vault.moukaeritai.work.storage'),
+          ('format_major', '1'),
+          ('format_minor', '0'),
+          ('schema_version', '1'),
+          ('required_features', '[]'),
+          ('optional_features', '[]'),
+          ('sqlite_application_id', '1447906135'),
+          ('sqlite_user_version', '1'),
+          ('database_uuid', '00000000-0000-4000-8000-000000000001'),
+          ('created_at_ms', '1234567890'),
+          ('created_by_library', 'test'),
+          ('created_by_version', '1.0');
+          SQL
+            cd zig
+            zig build run -- validate "$DB_PATH"
+            rm -f "$DB_PATH"
+          else
+            echo "sqlite3 CLI not found; skipping validator CLI smoke test"
+          fi
