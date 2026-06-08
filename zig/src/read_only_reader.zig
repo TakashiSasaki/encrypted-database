@@ -99,20 +99,39 @@ pub fn readFixture(allocator: std.mem.Allocator, io: std.Io, db_path: [:0]const 
     var parsed = try std.json.parseFromSlice(std.json.Value, allocator, provider_config_json, .{});
     defer parsed.deinit();
 
+    const jcs_import = @import("jcs.zig");
+    const canonical_config_json = try jcs_import.stringifyJCS(allocator, parsed.value);
+    defer allocator.free(canonical_config_json);
+
+    if (!std.mem.eql(u8, provider_config_json, canonical_config_json)) {
+        return ReadOnlyError.InvalidProviderConfig;
+    }
+
     const config = parsed.value.object;
+    const kdf = config.get("kdf").?.string;
+    if (!std.mem.eql(u8, kdf, "argon2id")) return ReadOnlyError.InvalidProviderConfig;
+
+    const profile = config.get("profile").?.string;
+    if (!std.mem.eql(u8, profile, "argon2id-profile-v1")) return ReadOnlyError.InvalidProviderConfig;
+
     const salt_b64 = config.get("salt").?.string;
     const memory_kib = @as(u32, @intCast(config.get("memory_kib").?.integer));
     const iterations = @as(u32, @intCast(config.get("iterations").?.integer));
     const parallelism = @as(u24, @intCast(config.get("parallelism").?.integer));
     const output_bytes = @as(u32, @intCast(config.get("output_bytes").?.integer));
 
-    if (output_bytes != 32) return ReadOnlyError.InvalidProviderConfig;
+    if (output_bytes != 32 or memory_kib != 65536 or iterations != 3 or parallelism != 1) return ReadOnlyError.InvalidProviderConfig;
 
     const decoder = std.base64.url_safe_no_pad.Decoder;
     const salt_len = try decoder.calcSizeForSlice(salt_b64);
+    if (salt_len != 16) return ReadOnlyError.InvalidProviderConfig;
+
     const salt = try allocator.alloc(u8, salt_len);
     defer allocator.free(salt);
-    try decoder.decode(salt, salt_b64);
+    decoder.decode(salt, salt_b64) catch |err| {
+        std.debug.print("Salt decode failed: {}\n", .{err});
+        return ReadOnlyError.InvalidProviderConfig;
+    };
 
     // 5. Derive Unlock KEK
     var unlock_kek: [32]u8 = undefined;
