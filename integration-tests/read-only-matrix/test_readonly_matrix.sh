@@ -49,6 +49,13 @@ export VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX
 echo "[Rust] Testing against Python fixture..."
 (cd "$ROOT_DIR/rust" && cargo test --test sqlitev1_external_fixture)
 
+if command -v zig >/dev/null 2>&1; then
+  echo "[Zig-selected-fixtures] Testing against Python fixture..."
+  (cd "$ROOT_DIR/zig" && zig build run -- read-fixture "$VAULT_SQLITE_V1_FIXTURE_DB" "$VAULT_SQLITE_V1_FIXTURE_PASSPHRASE" "$VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID" "$VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX")
+else
+  echo "[Zig-selected-fixtures] Skipping testing against Python fixture: zig not found"
+fi
+
 echo ""
 echo "=== Testing Node.js-generated DB against Go/Rust readers ==="
 NODE_DB="$TMP_DIR/node_fixture.db"
@@ -85,6 +92,13 @@ export VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX
 
 echo "[Rust] Testing against Node.js fixture..."
 (cd "$ROOT_DIR/rust" && cargo test --test sqlitev1_external_fixture)
+
+if command -v zig >/dev/null 2>&1; then
+  echo "[Zig-selected-fixtures] Testing against Node.js fixture..."
+  (cd "$ROOT_DIR/zig" && zig build run -- read-fixture "$VAULT_SQLITE_V1_FIXTURE_DB" "$VAULT_SQLITE_V1_FIXTURE_PASSPHRASE" "$VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID" "$VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX")
+else
+  echo "[Zig-selected-fixtures] Skipping testing against Node.js fixture: zig not found"
+fi
 
 echo ""
 echo "All read-only matrix tests passed successfully!"

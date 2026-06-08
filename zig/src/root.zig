@@ -133,3 +133,6 @@ test "validator bad metadata" {
     // required_features is not '[]'
     try std.testing.expectError(validator.ValidationError.InvalidMetadataValue, validator.validateReadOnly(test_db_path));
 }
+
+pub const read_only_reader = @import("read_only_reader.zig");
+pub const read_only_tests = @import("read_only_tests.zig");

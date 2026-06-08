@@ -42,10 +42,10 @@ The following controlled vocabulary is strictly used to classify API implementat
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
 |---|---|---|---|---|---|---|---|
 | store / insert | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust store is an `implemented-scaffold` for writers. |
-| retrieve / read | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust retrieval is via read-only reader API. |
+| retrieve / read | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Go/Rust retrieval is via read-only reader API. Zig has selected read-only fixture decrypt. |
 | update / overwrite | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust update is an `implemented-scaffold` for writers. |
 | delete / remove | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust delete is an `implemented-scaffold` for writers. |
-| object UUID handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Preservation on update. |
+| object UUID handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Preservation on update. |
 | content type handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | |
 | metadata handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | `schema_uuid` / `content_type` support. |
 | payload listing | missing | missing | missing | missing | missing | missing | Currently no API to list payloads. |
@@ -57,7 +57,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 |---|---|---|---|---|---|---|---|
 | UUID validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Strict UUID policy |
 | JCS canonicalization | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Payload validation boundary. |
-| provider config validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | JCS strictness. |
+| provider config validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | JCS strictness. |
 | metadata table validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | `storage_metadata_tbl` initialization. |
 | SQLite profile validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | `PRAGMA application_id` handling. |
 | required/optional feature handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | |
@@ -70,8 +70,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
 |---|---|---|---|---|---|---|---|
 | error categories | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Not fully standardized across languages. |
-| auth failure behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | |
-| not-found behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Confirmed in write-matrix. |
+| auth failure behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | |
+| not-found behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Confirmed in write-matrix. |
 | validation failure behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | |
 | provider unavailable behavior | missing | missing | missing | missing | missing | missing | Needs implementation alongside additional providers. |
 | unsupported feature behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Reject unknown. |
@@ -96,7 +96,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 | Python writer outputs matrix | partial | missing | out-of-scope | out-of-scope | out-of-scope | out-of-scope | Python public writer APIs exist, but Python writer outputs are not included in write-matrix coverage. |
 | Node.js writer outputs matrix | missing | partial | out-of-scope | out-of-scope | out-of-scope | out-of-scope | Node.js public writer APIs exist, but Node.js writer outputs are not included in write-matrix coverage. |
 | browser-test parity coverage | out-of-scope | out-of-scope | implemented-test-harness | out-of-scope | out-of-scope | out-of-scope | Does not cover export/import matrix yet. |
-| Go/Rust read-only matrix | partial | partial | out-of-scope | implemented-scaffold | implemented-scaffold | missing | Py/Node fixtures read by Go/Rust. |
+| Go/Rust read-only matrix | partial | partial | out-of-scope | implemented-scaffold | implemented-scaffold | partial | Py/Node fixtures read by Go/Rust/Zig. Zig support is selected-fixtures only. |
 | Go/Rust write-matrix | missing | missing | out-of-scope | implemented-scaffold | implemented-scaffold | missing | Go/Rust writer outputs validated against Go/Rust/Python/Node.js readers. **Python and Node.js public writer APIs exist, but Python/Node writer-generated databases are not yet included in the write-matrix coverage.** |
 | browser-test writer outputs matrix | out-of-scope | out-of-scope | missing | out-of-scope | out-of-scope | out-of-scope | Browser export/import outputs remain future work. |
 
