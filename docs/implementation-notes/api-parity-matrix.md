@@ -56,7 +56,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
 |---|---|---|---|---|---|---|---|
 | UUID validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Strict UUID policy |
-| JCS canonicalization | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Payload validation boundary. |
+| JCS canonicalization | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Payload validation boundary. |
 | provider config validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | JCS strictness. |
 | metadata table validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | `storage_metadata_tbl` initialization. |
 | SQLite profile validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | `PRAGMA application_id` handling. |
@@ -91,7 +91,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
 |---|---|---|---|---|---|---|---|
-| Shared vector conformance | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | |
+| Shared vector conformance | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | |
 | Python ↔ Node roundtrip | implemented-public | implemented-public | out-of-scope | out-of-scope | out-of-scope | out-of-scope | `integration-tests/roundtrip/` |
 | Python writer outputs matrix | partial | missing | out-of-scope | out-of-scope | out-of-scope | out-of-scope | Python public writer APIs exist, but Python writer outputs are not included in write-matrix coverage. |
 | Node.js writer outputs matrix | missing | partial | out-of-scope | out-of-scope | out-of-scope | out-of-scope | Node.js public writer APIs exist, but Node.js writer outputs are not included in write-matrix coverage. |
