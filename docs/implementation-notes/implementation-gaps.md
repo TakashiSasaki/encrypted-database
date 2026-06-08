@@ -258,10 +258,10 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Active
 **Area:** Implementation / Portability
-**Current state:** Zig has advanced to an `implemented-scaffold` for selected shared-vector conformance. It now validates JCS, AAD, KDF (Argon2id), AEAD (AES-256-GCM), key-wrap, and payload encryption vectors against the shared repository baselines. It also validates selected SQLite V1 metadata/profile properties through the system SQLite C ABI. However, it does not yet provide a SQLite read-only unlock/decrypt reader, read-only fixture database validation, read-only matrix integration, writer scaffold, write-matrix integration, public production API, packaging maturity, key lifecycle APIs, blind index, or additional unlock providers.
-**Expected or intended state:** Zig may eventually participate in the broader portability validation suite with read-only unlock/decrypt reader support, fixture/matrix integration, writer scaffold work if desired, packaging, and a clearer API boundary.
-**Why it matters:** Zig is a stricter compiled ecosystem and can uncover portability issues. While it has achieved shared-vector conformance, it is not yet equivalent to the more mature Go/Rust database scaffolds.
-**Recommended next action:** Keep Zig classified as a partial read-only validation scaffold (with shared-vector conformance). Next steps should be read-only fixture decrypt work.
+**Current state:** Zig has advanced to an `implemented-scaffold` for selected read-only fixture decrypt conformance. It now validates JCS, AAD, KDF (Argon2id), AEAD (AES-256-GCM), key-wrap, and payload encryption via test vectors, and provides a SQLite read-only decrypt reader that has been integrated with the Python and Node.js generated fixtures in the read-only matrix. However, it does not yet provide a full read-only parity matrix, writer scaffold, write-matrix integration, public production API, packaging maturity, key lifecycle APIs, blind index, or additional unlock providers.
+**Expected or intended state:** Zig may eventually participate in the broader portability validation suite with writer scaffold work, packaging, and a clearer API boundary, though it currently serves strictly as a test scaffold.
+**Why it matters:** Zig is a stricter compiled ecosystem and can uncover portability issues. While it has achieved selected read-only fixture decrypt integration, it is not yet equivalent to the more mature Go/Rust database scaffolds.
+**Recommended next action:** Keep Zig classified as a selected read-only fixture decrypt validation scaffold.
 
 ### Go and Rust portability implementation gaps
 

@@ -117,4 +117,36 @@ pub const Statement = struct {
         }
         return text_ptr[0..@intCast(len)];
     }
+
+    pub fn columnBlob(self: *Statement, col: i32) ?[]const u8 {
+        const blob_ptr = c.sqlite3_column_blob(self.stmt, col);
+        if (blob_ptr == null) {
+            return null;
+        }
+        const len = c.sqlite3_column_bytes(self.stmt, col);
+        if (len < 0) {
+            return null;
+        }
+        const byte_ptr: [*]const u8 = @ptrCast(blob_ptr);
+        return byte_ptr[0..@intCast(len)];
+    }
+
+    pub fn columnInt64(self: *Statement, col: i32) i64 {
+        return c.sqlite3_column_int64(self.stmt, col);
+    }
+
+    pub fn bindText(self: *Statement, col: i32, text: []const u8) !void {
+        const rc = c.sqlite3_bind_text(self.stmt, col, text.ptr, @intCast(text.len), c.SQLITE_TRANSIENT);
+        if (rc != c.SQLITE_OK) {
+            return SQLiteError.StepFailed;
+        }
+    }
+
+    pub fn reset(self: *Statement) !void {
+        const rc = c.sqlite3_reset(self.stmt);
+        if (rc != c.SQLITE_OK) {
+            return SQLiteError.StepFailed;
+        }
+        _ = c.sqlite3_clear_bindings(self.stmt);
+    }
 };
