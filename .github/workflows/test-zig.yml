@@ -50,6 +50,13 @@ jobs:
 
           zig build test
 
+      - name: Run Zig Shared Vectors
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd zig
+          zig build vectors
+
       - name: Run Zig Validator CLI Smoke Test
         shell: bash
         run: |
