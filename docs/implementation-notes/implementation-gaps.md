@@ -254,13 +254,20 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 **Recommended next action:** Expand `browser-test` tooling to incorporate headless browser tests for coverage metrics.
 
 
-### Go, Rust, and Zig portability implementation gaps
+### Zig read-only validation scaffold remains partial
+
+**Status:** Active
+**Area:** Implementation / Portability
+**Current state:** Zig has advanced beyond smoke-test-only to an initial partial read-only validation scaffold. It validates selected SQLite V1 metadata/profile properties through the system SQLite C ABI, including file-backed PRAGMA identity, `storage_metadata_tbl`, empty required/optional feature arrays, and canonical database UUID format.
+**Expected or intended state:** Zig may eventually participate in the broader portability validation suite with JCS/AAD/KDF/AEAD vector validation, read-only unlock/decrypt reader support, fixture/matrix integration, writer scaffold work if desired, packaging, and a clearer API boundary.
+**Why it matters:** Zig is a stricter compiled ecosystem and can uncover portability issues, but its current scaffold validates only selected metadata/profile paths and is not equivalent to the more mature Go/Rust scaffolds.
+**Recommended next action:** Keep Zig classified as a partial read-only validation scaffold. Next steps should be fixture-based validation and possibly shared-vector consumption before any writer or public API work.
+
+### Go and Rust portability implementation gaps
 
 **Status:** Active
 **Area:** Cryptography / Interoperability
-**Current state:** Go/Rust portability validation readers and writer scaffolds exist. They implement database creation, payload insertion, and logical updates/deletions. A write-matrix harness validates 8 combinations (Go/Rust writer scaffolds vs Go/Rust/Python/Node readers) and is run automatically via GitHub Actions CI on path-filtered `pull_request` and `push` events. However, Go, Rust, and Zig implementations are strictly for portability validation and are not full production storage libraries. Python, Node.js, and browser-test baseline libraries have also implemented core APIs for public parity. Key lifecycle work (key rotation, decrypt-only migration, key destruction, rewrap), additional unlock providers, blind index, and full production public API maturity remain future work. (Note: The incompleteness of Go/Rust APIs does not weaken the Storage Format V1 Stable status).
+**Current state:** Go/Rust portability validation readers and writer scaffolds exist. They implement database creation, payload insertion, and logical updates/deletions. A write-matrix harness validates 8 combinations (Go/Rust writer scaffolds vs Go/Rust/Python/Node readers) and is run automatically via GitHub Actions CI on path-filtered `pull_request` and `push` events. However, Go and Rust implementations are strictly for portability validation and are not full production storage libraries. Python, Node.js, and browser-test baseline libraries have also implemented core APIs for public parity. Key lifecycle work (key rotation, decrypt-only migration, key destruction, rewrap), additional unlock providers, blind index, and full production public API maturity remain future work. (Note: The incompleteness of Go/Rust APIs does not weaken the Storage Format V1 Stable status).
 **Expected or intended state:** Go and Rust implementations eventually transition from portability validation/scaffolds to complete, full production storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
 **Recommended next action:** Monitor the promoted Write Matrix workflow before proceeding to key lifecycle APIs.
-
-Zig has advanced from smoke-test-only to an initial partial read-only validation scaffold. It validates selected SQLite V1 metadata/profile properties through the system SQLite C ABI, but does not yet provide payload decrypt/read support, JCS/AAD/KDF/AEAD vector validation, writer scaffold, read-only matrix integration, write-matrix integration, packaging, or public API maturity.
