@@ -1,3 +1,4 @@
+const aad_import = @import("aad.zig");
 const std = @import("std");
 const json_min = @import("json_min.zig");
 const hex = @import("hex.zig");
@@ -16,6 +17,8 @@ pub fn run(allocator: std.mem.Allocator, io: std.Io) !void {
         const obj = case.object;
 
         const name = obj.get("name").?.string;
+        _ = name;
+
         const wrapping_key_hex = obj.get("wrapping_key_hex").?.string;
         const wrapped_key_plaintext_hex = obj.get("wrapped_key_plaintext_hex").?.string;
         const nonce_hex = obj.get("nonce_hex").?.string;
@@ -30,8 +33,28 @@ pub fn run(allocator: std.mem.Allocator, io: std.Io) !void {
         defer allocator.free(plaintext);
         const nonce = try hex.decodeHex(allocator, nonce_hex);
         defer allocator.free(nonce);
-        const aad = try hex.decodeHex(allocator, expected_aad_hex);
-        defer allocator.free(aad);
+
+        const aad_policy = obj.get("aad_policy").?.string;
+        const wrapped_kid = obj.get("wrapped_kid").?.string;
+        const wrapping_kid = obj.get("wrapping_kid").?.string;
+
+        var context_map: std.json.ObjectMap = .empty;
+        defer context_map.deinit(allocator);
+        try context_map.put(allocator, "v", std.json.Value{ .integer = 1 });
+        try context_map.put(allocator, "aad_policy", std.json.Value{ .string = aad_policy });
+        try context_map.put(allocator, "wrapped_kid", std.json.Value{ .string = wrapped_kid });
+        try context_map.put(allocator, "wrapping_kid", std.json.Value{ .string = wrapping_kid });
+
+        const aad_bytes = try aad_import.constructAAD(allocator, std.json.Value{ .object = context_map });
+        defer allocator.free(aad_bytes);
+
+        const expected_aad = try hex.decodeHex(allocator, expected_aad_hex);
+        defer allocator.free(expected_aad);
+
+        if (!std.mem.eql(u8, aad_bytes, expected_aad)) {
+             return error.TestFailed;
+        }
+
         const expected_ciphertext = try hex.decodeHex(allocator, expected_wrapped_key_ciphertext_hex);
         defer allocator.free(expected_ciphertext);
         const expected_tag = try hex.decodeHex(allocator, expected_wrapped_key_tag_hex);
@@ -45,7 +68,7 @@ pub fn run(allocator: std.mem.Allocator, io: std.Io) !void {
         if (nonce.len != 12) return error.InvalidNonceLength;
 
         const aes_gcm = std.crypto.aead.aes_gcm.Aes256Gcm;
-        aes_gcm.encrypt(ciphertext, &tag, plaintext, aad, nonce[0..12].*, key[0..32].*);
+        aes_gcm.encrypt(ciphertext, &tag, plaintext, aad_bytes, nonce[0..12].*, key[0..32].*);
 
         const cipher_match = std.mem.eql(u8, ciphertext, expected_ciphertext);
         const tag_match = std.mem.eql(u8, &tag, expected_tag);
@@ -53,13 +76,11 @@ pub fn run(allocator: std.mem.Allocator, io: std.Io) !void {
 
         if (valid) {
             if (!operation_success) {
-                std.debug.print("Failed positive test: {s}\n", .{name});
                 return error.TestFailed;
             }
             passed += 1;
         } else {
             if (operation_success) {
-                std.debug.print("Failed negative test: {s}\n", .{name});
                 return error.TestFailed;
             }
             passed += 1;

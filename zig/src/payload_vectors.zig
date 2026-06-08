@@ -70,7 +70,7 @@ pub fn run(allocator: std.mem.Allocator, io: std.Io) !void {
         const constructed_aad = try aad.constructAAD(allocator, std.json.Value{ .object = context_map });
         defer allocator.free(constructed_aad);
 
-        const aad_to_use = expected_aad;
+        const aad_to_use = constructed_aad;
 
         const ciphertext = try allocator.alloc(u8, payload_jcs.len);
         defer allocator.free(ciphertext);
