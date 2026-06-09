@@ -52,6 +52,13 @@ echo "[Rust] Testing against Python fixture..."
 if command -v zig >/dev/null 2>&1; then
   echo "[Zig-selected-fixtures] Testing against Python fixture..."
   (cd "$ROOT_DIR/zig" && zig build run -- read-fixture "$VAULT_SQLITE_V1_FIXTURE_DB" "$VAULT_SQLITE_V1_FIXTURE_PASSPHRASE" "$VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID" "$VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX")
+
+  echo "[Zig-selected-fixtures] Testing generalized read command against Python fixture..."
+  actual_hex="$(
+    (cd "$ROOT_DIR/zig" && zig build run -- read "$VAULT_SQLITE_V1_FIXTURE_DB" "$VAULT_SQLITE_V1_FIXTURE_PASSPHRASE" "$VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID") \
+      | python3 -c 'import sys; print(sys.stdin.buffer.read().hex())'
+  )"
+  test "$actual_hex" = "$VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX"
 else
   echo "[Zig-selected-fixtures] Skipping testing against Python fixture: zig not found"
 fi
@@ -96,6 +103,13 @@ echo "[Rust] Testing against Node.js fixture..."
 if command -v zig >/dev/null 2>&1; then
   echo "[Zig-selected-fixtures] Testing against Node.js fixture..."
   (cd "$ROOT_DIR/zig" && zig build run -- read-fixture "$VAULT_SQLITE_V1_FIXTURE_DB" "$VAULT_SQLITE_V1_FIXTURE_PASSPHRASE" "$VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID" "$VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX")
+
+  echo "[Zig-selected-fixtures] Testing generalized read command against Node.js fixture..."
+  actual_hex="$(
+    (cd "$ROOT_DIR/zig" && zig build run -- read "$VAULT_SQLITE_V1_FIXTURE_DB" "$VAULT_SQLITE_V1_FIXTURE_PASSPHRASE" "$VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID") \
+      | python3 -c 'import sys; print(sys.stdin.buffer.read().hex())'
+  )"
+  test "$actual_hex" = "$VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX"
 else
   echo "[Zig-selected-fixtures] Skipping testing against Node.js fixture: zig not found"
 fi

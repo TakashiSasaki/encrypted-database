@@ -44,7 +44,7 @@ Any issue that requires breaking backwards compatibility with databases created 
 The Go, Rust, and Zig portability validation efforts have advanced beyond initial test vector discovery. The current milestones are tracked as follows:
 
 Go/Rust have more mature portability validation and writer scaffolds.
-Zig currently has an initial selected read-only fixture decrypt validation scaffold with shared-vector conformance.
+Zig currently has a generalized read-only reader scaffold with shared-vector conformance.
 
 **Already materially implemented / validated (Go/Rust):**
 - shared test-vector consumption
@@ -59,8 +59,8 @@ Zig currently has an initial selected read-only fixture decrypt validation scaff
 **Already materially implemented / validated (Zig):**
 - Shared test-vector conformance (JCS, AAD, KDF, AEAD, key-wrap, payload)
 - SQLite V1 metadata validation
-- SQLite V1 selected read-only fixture decrypt reader
-- Zig selected read-only matrix integration
+- SQLite V1 generalized read-only reader scaffold
+- Zig read-only matrix integration
 
 **Still incomplete / future work:**
 - full production Go/Rust/Zig storage libraries
