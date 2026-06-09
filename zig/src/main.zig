@@ -151,8 +151,11 @@ pub fn main(init: std.process.Init) !void {
             \\
         ;
 
-        var out_buf: [1024]u8 = undefined;
-        const out_str = std.fmt.bufPrint(&out_buf, out_fmt, .{ object_uuid, initial_hex, updated_hex, deleted }) catch unreachable;
+        const out_str = std.fmt.allocPrint(alloc, out_fmt, .{ object_uuid, initial_hex, updated_hex, deleted }) catch |err| {
+            std.debug.print("output alloc error: {}\n", .{err});
+            std.process.exit(1);
+        };
+        defer alloc.free(out_str);
 
         std.Io.File.stdout().writeStreamingAll(init.io, out_str) catch |err| {
             std.debug.print("output encode error: {}\n", .{err});

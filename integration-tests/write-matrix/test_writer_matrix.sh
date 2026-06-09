@@ -33,14 +33,14 @@ run_updated_payload_check() {
  object_uuid=$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["object_uuid"])' <<<"$out")
  updated_hex=$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["updated_payload_hex"])' <<<"$out")
  deleted=$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["deleted"])' <<<"$out")
- [ "$deleted" = "False" ] || { echo "expected deleted=false for update_only"; return 1; }
+ [ "$deleted" = "False" ] || { echo "expected deleted=false for update_only"; exit 1; }
 
  if [ "$reader" = "Python" ]; then
    local py_out=$(python3 "$DIR/read_fixture_python.py" "$db" "$PASSPHRASE" "$object_uuid")
-   [ "$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["payload_hex"])' <<<"$py_out")" = "$updated_hex" ] || return 1
+   [ "$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["payload_hex"])' <<<"$py_out")" = "$updated_hex" ] || exit 1
  elif [ "$reader" = "Node" ]; then
    local no=$(node "$DIR/read_fixture_node.js" "$db" "$PASSPHRASE" "$object_uuid")
-   [ "$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["payload_hex"])' <<<"$no")" = "$updated_hex" ] || return 1
+   [ "$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["payload_hex"])' <<<"$no")" = "$updated_hex" ] || exit 1
  elif [ "$reader" = "Go" ]; then
    (cd "$ROOT_DIR/go" && VAULT_SQLITE_V1_FIXTURE_DB="$db" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$object_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECTED_PAYLOAD_HEX="$updated_hex" go test ./internal/sqlitev1 -run TestExternalFixtureReadOnly)
  elif [ "$reader" = "Rust" ]; then
@@ -48,7 +48,7 @@ run_updated_payload_check() {
  elif [ "$reader" = "Zig" ]; then
    local zig_out
    zig_out=$("$DIR/zig_write_matrix" read-fixture "$db" "$PASSPHRASE" "$object_uuid" "$updated_hex")
-   [[ "$zig_out" == *"Read fixture successful."* ]] || return 1
+   [[ "$zig_out" == *"Read fixture successful."* ]] || exit 1
  fi
  echo "$writer -> $reader updated-payload SUCCESS"
 }
@@ -65,7 +65,7 @@ run_delete_notfound_check() {
  fi
  object_uuid=$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["object_uuid"])' <<<"$out")
  deleted=$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["deleted"])' <<<"$out")
- [ "$deleted" = "True" ] || { echo "expected deleted=true for update_delete"; return 1; }
+ [ "$deleted" = "True" ] || { echo "expected deleted=true for update_delete"; exit 1; }
 
  if [ "$reader" = "Go" ]; then
    (cd "$ROOT_DIR/go" && VAULT_SQLITE_V1_FIXTURE_DB="$db" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$object_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECT_NOT_FOUND=1 go test ./internal/sqlitev1 -run TestExternalFixtureReadOnly)
@@ -73,18 +73,18 @@ run_delete_notfound_check() {
    (cd "$ROOT_DIR/rust" && VAULT_SQLITE_V1_FIXTURE_DB="$db" VAULT_SQLITE_V1_FIXTURE_PASSPHRASE="$PASSPHRASE" VAULT_SQLITE_V1_FIXTURE_OBJECT_UUID="$object_uuid" VAULT_SQLITE_V1_FIXTURE_EXPECT_NOT_FOUND=1 cargo test --test sqlitev1_external_fixture)
  elif [ "$reader" = "Python" ]; then
    local py_out=$(python3 "$DIR/read_fixture_python.py" "$db" "$PASSPHRASE" "$object_uuid")
-   [ "$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["not_found"])' <<<"$py_out")" = "True" ] || return 1
+   [ "$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["not_found"])' <<<"$py_out")" = "True" ] || exit 1
  elif [ "$reader" = "Node" ]; then
    local no=$(node "$DIR/read_fixture_node.js" "$db" "$PASSPHRASE" "$object_uuid")
-   [ "$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["not_found"])' <<<"$no")" = "True" ] || return 1
+   [ "$(python3 -c 'import sys,json;print(json.loads(sys.stdin.read())["not_found"])' <<<"$no")" = "True" ] || exit 1
  elif [ "$reader" = "Zig" ]; then
    set +e
    local zig_out
    zig_out=$("$DIR/zig_write_matrix" read "$db" "$PASSPHRASE" "$object_uuid" 2>&1)
    local exit_code=$?
    set -e
-   [[ "$zig_out" == *"Object not found"* ]] || return 1
-   [ $exit_code -ne 0 ] || return 1
+   [[ "$zig_out" == *"Object not found"* ]] || exit 1
+   [ $exit_code -ne 0 ] || exit 1
  fi
  echo "$writer -> $reader delete-notfound SUCCESS"
 }
