@@ -1,6 +1,6 @@
 # Zig Component
 
-Zig currently provides a smoke test and an initial read-only Storage Format V1 validation and decrypt scaffold. It is not a production storage library and does not provide a public storage API or writer support.
+Zig now provides a generalized scaffold CLI for reading and decrypting a requested object from an existing SQLite V1 database. Zig also retains selected fixture validation through `read-fixture`. Zig remains scaffold-level and is not a production storage library. Zig does not provide writer support or a public storage API.
 
 ## Commands
 
@@ -19,7 +19,12 @@ Validate an existing SQLite V1 database file (metadata/profile only):
 zig build run -- validate <path-to-sqlite-v1-db>
 ```
 
-Read and decrypt a selected fixture payload from a SQLite V1 database:
+Read and decrypt a payload to stdout:
+```bash
+zig build run -- read <path-to-sqlite-v1-db> <passphrase> <object-uuid>
+```
+
+Validate reading and decrypting a selected fixture payload from a SQLite V1 database:
 ```bash
 zig build run -- read-fixture <path-to-sqlite-v1-db> <passphrase> <object-uuid> <expected-hex>
 ```

@@ -62,6 +62,28 @@ test "missing object UUID fails" {
     try testing.expectError(reader.ReadOnlyError.ObjectNotFound, err);
 }
 
+test "successful read-only decrypt via readObject" {
+    const allocator = testing.allocator;
+    const db_path = "/tmp/test.db";
+    std.fs.access(db_path, .{}) catch return;
+
+    var alloc = std.heap.page_allocator;
+    const path_z = try alloc.dupeZ(u8, db_path);
+    defer alloc.free(path_z);
+
+    var result = try reader.readObject(
+        allocator,
+        std.io.getStdOut().writer().any(),
+        path_z,
+        "fixture-passphrase-python",
+        "c73f19cf-0e4a-40a0-8576-da5c86f0af2e"
+    );
+    defer result.deinit(allocator);
+
+    // Just verify we got some payload bytes
+    try testing.expect(result.payload.len > 0);
+}
+
 test "successful read-only decrypt" {
     const allocator = testing.allocator;
     const db_path = "/tmp/test.db";

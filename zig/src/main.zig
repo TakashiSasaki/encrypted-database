@@ -36,6 +36,36 @@ pub fn main(init: std.process.Init) !void {
         return;
     }
 
+    if (std.mem.eql(u8, cmd.?, "read")) {
+        const path = iter.next();
+        const passphrase = iter.next();
+        const object_uuid = iter.next();
+
+        if (path == null or passphrase == null or object_uuid == null) {
+            std.debug.print("Usage: vault-zig-smoke-test read <path-to-sqlite-v1-db> <passphrase> <object-uuid>\n", .{});
+            std.process.exit(1);
+        }
+
+        var alloc = std.heap.page_allocator;
+        const path_z = try alloc.dupeZ(u8, path.?);
+        defer alloc.free(path_z);
+
+        // Run validation first
+        validator.validateReadOnly(path_z) catch |err| {
+            std.debug.print("Validation failed: {}\n", .{err});
+            std.process.exit(1);
+        };
+
+        var result = root.read_only_reader.readObject(alloc, init.io, path_z, passphrase.?, object_uuid.?) catch |err| {
+            std.debug.print("Read failed: {}\n", .{err});
+            std.process.exit(1);
+        };
+        defer result.deinit(alloc);
+
+        try std.Io.File.stdout().writeStreamingAll(init.io, result.payload);
+        return;
+    }
+
     if (std.mem.eql(u8, cmd.?, "read-fixture")) {
         const path = iter.next();
         const passphrase = iter.next();
@@ -69,6 +99,7 @@ pub fn main(init: std.process.Init) !void {
     std.debug.print("Unknown command. Usage:\n", .{});
     std.debug.print("  (no args) : Run smoke test\n", .{});
     std.debug.print("  validate <path> : Validate an existing SQLite V1 database\n", .{});
+    std.debug.print("  read <path> <passphrase> <object-uuid> : Read and decrypt a payload to stdout\n", .{});
     std.debug.print("  read-fixture <path> <passphrase> <object-uuid> <expected-hex> : Validate reading and decrypting a fixture payload\n", .{});
     std.process.exit(1);
 }

@@ -16,7 +16,21 @@ pub const ReadOnlyError = error{
     MissingData,
 } || sqlite.SQLiteError || std.json.ParseFromValueError || std.json.ParseError(std.json.Scanner) || std.fmt.ParseIntError || std.base64.Error;
 
-pub fn readFixture(allocator: std.mem.Allocator, io: std.Io, db_path: [:0]const u8, passphrase: []const u8, object_uuid: []const u8, expected_hex: []const u8) !void {
+pub const ReadResult = struct {
+    object_uuid: []const u8,
+    schema_uuid: []const u8,
+    content_type: []const u8,
+    payload: []u8,
+
+    pub fn deinit(self: *ReadResult, allocator: std.mem.Allocator) void {
+        allocator.free(self.object_uuid);
+        allocator.free(self.schema_uuid);
+        allocator.free(self.content_type);
+        allocator.free(self.payload);
+    }
+};
+
+pub fn readObject(allocator: std.mem.Allocator, io: std.Io, db_path: [:0]const u8, passphrase: []const u8, object_uuid: []const u8) !ReadResult {
     var db = try sqlite.Database.openReadOnly(db_path);
     defer db.close();
 
@@ -48,8 +62,8 @@ pub fn readFixture(allocator: std.mem.Allocator, io: std.Io, db_path: [:0]const 
     const obj_aad_policy = obj_stmt.columnText(8) orelse return ReadOnlyError.MissingData;
 
     // Dup data since we will finalize/step other queries
-    const obj_schema_uuid = try allocator.dupe(u8, schema_uuid); defer allocator.free(obj_schema_uuid);
-    const obj_content_type = try allocator.dupe(u8, content_type); defer allocator.free(obj_content_type);
+    const obj_schema_uuid = try allocator.dupe(u8, schema_uuid); errdefer allocator.free(obj_schema_uuid);
+    const obj_content_type = try allocator.dupe(u8, content_type); errdefer allocator.free(obj_content_type);
     const obj_kid = try allocator.dupe(u8, record_kid); defer allocator.free(obj_kid);
     const obj_alg = try allocator.dupe(u8, alg); defer allocator.free(obj_alg);
     const obj_nonce_dup = try allocator.dupe(u8, obj_nonce); defer allocator.free(obj_nonce_dup);
@@ -169,15 +183,29 @@ pub fn readFixture(allocator: std.mem.Allocator, io: std.Io, db_path: [:0]const 
     const tag_only = obj_ciphertext_dup[obj_ciphertext_dup.len - 16 ..];
 
     const payload = try allocator.alloc(u8, ciphertext_only.len);
-    defer allocator.free(payload);
+    errdefer allocator.free(payload);
 
     std.crypto.aead.aes_gcm.Aes256Gcm.decrypt(payload, ciphertext_only, tag_only[0..16].*, obj_aad, obj_nonce_dup[0..12].*, record_dek[0..32].*) catch |err| {
         std.debug.print("Payload decrypt failed: {}\n", .{err});
         return ReadOnlyError.DecryptFailed;
     };
 
+    const obj_uuid_dup = try allocator.dupe(u8, object_uuid);
+
+    return ReadResult{
+        .object_uuid = obj_uuid_dup,
+        .schema_uuid = obj_schema_uuid,
+        .content_type = obj_content_type,
+        .payload = payload,
+    };
+}
+
+pub fn readFixture(allocator: std.mem.Allocator, io: std.Io, db_path: [:0]const u8, passphrase: []const u8, object_uuid: []const u8, expected_hex: []const u8) !void {
+    var result = try readObject(allocator, io, db_path, passphrase, object_uuid);
+    defer result.deinit(allocator);
+
     // 9. Compare with Expected Hex
-    const actual_hex = try hex.encodeHex(allocator, payload);
+    const actual_hex = try hex.encodeHex(allocator, result.payload);
     defer allocator.free(actual_hex);
 
     // uppercase or lowercase check, safely do a case insensitive or lower
