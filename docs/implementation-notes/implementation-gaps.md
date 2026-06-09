@@ -254,20 +254,20 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 **Recommended next action:** Expand `browser-test` tooling to incorporate headless browser tests for coverage metrics.
 
 
-### Zig read-only validation scaffold remains partial
+### Zig writer scaffold remains partial
 
 **Status:** Active
 **Area:** Implementation / Portability
-**Current state:** Zig has advanced to an `implemented-scaffold` for generalized read-only SQLite reader. It now validates JCS, AAD, KDF (Argon2id), AEAD (AES-256-GCM), key-wrap, and payload encryption via test vectors, and provides a SQLite read-only decrypt reader that has been integrated with the Python and Node.js generated fixtures in the read-only matrix. However, it does not yet provide a full read-only parity matrix, writer scaffold, write-matrix integration, public production API, packaging maturity, key lifecycle APIs, blind index, or additional unlock providers.
-**Expected or intended state:** Zig may eventually participate in the broader portability validation suite with writer scaffold work, packaging, and a clearer API boundary, though it currently serves strictly as a generalized read-only scaffold.
-**Why it matters:** Zig is a stricter compiled ecosystem and can uncover portability issues. While it has achieved generalized read-only scaffold integration, it is not yet equivalent to the more mature Go/Rust database scaffolds.
-**Recommended next action:** Keep Zig classified as a generalized read-only reader scaffold.
+**Current state:** Zig has advanced to an `implemented-scaffold` for both reading and writing selected SQLite V1 fixtures. It provides a SQLite read-only decrypt reader and a selected writer scaffold capable of DB creation, payload insertion, updating, and logical deletion. Zig is now integrated into both the read-only matrix and the write-matrix. However, it does not yet provide a stable public production API, full key lifecycle APIs, blind index, packaging maturity, or additional unlock providers.
+**Expected or intended state:** Zig may eventually participate in the broader portability validation suite with a clearer API boundary, though it currently serves strictly as a portability validation and matrix scaffold.
+**Why it matters:** Zig is a stricter compiled ecosystem and can uncover portability issues. It now participates in the write matrix alongside Go and Rust, increasing portability coverage.
+**Recommended next action:** Keep Zig classified as a portability validation and matrix scaffold rather than a full production storage library.
 
-### Go and Rust portability implementation gaps
+### Go, Rust, and Zig portability implementation gaps
 
 **Status:** Active
 **Area:** Cryptography / Interoperability
-**Current state:** Go/Rust portability validation readers and writer scaffolds exist. They implement database creation, payload insertion, and logical updates/deletions. A write-matrix harness validates 8 combinations (Go/Rust writer scaffolds vs Go/Rust/Python/Node readers) and is run automatically via GitHub Actions CI on path-filtered `pull_request` and `push` events. However, Go and Rust implementations are strictly for portability validation and are not full production storage libraries. Python, Node.js, and browser-test baseline libraries have also implemented core APIs for public parity. Key lifecycle work (key rotation, decrypt-only migration, key destruction, rewrap), additional unlock providers, blind index, and full production public API maturity remain future work. (Note: The incompleteness of Go/Rust APIs does not weaken the Storage Format V1 Stable status).
-**Expected or intended state:** Go and Rust implementations eventually transition from portability validation/scaffolds to complete, full production storage libraries integrated into the cross-language roundtrip matrix.
+**Current state:** Go/Rust/Zig portability validation readers and writer scaffolds exist. They implement database creation, payload insertion, and logical updates/deletions. A write-matrix harness validates combinations (Go/Rust/Zig writer scaffolds vs Go/Rust/Zig/Python/Node readers) and is run automatically via GitHub Actions CI on path-filtered `pull_request` and `push` events. However, Go, Rust, and Zig implementations are strictly for portability validation and are not full production storage libraries. Python, Node.js, and browser-test baseline libraries have also implemented core APIs for public parity. Key lifecycle work (key rotation, decrypt-only migration, key destruction, rewrap), additional unlock providers, blind index, and full production public API maturity remain future work. (Note: The incompleteness of Go/Rust/Zig APIs does not weaken the Storage Format V1 Stable status).
+**Expected or intended state:** Go, Rust, and Zig implementations eventually transition from portability validation/scaffolds to complete, full production storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
 **Recommended next action:** Monitor the promoted Write Matrix workflow before proceeding to key lifecycle APIs.

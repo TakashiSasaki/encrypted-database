@@ -31,7 +31,7 @@ SQLite などのローカル永続化層に秘匿対象データを保存する�
 ├── browser-test/       # browser/sql.js 向けテスト実装・検証ハーネス
 ├── go/                 # Go ポータビリティ検証・writer scaffold
 ├── rust/               # Rust ポータビリティ検証・writer scaffold
-├── zig/                # Zig generalized read-only reader scaffold
+├── zig/                # Zig generalized read-only reader and writer scaffold
 ├── integration-tests/  # クロス言語 roundtrip / read-only matrix / write-matrix 検証
 └── scripts/            # ローカル実行スクリプトとドキュメント guardrail
 ```
@@ -57,7 +57,7 @@ Go 実装は Storage Format V1 のポータビリティ検証と writer scaffold
 Rust 実装も同様に、Storage Format V1 のポータビリティ検証と writer scaffold を目的としたものです。現時点では full production storage library ではありません。
 
 ### Zig
-Zig now provides a generalized scaffold CLI for reading and decrypting a requested object from an existing SQLite V1 database. Zig also retains selected fixture validation through `read-fixture`. Zig remains scaffold-level and is not a production storage library. Zig does not provide writer support or a public storage API.
+Zig now provides a generalized scaffold CLI for reading and decrypting a requested object from an existing SQLite V1 database, as well as a selected writer scaffold for creating and updating objects. Zig also retains selected fixture validation through `read-fixture` and integrates into the write-matrix. Zig remains scaffold-level and is not a production storage library. Zig does not provide a stable public storage API.
 
 ### integration-tests/
 クロス言語の roundtrip、read-only matrix、write-matrix 検証ハーネスを含みます。
