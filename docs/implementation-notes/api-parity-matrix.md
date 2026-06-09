@@ -31,8 +31,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
 |---|---|---|---|---|---|---|---|
-| passphrase unlock | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust unlock is in read-only reader flow. |
-| provider abstraction | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | |
+| passphrase unlock | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Go/Rust unlock is in read-only reader flow. Zig can unlock selected fixtures but does not expose a public unlock API. |
+| provider abstraction | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Zig only supports passphrase_argon2id in selected fixture path. |
 | platform provider hooks | missing | missing | missing | missing | missing | missing | Future capability |
 | recovery / fallback providers | missing | missing | missing | missing | missing | missing | Future capability |
 | key availability state | implemented-public | implemented-public | implemented-test-harness | missing | missing | missing | Status check |
@@ -46,8 +46,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 | update / overwrite | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust update is an `implemented-scaffold` for writers. |
 | delete / remove | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust delete is an `implemented-scaffold` for writers. |
 | object UUID handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Preservation on update. |
-| content type handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | |
-| metadata handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | `schema_uuid` / `content_type` support. |
+| content type handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Zig validates in selected read-fixture. |
+| metadata handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | `schema_uuid` / `content_type` support. Zig validates these in selected read-fixture. |
 | payload listing | missing | missing | missing | missing | missing | missing | Currently no API to list payloads. |
 | payload existence checks | missing | missing | missing | missing | missing | missing | Must read to check existence. |
 
@@ -57,7 +57,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 |---|---|---|---|---|---|---|---|
 | UUID validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Strict UUID policy |
 | JCS canonicalization | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Payload validation boundary. |
-| provider config validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | JCS strictness. |
+| provider config validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | JCS strictness. |
 | metadata table validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | `storage_metadata_tbl` initialization. |
 | SQLite profile validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | `PRAGMA application_id` handling. |
 | required/optional feature handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | |
@@ -70,8 +70,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
 |---|---|---|---|---|---|---|---|
 | error categories | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Not fully standardized across languages. |
-| auth failure behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | |
-| not-found behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Confirmed in write-matrix. |
+| auth failure behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Zig handles this via `KeyUnwrapFailed` internally. |
+| not-found behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Confirmed in write-matrix. Zig handles this via `ObjectNotFound`. |
 | validation failure behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | |
 | provider unavailable behavior | missing | missing | missing | missing | missing | missing | Needs implementation alongside additional providers. |
 | unsupported feature behavior | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Reject unknown. |

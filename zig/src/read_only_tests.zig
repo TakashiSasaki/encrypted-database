@@ -42,6 +42,26 @@ test "wrong expected hex fails" {
     try testing.expectError(reader.ReadOnlyError.DecryptFailed, err);
 }
 
+test "missing object UUID fails" {
+    const allocator = testing.allocator;
+    const db_path = "/tmp/test.db";
+    std.fs.access(db_path, .{}) catch return;
+
+    var alloc = std.heap.page_allocator;
+    const path_z = try alloc.dupeZ(u8, db_path);
+    defer alloc.free(path_z);
+
+    const err = reader.readFixture(
+        allocator,
+        std.io.getStdOut().writer().any(),
+        path_z,
+        "fixture-passphrase-python",
+        "00000000-0000-4000-8000-000000000000", // nonexistent object UUID
+        "0000" // arbitrary expected hex
+    );
+    try testing.expectError(reader.ReadOnlyError.ObjectNotFound, err);
+}
+
 test "successful read-only decrypt" {
     const allocator = testing.allocator;
     const db_path = "/tmp/test.db";
