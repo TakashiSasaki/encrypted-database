@@ -136,3 +136,4 @@ test "validator bad metadata" {
 
 pub const read_only_reader = @import("read_only_reader.zig");
 pub const read_only_tests = @import("read_only_tests.zig");
+pub const writer = @import("writer.zig");
