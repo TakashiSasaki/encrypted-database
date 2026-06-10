@@ -19,6 +19,7 @@ For a detailed breakdown of planned future steps, see the [C/C++ Native Conforma
 - AAD shared-vector conformance harness
 - Internal JSON string escaping for AAD construction
 - Internal UUID syntax validation scaffold
+- Internal content-type boundary validation scaffold
 
 ## Missing
 
