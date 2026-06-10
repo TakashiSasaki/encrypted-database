@@ -18,3 +18,5 @@ enable_testing()
 add_executable(test_vault tests/test_vault.c)
 target_link_libraries(test_vault PRIVATE vault_c_lib)
 add_test(NAME test_vault COMMAND test_vault)
+
+add_test(NAME test_vault_c_smoke COMMAND ${CMAKE_COMMAND} -DEXECUTABLE=$<TARGET_FILE:vault_c_smoke> "-DEXPECTED_OUTPUT=vault c smoke test ok\n" -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_smoke.cmake)
