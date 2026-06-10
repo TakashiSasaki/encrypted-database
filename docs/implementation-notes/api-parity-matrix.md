@@ -62,9 +62,9 @@ The following controlled vocabulary is strictly used to classify API implementat
 | SQLite profile validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | `PRAGMA application_id` handling. |
 | required/optional feature handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | |
 | unknown feature rejection | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | |
-| MIME/content-type validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | Basic format checks. |
+| MIME/content-type validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | Basic format checks. C/C++ have internal helpers only. |
 | schema/version validation | partial | partial | partial | partial | partial | partial | missing | missing | Full dynamic discovery not yet implemented. |
-| internal format validation helpers | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | C and C++ provide internal UUID syntax validation helpers. |
+| internal format validation helpers | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | C and C++ provide internal UUID syntax validation and content-type boundary validation helpers. |
 
 ### 5) Error model
 
