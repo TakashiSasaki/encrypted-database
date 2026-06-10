@@ -20,7 +20,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
 |---|---|---|---|---|---|---|---|
-| initialize / create | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust are scaffold APIs (`CreateNew`/`create_new`). |
+| initialize / create | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Go/Rust/Zig are scaffold APIs (`CreateNew`/`create_new`/`createNew`). |
 | open existing DB handle | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Go/Rust reader/writer constructors exist, but scaffold scope. |
 | close | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | All have close path, parity semantics differ. |
 | lock database | implemented-public | implemented-public | implemented-test-harness | missing | missing | missing | Go/Rust scaffold writer does not expose Python/Node-style lock state lifecycle. |
@@ -41,11 +41,11 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
 |---|---|---|---|---|---|---|---|
-| store / insert | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust store is an `implemented-scaffold` for writers. |
+| store / insert | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Go/Rust/Zig provide `implemented-scaffold` for writers. |
 | retrieve / read | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Go/Rust retrieval is via read-only reader API. Zig has a generalized read-only scaffold CLI. |
-| update / overwrite | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust update is an `implemented-scaffold` for writers. |
-| delete / remove | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Go/Rust delete is an `implemented-scaffold` for writers. |
-| object UUID handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | partial | Preservation on update. |
+| update / modify | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Go/Rust/Zig update is an `implemented-scaffold` for writers. |
+| delete / remove | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Go/Rust/Zig delete is an `implemented-scaffold` for writers. |
+| object UUID handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Preservation on update. |
 | content type handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Zig carries these through read result. |
 | metadata handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | `schema_uuid` / `content_type` support. Zig carries these through read result. |
 | payload listing | missing | missing | missing | missing | missing | missing | Currently no API to list payloads. |
@@ -62,7 +62,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 | SQLite profile validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | `PRAGMA application_id` handling. |
 | required/optional feature handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | |
 | unknown feature rejection | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | |
-| MIME/content-type validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Basic format checks. |
+| MIME/content-type validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Basic format checks. |
 | schema/version validation | partial | partial | partial | partial | partial | partial | Full dynamic discovery not yet implemented. |
 
 ### 5) Error model
@@ -82,10 +82,10 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | Notes |
 |---|---|---|---|---|---|---|---|
-| transaction boundary for operations | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | |
-| WAL/PRAGMA behavior | implemented-public | implemented-public | out-of-scope | implemented-scaffold | implemented-scaffold | missing | Operational PRAGMAs (WAL/synchronous) are recommended, not required for V1 conformance. |
+| transaction boundary for operations | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | |
+| WAL/PRAGMA behavior | implemented-public | implemented-public | out-of-scope | implemented-scaffold | implemented-scaffold | implemented-scaffold | Operational PRAGMAs (WAL/synchronous) are recommended, not required for V1 conformance. |
 | sql.js/browser exceptions | out-of-scope | out-of-scope | implemented-test-harness | out-of-scope | out-of-scope | out-of-scope | browser-test skips explicit file PRAGMA checks. |
-| rollback behavior on failure | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | missing | Verified in unit tests. |
+| rollback behavior on failure | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | Verified in unit tests. |
 
 ### 7) Cross-language tests
 
@@ -97,7 +97,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 | Node.js writer outputs matrix | missing | partial | out-of-scope | out-of-scope | out-of-scope | out-of-scope | Node.js public writer APIs exist, but Node.js writer outputs are not included in write-matrix coverage. |
 | browser-test parity coverage | out-of-scope | out-of-scope | implemented-test-harness | out-of-scope | out-of-scope | out-of-scope | Does not cover export/import matrix yet. |
 | Go/Rust read-only matrix | partial | partial | out-of-scope | implemented-scaffold | implemented-scaffold | partial | Py/Node fixtures read by Go/Rust/Zig. Zig support provides read-only CLI and fixture coverage. |
-| Go/Rust write-matrix | missing | missing | out-of-scope | implemented-scaffold | implemented-scaffold | missing | Go/Rust writer outputs validated against Go/Rust/Python/Node.js readers. **Python and Node.js public writer APIs exist, but Python/Node writer-generated databases are not yet included in the write-matrix coverage.** |
+| Go/Rust/Zig write-matrix | missing | missing | out-of-scope | implemented-scaffold | implemented-scaffold | implemented-scaffold | Go/Rust/Zig writer outputs validated against Go/Rust/Zig/Python/Node.js readers. **Python and Node.js public writer APIs exist, but Python/Node writer-generated databases are not yet included in the write-matrix coverage.** |
 | browser-test writer outputs matrix | out-of-scope | out-of-scope | missing | out-of-scope | out-of-scope | out-of-scope | Browser export/import outputs remain future work. |
 
 ### 8) Packaging / maturity

@@ -26,6 +26,19 @@ pub const Database = struct {
         return Database{ .db = db.? };
     }
 
+    pub fn openReadWriteCreate(path: [:0]const u8) !Database {
+        var db: ?*c.sqlite3 = null;
+        const flags = c.SQLITE_OPEN_READWRITE | c.SQLITE_OPEN_CREATE;
+        const rc = c.sqlite3_open_v2(path.ptr, &db, flags, null);
+        if (rc != c.SQLITE_OK) {
+            if (db) |d| {
+                _ = c.sqlite3_close(d);
+            }
+            return SQLiteError.OpenFailed;
+        }
+        return Database{ .db = db.? };
+    }
+
     pub fn close(self: *Database) void {
         _ = c.sqlite3_close(self.db);
     }
@@ -137,6 +150,27 @@ pub const Statement = struct {
 
     pub fn bindText(self: *Statement, col: i32, text: []const u8) !void {
         const rc = c.sqlite3_bind_text(self.stmt, col, text.ptr, @intCast(text.len), c.SQLITE_TRANSIENT);
+        if (rc != c.SQLITE_OK) {
+            return SQLiteError.StepFailed;
+        }
+    }
+
+    pub fn bindBlob(self: *Statement, col: i32, blob: []const u8) !void {
+        const rc = c.sqlite3_bind_blob(self.stmt, col, blob.ptr, @intCast(blob.len), c.SQLITE_TRANSIENT);
+        if (rc != c.SQLITE_OK) {
+            return SQLiteError.StepFailed;
+        }
+    }
+
+    pub fn bindInt64(self: *Statement, col: i32, val: i64) !void {
+        const rc = c.sqlite3_bind_int64(self.stmt, col, val);
+        if (rc != c.SQLITE_OK) {
+            return SQLiteError.StepFailed;
+        }
+    }
+
+    pub fn bindNull(self: *Statement, col: i32) !void {
+        const rc = c.sqlite3_bind_null(self.stmt, col);
         if (rc != c.SQLITE_OK) {
             return SQLiteError.StepFailed;
         }

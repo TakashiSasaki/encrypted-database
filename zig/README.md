@@ -1,6 +1,6 @@
 # Zig Component
 
-Zig now provides a generalized scaffold CLI for reading and decrypting a requested object from an existing SQLite V1 database. Zig also retains selected fixture validation through `read-fixture`. Zig remains scaffold-level and is not a production storage library. Zig does not provide writer support or a public storage API.
+Zig now provides a generalized scaffold CLI for reading, decrypting, and a selected SQLite V1 writer scaffold for creating and updating objects in a SQLite V1 database. Zig also retains selected fixture validation through `read-fixture` and integrates into the write-matrix. Zig remains scaffold-level and is not a production storage library. Zig does not provide a stable public storage API.
 
 ## Commands
 
@@ -27,6 +27,11 @@ zig build run -- read <path-to-sqlite-v1-db> <passphrase> <object-uuid>
 Validate reading and decrypting a selected fixture payload from a SQLite V1 database:
 ```bash
 zig build run -- read-fixture <path-to-sqlite-v1-db> <passphrase> <object-uuid> <expected-hex>
+```
+
+Write matrix compatibility test scaffold:
+```bash
+zig build run -- write-matrix <db_path> <passphrase> <platform> <schema_uuid> <content_type> <payload_a> <payload_b> [mode]
 ```
 
 Run the shared vector conformance suite:
