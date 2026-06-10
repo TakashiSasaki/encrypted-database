@@ -56,7 +56,7 @@ browser/sql.js 向けのテスト実装・検証ハーネスです。Jest JSDOM/
 C 実装は Storage Format V1 のポータビリティ検証 bootstrap scaffold を目的としたものです。現時点では full production storage library ではなく、Storage Format V1 の機能（暗号化、SQLite 読み書きなど）は実装されていません。
 
 ### C++
-C++ 実装は Storage Format V1 のポータビリティ検証 bootstrap scaffold を目的としたものです。現時点では full production storage library ではなく、Storage Format V1 の機能（暗号化、SQLite 読み書きなど）は実装されていません。なお、将来的に C のコア層をラップするか、独立した C++ 実装とするかは未決定 (`needs-decision`) です。
+C++ 実装は Storage Format V1 のポータビリティ検証 bootstrap scaffold を目的としたものです。現時点では full production storage library ではなく、Storage Format V1 の機能（暗号化、SQLite 読み書きなど）は実装されていません。C++ 実装は C 実装から独立したネイティブの scaffold 実装として構築されています。
 
 ### Go
 Go 実装は Storage Format V1 のポータビリティ検証と writer scaffold を目的としたものです。現時点では full production storage library ではありません。

@@ -17,9 +17,7 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **Documentation consistency cleanup**
 - **JCS scaffold boundary decision**
 - **Limited generated-AST JCS basic-vector serializer scaffold**
-
-### Near-term
-- **C/C++ architecture decision**
+- **C/C++ independent implementation architecture decision**
 
 ### Future
 - **Generic JCS implementation**
@@ -39,8 +37,7 @@ The immediate goal is to incrementally establish a native testing boundary and v
 
 Before proceeding to implement generic JCS, the project must decide:
 - dependency-free internal implementation vs third-party library
+- JSON parser decision or implementation if appropriate
 - RFC 8785 coverage boundary beyond basic vectors
-- whether C and C++ share behavior or remain independent
-- how this interacts with the unresolved C/C++ architecture decision
 
 *Note: This roadmap is intended for planning purposes only and does not imply that cryptographic or SQLite implementation work has commenced.*

@@ -5,7 +5,7 @@ This directory contains the initial C bootstrap scaffold for the Encrypted Datab
 ## Status
 
 **This is strictly a bootstrap scaffold. It is not a production storage library.**
-It does not currently implement Storage Format V1 cryptography, SQLite V1 reading/writing, Argon2id, generic JCS, or matrix integration. It provides partial AAD shared-vector conformance, internal JSON escaping for AAD construction, an internal generated-AST JCS basic-vector serializer scaffold, internal UUID syntax validation, and internal content-type boundary validation through internal scaffold helpers. Public API parity is not yet promised.
+It does not currently implement Storage Format V1 cryptography, SQLite V1 reading/writing, Argon2id, generic JCS, or matrix integration. It provides partial AAD shared-vector conformance, internal JSON escaping for AAD construction, a limited internal generated-AST JCS basic-vector serializer scaffold, internal UUID syntax validation, and internal content-type boundary validation through internal scaffold helpers. Public API parity is not yet promised.
 
 For a detailed breakdown of planned future steps, see the [C/C++ Native Conformance Roadmap](../docs/implementation-notes/c-cpp-native-conformance-roadmap.md).
 

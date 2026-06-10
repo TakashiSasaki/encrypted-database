@@ -76,7 +76,7 @@ Zig currently has a generalized read-only reader scaffold and writer scaffold wi
 
 Note: Go, Rust, and Zig implementations remain strictly portability validation and writer scaffolds, not full production storage libraries.
 
-Additionally, minimal C and C++ bootstrap scaffolds have been introduced to establish directory structures, basic CI/build conventions, and prepare for future test vector implementation. They do not yet support Storage Format V1 capabilities. It remains `needs-decision` whether C++ will wrap a shared C core or be fully independent.
+Additionally, minimal C and C++ bootstrap scaffolds have been introduced to establish directory structures, basic CI/build conventions, and prepare for future test vector implementation. They do not yet support Storage Format V1 capabilities. C and C++ are independent native scaffold implementations. They share the same Storage Format V1 spec, shared vectors, and conformance expectations. C++ is not planned as a wrapper around C. This does not make either implementation production-ready.
 
 ## 9. Relationship to Stable Declaration
 The Go/Rust/Zig validation efforts do not revoke the Storage Format V1 Stable declaration. The stable format serves as the canonical target for these new implementations to aim for.

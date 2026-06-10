@@ -1,12 +1,12 @@
 # C/C++ Architecture Decision
 
 ## Status
-`needs-decision`
+`decided`
 
 ## Context
-The repository currently contains initial bootstrap scaffolds for both C (`c/`) and C++ (`cpp/`). These scaffolds are currently used for native conformance testing (such as AAD construction, JSON escaping, UUID validation, and content-type boundary validation) and are not yet production storage libraries.
+The repository currently contains initial bootstrap scaffolds for both C (`c/`) and C++ (`cpp/`). These scaffolds are currently used for native conformance testing (such as AAD construction, JSON escaping, UUID validation, content-type boundary validation, and a limited generated-AST JCS basic-vector serializer scaffold) and are not yet production storage libraries.
 
-Before introducing deeper dependencies like generic JCS, Argon2id, AES-GCM, and SQLite support, the project must determine the architectural relationship between the C and C++ implementations. Should C++ act as a wrapper around a shared C core, or should they evolve as completely independent implementations?
+Before introducing deeper dependencies like generic JCS, Argon2id, AES-GCM, and SQLite support, the project needed to determine the architectural relationship between the C and C++ implementations. The decision was whether C++ should act as a wrapper around a shared C core, or if they should evolve as completely independent implementations.
 
 ## Options Considered
 
@@ -41,18 +41,19 @@ In this model, the C and C++ implementations are entirely separate. C++ implemen
 A shared C library for low-level primitives (like specific cryptographic wrappers or JCS primitives), but independent C++ orchestration and higher-level database operations.
 
 ## Current Decision
-The decision remains `needs-decision`.
+**Option 2: Independent C and C++ implementations** has been accepted.
 
-## Near-Term Guidance
-- Continue developing independent C and C++ scaffold helpers for small validation boundaries.
-- Do not introduce cross-language coupling yet.
-- Revisit this decision before implementing JCS, Argon2id, AEAD, or SQLite support.
-- Deep native work should not proceed too far without resolving this architecture decision.
+C and C++ are intentionally independent native scaffold implementations. C++ is not planned as a wrapper around a common C core. Both implementations may use language-idiomatic internals: C may use explicit ownership, C structs, CMake, and C-style APIs internally, while C++ may use RAII, `std::string`, `std::vector`, `std::string_view`, and other idiomatic C++ abstractions.
+
+This independence does not mean behavioral divergence is allowed. Both implementations must conform to the same Storage Format V1 specification, shared test vectors, CI expectations, and documentation vocabulary. Any future divergence must be explicitly documented as a language-boundary difference, not accidental drift. This decision does not mean either implementation is production-ready, nor does it immediately start generic JCS, cryptography, or SQLite implementation work.
 
 ## Consequences
-- The scaffolds remain isolated and uncoupled.
-- Development of core Storage Format V1 capabilities (JCS, crypto, DB access) is blocked pending this decision.
-- Future refactoring may be required if work proceeds independently but the project later decides on a unified C core.
+- Duplicate implementation effort is accepted.
+- Independent implementations increase portability-validation value and language-native clarity over a single native core.
+- Shared vectors and cross-language tests become mandatory guardrails.
+- Documentation must distinguish implementation independence from conformance divergence.
+- C and C++ must continue to be tested separately.
+- Future differences must be explicitly documented as language-boundary decisions, not accidental drift.
 
 ## Revisit Triggers
 - When planning the generic JCS implementation.

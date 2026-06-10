@@ -72,6 +72,11 @@ The documentation has been refactored into focused modules.
 ### Implementation Notes
 - [`implementation-notes/implementation-gaps.md`](./implementation-notes/implementation-gaps.md): Known gaps between the canonical specifications and the current implementations, including implementation issue history.
 - [`implementation-notes/portability-findings.md`](./implementation-notes/portability-findings.md): Tracked issues discovered during the Go/Rust portability validation phase.
+- [`implementation-notes/api-parity-matrix.md`](./implementation-notes/api-parity-matrix.md): API parity matrix and known gaps.
+- [`implementation-notes/c-cpp-architecture-decision.md`](./implementation-notes/c-cpp-architecture-decision.md): Architecture decision for C and C++.
+- [`implementation-notes/c-cpp-native-conformance-roadmap.md`](./implementation-notes/c-cpp-native-conformance-roadmap.md): Roadmap for C/C++ native conformance.
+- [`implementation-notes/c-cpp-jcs-boundary.md`](./implementation-notes/c-cpp-jcs-boundary.md): JCS boundary decision for C/C++.
+- [`implementation-notes/c-cpp-content-type-boundary.md`](./implementation-notes/c-cpp-content-type-boundary.md): Content-type boundary decision for C/C++.
 
 ### Legacy
 - [`legacy/encrypted_storage_key_management_spec.md`](./legacy/encrypted_storage_key_management_spec.md): The original integrated draft specification (Archived for reference).
