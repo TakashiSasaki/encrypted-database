@@ -11,14 +11,15 @@ It does not currently implement any Storage Format V1 capabilities (e.g., crypto
 It is not yet decided whether this C++ implementation will eventually wrap a common C core layer or remain a completely separate C++ implementation.
 
 ## Future Milestones
-1. shared-vector parsing and deterministic test harness
-2. UUID/content-type/JCS boundary decisions
-3. AAD construction conformance
-4. Argon2id/AES-256-GCM dependency selection
-5. SQLite V1 read-only validation
-6. selected fixture decrypt
-7. writer scaffold
-8. read-only/write matrix integration
+1. UUID/content-type/JCS boundary decisions
+2. Argon2id/AES-256-GCM dependency selection
+3. SQLite V1 read-only validation
+4. selected fixture decrypt
+5. writer scaffold
+6. read-only/write matrix integration
+
+*Completed:*
+- shared-vector parsing and deterministic test harness (partial: AAD construction conformance)
 
 ## Testing
 

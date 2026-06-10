@@ -91,7 +91,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | C | C++ | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| Shared vector conformance | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | |
+| Shared vector conformance | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | C and C++ support AAD shared-vector conformance via scaffold helpers. |
 | Python ↔ Node roundtrip | implemented-public | implemented-public | out-of-scope | out-of-scope | out-of-scope | out-of-scope | out-of-scope | out-of-scope | `integration-tests/roundtrip/` |
 | Python writer outputs matrix | partial | missing | out-of-scope | out-of-scope | out-of-scope | out-of-scope | out-of-scope | out-of-scope | Python writer outputs are validated against Go/Rust/Zig/Python/Node.js readers. |
 | Node.js writer outputs matrix | missing | partial | out-of-scope | out-of-scope | out-of-scope | out-of-scope | out-of-scope | out-of-scope | Node.js writer outputs are validated against Go/Rust/Zig/Python/Node.js readers. |
