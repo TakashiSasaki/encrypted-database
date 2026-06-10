@@ -55,11 +55,71 @@ int main() {
         }
     }
 
+    std::cout << "Running AAD escaping regression tests...\n";
+
+    struct RegressionCase {
+        std::string name;
+        std::string obj_uuid;
+        std::string sch_uuid;
+        std::string ctype;
+        std::string kid;
+        std::string alg;
+        std::string expected_str;
+        std::string expected_hex;
+    };
+
+    RegressionCase regression_cases[] = {
+        {
+            "double-quote",
+            "u1", "s1", "application/example; note=\"x\"", "k1", "A256GCM",
+            "{\"aad_policy\":\"record-payload-v1\",\"alg\":\"A256GCM\",\"content_type\":\"application/example; note=\\\"x\\\"\",\"kid\":\"k1\",\"object_uuid\":\"u1\",\"schema_uuid\":\"s1\",\"v\":1}",
+            "7b226161645f706f6c696379223a227265636f72642d7061796c6f61642d7631222c22616c67223a224132353647434d222c22636f6e74656e745f74797065223a226170706c69636174696f6e2f6578616d706c653b206e6f74653d5c22785c22222c226b6964223a226b31222c226f626a6563745f75756964223a227531222c22736368656d615f75756964223a227331222c2276223a317d"
+        },
+        {
+            "backslash",
+            "u1", "s1", "domain\\user", "k1", "A256GCM",
+            "{\"aad_policy\":\"record-payload-v1\",\"alg\":\"A256GCM\",\"content_type\":\"domain\\\\user\",\"kid\":\"k1\",\"object_uuid\":\"u1\",\"schema_uuid\":\"s1\",\"v\":1}",
+            "7b226161645f706f6c696379223a227265636f72642d7061796c6f61642d7631222c22616c67223a224132353647434d222c22636f6e74656e745f74797065223a22646f6d61696e5c5c75736572222c226b6964223a226b31222c226f626a6563745f75756964223a227531222c22736368656d615f75756964223a227331222c2276223a317d"
+        },
+        {
+            "newline-tab",
+            "u1\n", "s1\t", "type", "k1", "A256GCM",
+            "{\"aad_policy\":\"record-payload-v1\",\"alg\":\"A256GCM\",\"content_type\":\"type\",\"kid\":\"k1\",\"object_uuid\":\"u1\\n\",\"schema_uuid\":\"s1\\t\",\"v\":1}",
+            "7b226161645f706f6c696379223a227265636f72642d7061796c6f61642d7631222c22616c67223a224132353647434d222c22636f6e74656e745f74797065223a2274797065222c226b6964223a226b31222c226f626a6563745f75756964223a2275315c6e222c22736368656d615f75756964223a2273315c74222c2276223a317d"
+        },
+        {
+            "control-char-01",
+            "u1", "s1", "t\x01y", "k1", "A256GCM",
+            "{\"aad_policy\":\"record-payload-v1\",\"alg\":\"A256GCM\",\"content_type\":\"t\\u0001y\",\"kid\":\"k1\",\"object_uuid\":\"u1\",\"schema_uuid\":\"s1\",\"v\":1}",
+            "7b226161645f706f6c696379223a227265636f72642d7061796c6f61642d7631222c22616c67223a224132353647434d222c22636f6e74656e745f74797065223a22745c753030303179222c226b6964223a226b31222c226f626a6563745f75756964223a227531222c22736368656d615f75756964223a227331222c2276223a317d"
+        }
+    };
+
+    for (const auto& rc : regression_cases) {
+        std::string actual_string = vault::aad::record_payload_v1(rc.obj_uuid, rc.sch_uuid, rc.ctype, rc.kid, rc.alg);
+
+        if (actual_string != rc.expected_str) {
+            std::cerr << "FAIL: String mismatch for regression '" << rc.name << "'\n"
+                      << "  Expected: " << rc.expected_str << "\n"
+                      << "  Actual  : " << actual_string << "\n";
+            failures++;
+            continue;
+        }
+
+        std::string actual_hex = to_hex(actual_string);
+        if (actual_hex != rc.expected_hex) {
+            std::cerr << "FAIL: Hex mismatch for regression '" << rc.name << "'\n"
+                      << "  Expected: " << rc.expected_hex << "\n"
+                      << "  Actual  : " << actual_hex << "\n";
+            failures++;
+        }
+    }
+
     if (failures == 0) {
-        std::cout << "All AAD vector tests passed.\n";
+        std::cout << "All AAD vector and regression tests passed.\n";
         return 0;
     } else {
-        std::cerr << failures << " AAD vector test(s) failed.\n";
+        std::cerr << failures << " test(s) failed.\n";
         return 1;
     }
 }
