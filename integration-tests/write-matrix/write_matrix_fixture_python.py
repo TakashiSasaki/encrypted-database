@@ -1,7 +1,6 @@
 import sys
 import os
 import json
-import sqlite3
 
 # Add python source to path so we can import encrypted_storage without installation if needed,
 # though pip install -e .[test] is expected.
@@ -30,6 +29,10 @@ def main():
     mode = "update_delete"
     if len(sys.argv) >= 9:
         mode = sys.argv[8]
+
+    if mode not in ["update_only", "update_delete"]:
+        print(f"Error: Invalid mode '{mode}'. Allowed modes are 'update_only' and 'update_delete'.", file=sys.stderr)
+        sys.exit(1)
 
     # V1 Writers from python/node ignore VAULT_SCHEMA_SQL_PATH normally, so we don't read it here.
 
