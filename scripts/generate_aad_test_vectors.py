@@ -5,7 +5,9 @@ import os
 def escape_c_string(s):
     if s is None:
         return '""'
-    return '"' + s.replace('\\', '\\\\').replace('"', '\\"') + '"'
+    # Need to escape newlines as well so it's valid C string syntax
+    s = s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
+    return '"' + s + '"'
 
 def generate_header(json_path, out_path):
     with open(json_path, 'r', encoding='utf-8') as f:
