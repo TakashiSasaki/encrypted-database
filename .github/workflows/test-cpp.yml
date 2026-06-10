@@ -6,20 +6,26 @@ on:
     paths:
       - "cpp/**"
       - ".github/workflows/test-cpp.yml"
+      - "README.md"
+      - "AGENTS.md"
       - "docs/spec/**"
+      - "docs/implementation-notes/**"
   pull_request:
     branches: [ vault.moukaeritai.work ]
     paths:
       - "cpp/**"
       - ".github/workflows/test-cpp.yml"
+      - "README.md"
+      - "AGENTS.md"
       - "docs/spec/**"
+      - "docs/implementation-notes/**"
 
 jobs:
   test-cpp:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Run C++ Tests
         run: |
