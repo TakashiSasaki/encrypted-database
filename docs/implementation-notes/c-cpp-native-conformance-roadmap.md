@@ -8,16 +8,39 @@ The immediate goal is to incrementally establish a native testing boundary and v
 
 ## Roadmap Stages
 
-1. **Bootstrap build/test scaffold** — done
-2. **AAD shared-vector conformance** — partial/done (AAD construction conformance and internal escaping implemented)
-3. **UUID syntax validation scaffold** — done (Internal conformance helpers implemented)
-4. **Content-type boundary decision** — done (Internal boundary validation scaffold implemented)
-5. **KDF dependency decision for Argon2id** — future
-6. **AEAD dependency decision for AES-256-GCM** — future
-7. **Key-wrap vector conformance** — future
-8. **Payload encryption vector conformance** — future
-9. **SQLite read-only fixture validation** — future
-10. **Writer scaffold** — future
-11. **Matrix integration** — future
+### Completed
+- **Bootstrap build/test scaffold**
+- **AAD shared-vector conformance**
+- **AAD JSON escaping regression coverage**
+- **UUID syntax validation scaffold**
+- **Content-type boundary validation scaffold**
+
+### Near-term
+- **Documentation consistency cleanup**
+- **C/C++ architecture decision**
+- **JCS dependency and implementation decision**
+
+### Future
+- **Generic JCS implementation**
+- **Argon2id dependency decision**
+- **Argon2id vector conformance**
+- **AES-256-GCM dependency decision**
+- **AEAD vector conformance**
+- **Key-wrap vector conformance**
+- **Payload encryption vector conformance**
+- **SQLite read-only fixture validation**
+- **Read-only decrypt scaffold**
+- **Writer scaffold**
+- **Matrix integration**
+- **Production public API decision**
+
+## Next: JCS dependency and implementation decision
+
+Before proceeding to implement generic JCS, the project must decide:
+- dependency-free internal implementation vs third-party library
+- RFC 8785 coverage boundary
+- shared JCS vector test strategy
+- whether C and C++ share behavior or remain independent
+- how this interacts with the unresolved C/C++ architecture decision
 
 *Note: This roadmap is intended for planning purposes only and does not imply that cryptographic or SQLite implementation work has commenced.*
