@@ -11,6 +11,7 @@ on:
       - "docs/spec/**"
       - "docs/implementation-notes/**"
       - "test-vectors/aad/**"
+      - "scripts/generate_aad_test_vectors.py"
   pull_request:
     branches: [ vault.moukaeritai.work ]
     paths:
@@ -21,6 +22,7 @@ on:
       - "docs/spec/**"
       - "docs/implementation-notes/**"
       - "test-vectors/aad/**"
+      - "scripts/generate_aad_test_vectors.py"
 
 jobs:
   test-cpp:
