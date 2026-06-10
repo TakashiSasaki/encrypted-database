@@ -21,7 +21,7 @@ add_custom_command(
 add_custom_target(generate_aad_vectors DEPENDS ${GENERATED_AAD_HEADER})
 
 # Library
-add_library(vault_c_lib src/vault.c src/vault_aad.c)
+add_library(vault_c_lib src/vault.c src/vault_aad.c src/vault_uuid.c)
 
 # CLI Executable
 add_executable(vault_c_smoke src/main.c)
@@ -38,5 +38,10 @@ target_include_directories(test_aad PRIVATE src ${CMAKE_BINARY_DIR})
 target_link_libraries(test_aad PRIVATE vault_c_lib)
 add_dependencies(test_aad generate_aad_vectors)
 add_test(NAME test_aad COMMAND test_aad)
+
+add_executable(test_uuid tests/test_uuid.c)
+target_include_directories(test_uuid PRIVATE src)
+target_link_libraries(test_uuid PRIVATE vault_c_lib)
+add_test(NAME test_uuid COMMAND test_uuid)
 
 add_test(NAME test_vault_c_smoke COMMAND ${CMAKE_COMMAND} -DEXECUTABLE=$<TARGET_FILE:vault_c_smoke> "-DEXPECTED_OUTPUT=vault c smoke test ok\n" -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_smoke.cmake)
