@@ -19,5 +19,4 @@ add_executable(test_vault tests/test_vault.cpp)
 target_link_libraries(test_vault PRIVATE vault_cpp_lib)
 add_test(NAME test_vault COMMAND test_vault)
 
-add_test(NAME test_vault_cpp_smoke COMMAND vault_cpp_smoke)
-set_tests_properties(test_vault_cpp_smoke PROPERTIES PASS_REGULAR_EXPRESSION "vault cpp smoke test ok")
+add_test(NAME test_vault_cpp_smoke COMMAND ${CMAKE_COMMAND} -DEXECUTABLE=$<TARGET_FILE:vault_cpp_smoke> "-DEXPECTED_OUTPUT=vault cpp smoke test ok\n" -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_smoke.cmake)
