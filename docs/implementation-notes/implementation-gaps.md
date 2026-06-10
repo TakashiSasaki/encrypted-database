@@ -277,7 +277,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Active
 **Area:** Implementation / Portability
-**Current state:** C and C++ are bootstrap/native conformance scaffolds with smoke tests, AAD shared-vector conformance, internal UUID syntax validation, and internal content-type boundary validation. They do not implement Storage Format V1 cryptography, SQLite reader/writer support, production public APIs, or matrix integration.
+**Current state:** C and C++ are bootstrap/native conformance scaffolds with smoke tests, partial AAD shared-vector conformance, internal JSON escaping for AAD construction, a limited internal generated-AST JCS basic-vector serializer scaffold, internal UUID syntax validation, and internal content-type boundary validation. They do not implement Storage Format V1 cryptography, SQLite reader/writer support, production public APIs, or matrix integration.
 **Expected or intended state:** Expand C and C++ to eventually participate in portability validation and potentially become full implementations.
 **Why it matters:** Ensures the repository correctly supports foundational native languages.
 **Recommended next action:** Future work should decide (`needs-decision`) whether C is the low-level core and C++ wraps it, or whether C and C++ are independent portability-validation implementations. Then proceed with generic JCS implementation and further cryptographic test vector integration.

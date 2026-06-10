@@ -10,15 +10,16 @@ The immediate goal is to incrementally establish a native testing boundary and v
 
 ### Completed
 - **Bootstrap build/test scaffold**
-- **AAD shared-vector conformance**
-- **AAD JSON escaping regression coverage**
-- **UUID syntax validation scaffold**
-- **Content-type boundary validation scaffold**
+- **Partial AAD shared-vector conformance**
+- **Internal JSON escaping for AAD construction**
+- **Internal UUID syntax validation scaffold**
+- **Internal content-type boundary validation scaffold**
+- **Documentation consistency cleanup**
+- **JCS scaffold boundary decision**
+- **Limited generated-AST JCS basic-vector serializer scaffold**
 
 ### Near-term
-- **Documentation consistency cleanup**
 - **C/C++ architecture decision**
-- **JCS dependency and implementation decision**
 
 ### Future
 - **Generic JCS implementation**
@@ -34,12 +35,11 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **Matrix integration**
 - **Production public API decision**
 
-## Next: JCS dependency and implementation decision
+## Next: Generic JCS implementation
 
 Before proceeding to implement generic JCS, the project must decide:
 - dependency-free internal implementation vs third-party library
-- RFC 8785 coverage boundary
-- shared JCS vector test strategy
+- RFC 8785 coverage boundary beyond basic vectors
 - whether C and C++ share behavior or remain independent
 - how this interacts with the unresolved C/C++ architecture decision
 

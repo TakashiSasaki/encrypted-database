@@ -5,7 +5,7 @@ This directory contains the initial C++ bootstrap scaffold for the Encrypted Dat
 ## Status
 
 **This is strictly a bootstrap scaffold. It is not a production storage library.**
-It does not currently implement Storage Format V1 cryptography, SQLite V1 reading/writing, Argon2id, generic JCS, or matrix integration. It provides partial AAD shared-vector conformance, internal JSON escaping for AAD construction, internal UUID syntax validation, and internal content-type boundary validation through internal scaffold helpers. Public API parity is not yet promised.
+It does not currently implement Storage Format V1 cryptography, SQLite V1 reading/writing, Argon2id, generic JCS, or matrix integration. It provides partial AAD shared-vector conformance, internal JSON escaping for AAD construction, an internal generated-AST JCS basic-vector serializer scaffold, internal UUID syntax validation, and internal content-type boundary validation through internal scaffold helpers. Public API parity is not yet promised.
 
 **Architecture Status:** `needs-decision`
 It is not yet decided whether this C++ implementation will eventually wrap a common C core layer or remain a completely separate C++ implementation.
@@ -16,8 +16,9 @@ For a detailed breakdown of planned future steps, see the [C/C++ Native Conforma
 
 - Bootstrap build/test scaffold with CMake
 - Smoke CLI and library entrypoints
-- AAD shared-vector conformance harness
-- Internal JSON string escaping for AAD construction
+- Partial AAD shared-vector conformance
+- Internal JSON escaping for AAD construction
+- Limited internal generated-AST JCS basic-vector serializer scaffold
 - Internal UUID syntax validation scaffold
 - Internal content-type boundary validation scaffold
 
