@@ -5,9 +5,32 @@ import os
 def escape_c_string(s):
     if s is None:
         return '""'
-    # Need to escape newlines as well so it's valid C string syntax
-    s = s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
-    return '"' + s + '"'
+    if '\0' in s:
+        raise ValueError("Embedded NUL characters are not supported in the C/C++ AAD test harness generator.")
+
+    out = []
+    for char in s:
+        if char == '"':
+            out.append('\\"')
+        elif char == '\\':
+            out.append('\\\\')
+        elif char == '\n':
+            out.append('\\n')
+        elif char == '\r':
+            out.append('\\r')
+        elif char == '\t':
+            out.append('\\t')
+        elif char == '\b':
+            out.append('\\b')
+        elif char == '\f':
+            out.append('\\f')
+        elif ord(char) < 0x20:
+            # Use 3-digit octal escape to avoid ambiguity with trailing hex chars
+            out.append(f'\\{ord(char):03o}')
+        else:
+            out.append(char)
+
+    return '"' + "".join(out) + '"'
 
 def generate_header(json_path, out_path):
     with open(json_path, 'r', encoding='utf-8') as f:

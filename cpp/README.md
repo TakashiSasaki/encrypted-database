@@ -5,7 +5,7 @@ This directory contains the initial C++ bootstrap scaffold for the Encrypted Dat
 ## Status
 
 **This is strictly a bootstrap scaffold. It is not a production storage library.**
-It does not currently implement any Storage Format V1 capabilities (e.g., cryptography, SQLite V1 reading/writing, Argon2id, JCS, AAD, or matrix integration). Public API parity is not yet promised.
+It does not currently implement Storage Format V1 cryptography, SQLite V1 reading/writing, Argon2id, generic JCS, or matrix integration. It provides partial AAD shared-vector conformance through internal scaffold helpers. Public API parity is not yet promised.
 
 **Architecture Status:** `needs-decision`
 It is not yet decided whether this C++ implementation will eventually wrap a common C core layer or remain a completely separate C++ implementation.

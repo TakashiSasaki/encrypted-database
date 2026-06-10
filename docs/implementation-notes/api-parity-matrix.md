@@ -120,7 +120,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 - **Python / Node.js**: Baseline implementations. Lifecycle, store, retrieve, update, and delete APIs are exposed publicly.
 - **browser-test**: Test-harness implementation with payload operation parity. Does not represent full real-browser WebCrypto runtime coverage (it relies on sql.js and a Node `crypto` shim, not browser `crypto.subtle`).
 - **Go / Rust**: Portability validation and writer scaffolds. Useful for Storage Format V1 Stable verification; not full production storage libraries.
-- **C / C++**: Bootstrap scaffolds only. They currently provide only smoke-testable CLI/library entrypoints. They do not implement Storage Format V1 capabilities. C++ architecture relative to C remains `needs-decision`.
+- **C / C++**: Bootstrap scaffolds only. They currently provide smoke-testable CLI/library entrypoints and partial AAD shared-vector conformance through internal scaffold helpers. They do not implement Storage Format V1 cryptography, SQLite read/write support, or production public APIs. C++ architecture relative to C remains `needs-decision`.
 
 ## Known gaps
 
