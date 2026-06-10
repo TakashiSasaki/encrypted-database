@@ -10,6 +10,7 @@ on:
       - "AGENTS.md"
       - "docs/spec/**"
       - "docs/implementation-notes/**"
+      - "test-vectors/aad/**"
   pull_request:
     branches: [ vault.moukaeritai.work ]
     paths:
@@ -19,6 +20,7 @@ on:
       - "AGENTS.md"
       - "docs/spec/**"
       - "docs/implementation-notes/**"
+      - "test-vectors/aad/**"
 
 jobs:
   test-c:
