@@ -62,10 +62,10 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Active
 **Area:** Interoperability
-**Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js. Go/Rust now have substantial portability-validation coverage, SQLite V1 read-only metadata validators, initial read-only unlock/decrypt readers, and initial writer scaffolds that support database creation, payload insert, payload update, and payload delete. A local/manual write-matrix harness exists and validates update outputs across Go/Rust/Python/Node readers and delete NotFound behavior in Go/Rust readers. Write-matrix now has local/manual harness coverage, manual `workflow_dispatch`, and path-filtered automatic `pull_request` / `push` CI for relevant code/schema/spec/harness/doc changes. Python and Node.js writers are not yet included in the write-matrix.
-**Expected or intended state:** Write-matrix coverage is reliably exercised and monitored in CI for relevant changes, and eventually expanded to full production-grade roundtrip coverage across Python, Node.js, Go, Rust, and browser export/import paths.
+**Current state:** Semantic SQLite roundtrip tests exist between Python and Node.js. Go/Rust now have substantial portability-validation coverage, SQLite V1 read-only metadata validators, initial read-only unlock/decrypt readers, and initial writer scaffolds that support database creation, payload insert, payload update, and payload delete. A local/manual write-matrix harness exists and validates update outputs across Go/Rust/Python/Node readers and delete NotFound behavior in Go/Rust readers. Write-matrix now has local/manual harness coverage, manual `workflow_dispatch`, and path-filtered automatic `pull_request` / `push` CI for relevant code/schema/spec/harness/doc changes. Python and Node.js writer-generated databases are now included in write-matrix coverage.
+**Expected or intended state:** Write-matrix coverage is reliably exercised and monitored in CI for relevant changes, and eventually expanded to full production-grade roundtrip coverage across Python, Node.js, Go, Rust, Zig, and browser export/import paths.
 **Why it matters:** To guarantee true V1 interoperability.
-**Recommended next action:** Monitor the path-filtered Write Matrix CI (and manual workflow) for update/delete scenarios. Extend write-matrix interoperability coverage to include Python/Node.js writer outputs against all readers.
+**Recommended next action:** Monitor the path-filtered Write Matrix CI (and manual workflow) for update/delete scenarios. Expand to include browser interoperability tests.
 
 ### JWE/JOSE compatibility is not implemented
 
@@ -230,10 +230,10 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 **Status:** Partially Resolved
 **Area:** Cryptography / Interoperability
-**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and are executed by the GitHub Actions integration workflow. A read-only matrix harness also exists (`integration-tests/read-only-matrix`) for verifying Python and Node-generated DBs against Go and Rust readers. This workflow runs automatically on path-filtered `pull_request` and `push` events. A `integration-tests/write-matrix` harness exists and validates that Go/Rust initial writer scaffolds successfully produce databases fully readable by Go, Rust, Python, and Node.js readers. Write-matrix runs automatically on path-filtered `pull_request` and `push` events. Python/Node writers are not yet included in the write-matrix. Browser DB export/import interoperability remains future work.
+**Current state:** Fully automated Python ↔ Node.js roundtrip integration tests exist in `integration-tests/roundtrip` and are executed by the GitHub Actions integration workflow. A read-only matrix harness also exists (`integration-tests/read-only-matrix`) for verifying Python and Node-generated DBs against Go and Rust readers. This workflow runs automatically on path-filtered `pull_request` and `push` events. A `integration-tests/write-matrix` harness exists and validates that Go/Rust initial writer scaffolds successfully produce databases fully readable by Go, Rust, Python, and Node.js readers. Write-matrix runs automatically on path-filtered `pull_request` and `push` events. Python/Node writer outputs are now included in the write-matrix. Browser DB export/import interoperability remains future work.
 **Expected or intended state:** Automated tests ensuring DB files created in one platform can be successfully read and decrypted in another, including integrating Python/Node.js writer outputs against all readers in the write-matrix.
 **Why it matters:** Interoperability is the core value proposition of the library.
-**Recommended next action:** Extend write-matrix interoperability coverage to include Python/Node.js writer outputs against all readers. Expand to include browser interoperability tests.
+**Recommended next action:** Expand to include browser interoperability tests.
 
 ### Coverage badge publication
 

@@ -71,7 +71,6 @@ Zig currently has a generalized read-only reader scaffold and writer scaffold wi
 - rewrap
 - additional unlock providers
 - blind index
-- Python/Node.js writer outputs in write-matrix
 - browser export/import matrix coverage
 - Go/Wasm full SQLite-backed support
 

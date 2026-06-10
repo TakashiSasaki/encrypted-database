@@ -9,7 +9,8 @@ CONTENT_TYPE="application/json"
 PAYLOAD_A_JSON='{"secret":"matrix-test","value":42}'
 PAYLOAD_B_JSON='{"secret":"matrix-test-updated","value":99}'
 DB_GO="$DIR/go_writer.db"; DB_RUST="$DIR/rust_writer.db"; DB_ZIG="$DIR/zig_writer.db"
-trap 'rm -f "$DB_GO" "$DB_RUST" "$DB_ZIG" "$DB_GO"-wal "$DB_GO"-shm "$DB_RUST"-wal "$DB_RUST"-shm "$DB_ZIG"-wal "$DB_ZIG"-shm "$DIR/go_write_matrix" "$DIR/rust_write_matrix" "$DIR/zig_write_matrix"' EXIT
+DB_PYTHON="$DIR/python_writer.db"; DB_NODE="$DIR/node_writer.db"
+trap 'rm -f "$DB_GO" "$DB_RUST" "$DB_ZIG" "$DB_PYTHON" "$DB_NODE" "$DB_GO"-wal "$DB_GO"-shm "$DB_RUST"-wal "$DB_RUST"-shm "$DB_ZIG"-wal "$DB_ZIG"-shm "$DB_PYTHON"-wal "$DB_PYTHON"-shm "$DB_NODE"-wal "$DB_NODE"-shm "$DIR/go_write_matrix" "$DIR/rust_write_matrix" "$DIR/zig_write_matrix"' EXIT
 
 (cd "$ROOT_DIR/go" && go build -o "$DIR/go_write_matrix" ./cmd/write_matrix_fixture)
 (cd "$ROOT_DIR/rust" && cargo build --bin write_matrix_fixture)
@@ -103,6 +104,16 @@ run_updated_payload_check Zig Rust "$DB_ZIG" "$DIR/zig_write_matrix" "write-matr
 run_updated_payload_check Zig Python "$DB_ZIG" "$DIR/zig_write_matrix" "write-matrix"
 run_updated_payload_check Zig Node "$DB_ZIG" "$DIR/zig_write_matrix" "write-matrix"
 run_updated_payload_check Zig Zig "$DB_ZIG" "$DIR/zig_write_matrix" "write-matrix"
+run_updated_payload_check Python Go "$DB_PYTHON" "python3" "$DIR/write_matrix_fixture_python.py"
+run_updated_payload_check Python Rust "$DB_PYTHON" "python3" "$DIR/write_matrix_fixture_python.py"
+run_updated_payload_check Python Python "$DB_PYTHON" "python3" "$DIR/write_matrix_fixture_python.py"
+run_updated_payload_check Python Node "$DB_PYTHON" "python3" "$DIR/write_matrix_fixture_python.py"
+run_updated_payload_check Python Zig "$DB_PYTHON" "python3" "$DIR/write_matrix_fixture_python.py"
+run_updated_payload_check Node Go "$DB_NODE" "node" "$DIR/write_matrix_fixture_node.js"
+run_updated_payload_check Node Rust "$DB_NODE" "node" "$DIR/write_matrix_fixture_node.js"
+run_updated_payload_check Node Python "$DB_NODE" "node" "$DIR/write_matrix_fixture_node.js"
+run_updated_payload_check Node Node "$DB_NODE" "node" "$DIR/write_matrix_fixture_node.js"
+run_updated_payload_check Node Zig "$DB_NODE" "node" "$DIR/write_matrix_fixture_node.js"
 
 # delete-notfound checks (all readers)
 run_delete_notfound_check Go Go "$DB_GO" "$DIR/go_write_matrix"
@@ -118,3 +129,13 @@ run_delete_notfound_check Zig Rust "$DB_ZIG" "$DIR/zig_write_matrix" "write-matr
 run_delete_notfound_check Zig Python "$DB_ZIG" "$DIR/zig_write_matrix" "write-matrix"
 run_delete_notfound_check Zig Node "$DB_ZIG" "$DIR/zig_write_matrix" "write-matrix"
 run_delete_notfound_check Zig Zig "$DB_ZIG" "$DIR/zig_write_matrix" "write-matrix"
+run_delete_notfound_check Python Go "$DB_PYTHON" "python3" "$DIR/write_matrix_fixture_python.py"
+run_delete_notfound_check Python Rust "$DB_PYTHON" "python3" "$DIR/write_matrix_fixture_python.py"
+run_delete_notfound_check Python Python "$DB_PYTHON" "python3" "$DIR/write_matrix_fixture_python.py"
+run_delete_notfound_check Python Node "$DB_PYTHON" "python3" "$DIR/write_matrix_fixture_python.py"
+run_delete_notfound_check Python Zig "$DB_PYTHON" "python3" "$DIR/write_matrix_fixture_python.py"
+run_delete_notfound_check Node Go "$DB_NODE" "node" "$DIR/write_matrix_fixture_node.js"
+run_delete_notfound_check Node Rust "$DB_NODE" "node" "$DIR/write_matrix_fixture_node.js"
+run_delete_notfound_check Node Python "$DB_NODE" "node" "$DIR/write_matrix_fixture_node.js"
+run_delete_notfound_check Node Node "$DB_NODE" "node" "$DIR/write_matrix_fixture_node.js"
+run_delete_notfound_check Node Zig "$DB_NODE" "node" "$DIR/write_matrix_fixture_node.js"
