@@ -5,18 +5,30 @@ This directory contains the initial C bootstrap scaffold for the Encrypted Datab
 ## Status
 
 **This is strictly a bootstrap scaffold. It is not a production storage library.**
-It does not currently implement Storage Format V1 cryptography, SQLite V1 reading/writing, Argon2id, generic JCS, or matrix integration. It provides partial AAD shared-vector conformance through internal scaffold helpers. Public API parity is not yet promised.
+It does not currently implement Storage Format V1 cryptography, SQLite V1 reading/writing, Argon2id, generic JCS, or matrix integration. It provides partial AAD shared-vector conformance and internal UUID syntax validation through internal scaffold helpers. Public API parity is not yet promised.
 
-## Future Milestones
-1. UUID/content-type/JCS boundary decisions
-2. Argon2id/AES-256-GCM dependency selection
-3. SQLite V1 read-only validation
-4. selected fixture decrypt
-5. writer scaffold
-6. read-only/write matrix integration
+For a detailed breakdown of planned future steps, see the [C/C++ Native Conformance Roadmap](../docs/implementation-notes/c-cpp-native-conformance-roadmap.md).
 
-*Completed:*
-- shared-vector parsing and deterministic test harness (partial: AAD construction conformance)
+## Completed
+
+- Bootstrap build/test scaffold with CMake
+- Smoke CLI and library entrypoints
+- AAD shared-vector conformance harness
+- Internal JSON string escaping for AAD construction
+- Internal UUID syntax validation scaffold
+
+## Missing
+
+- Generic JCS implementation
+- Argon2id
+- AES-256-GCM
+- Key-wrap cryptography
+- Payload encryption
+- SQLite V1 read-only validation
+- SQLite writing
+- Read-only matrix
+- Write-matrix
+- Production public API
 
 ## Testing
 
