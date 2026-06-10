@@ -1,4 +1,3 @@
-const path = require('path');
 const fs = require('fs');
 
 let EncryptedStorage;
@@ -32,6 +31,11 @@ async function main() {
     let mode = "update_delete";
     if (process.argv.length >= 10) {
         mode = process.argv[9];
+    }
+
+    if (mode !== "update_only" && mode !== "update_delete") {
+        console.error(`Error: Invalid mode '${mode}'. Allowed modes are 'update_only' and 'update_delete'.`);
+        process.exit(1);
     }
 
     // V1 Writers from python/node ignore VAULT_SCHEMA_SQL_PATH normally.
