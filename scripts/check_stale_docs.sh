@@ -96,6 +96,26 @@ check_phrase "Storage Format V1 stability means the whole library is production-
 check_phrase "Zig is a Storage Format V1 implementation" "Stale claim: Zig is currently just a smoke test component"
 check_phrase "Zig is a full production storage library" "Stale claim: Zig is currently just a smoke test component"
 
+# 17. Stale claims about C/C++ architecture (excluding the decision doc itself)
+check_phrase_file() {
+    local pattern="$1"
+    local desc="$2"
+    local file="$3"
+    local matches=$(grep -nEi "$pattern" "$file" 2>/dev/null || true)
+    if [ -n "$matches" ]; then
+        echo "❌ Found stale phrase in $file: $desc (pattern: '$pattern')"
+        echo "$matches"
+        FOUND_STALE=1
+    fi
+}
+
+check_phrase_file "needs-decision" "Stale claim: C/C++ architecture is now decided" "cpp/README.md"
+check_phrase_file "whether this C\+\+ implementation will eventually wrap a common C core" "Stale claim: C/C++ are independent" "cpp/README.md"
+check_phrase_file "It remains needs-decision whether C\+\+ will wrap a shared C core or be fully independent" "Stale claim: C/C++ are independent" "docs/spec/storage-format-v1-portability.md"
+check_phrase_file "C\+\+ architecture relative to C remains \`needs-decision\`" "Stale claim: C/C++ are independent" "docs/implementation-notes/api-parity-matrix.md"
+check_phrase_file "whether C is the low-level core and C\+\+ wraps it" "Stale claim: C/C++ are independent" "docs/implementation-notes/implementation-gaps.md"
+check_phrase_file "Architecture relative to C is \`needs-decision\`" "Stale claim: C/C++ are independent" "AGENTS.md"
+
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
     exit 1

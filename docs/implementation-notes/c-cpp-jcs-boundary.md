@@ -13,7 +13,7 @@ We have decided:
 - C/C++ will not expose public JCS APIs in this stride.
 - C/C++ will add a limited internal shared-vector scaffold using generated AST fixtures from `test-vectors/jcs/rfc8785-basic.json`.
 
-This scaffold validates canonical serialization behavior for the current basic shared vectors. It is not a full RFC 8785 implementation, and it does not imply production public API parity. It does not resolve the C/C++ architecture decision, and it must be revisited before Argon2id, AEAD, SQLite, or public API work.
+This scaffold validates canonical serialization behavior for the current basic shared vectors. It is not a full RFC 8785 implementation, and it does not imply production public API parity. The JCS scaffold is implemented independently in C and C++. The generated-AST fixture model is an internal test harness contract, not a shared runtime implementation. Current object key sorting is sufficient for current basic vectors but does not constitute full RFC 8785 production coverage. This must be revisited before Argon2id, AEAD, SQLite, or public API work.
 
 ## Coverage Boundary
 
