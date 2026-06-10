@@ -1,6 +1,8 @@
 #ifndef VAULT_CONTENT_TYPE_INTERNAL_H
 #define VAULT_CONTENT_TYPE_INTERNAL_H
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -14,10 +16,11 @@ extern "C" {
  * - exactly one '/' character.
  * - non-empty parts before and after the '/'.
  * - absence of ASCII control characters (0x00 - 0x1F) and DEL (0x7F).
+ * - explicit length check to reject embedded NUL bytes.
  *
  * Returns 1 if valid, 0 if invalid. NULL input returns 0.
  */
-int vault_is_valid_content_type(const char* content_type);
+int vault_is_valid_content_type(const char* content_type, size_t len);
 
 #ifdef __cplusplus
 }

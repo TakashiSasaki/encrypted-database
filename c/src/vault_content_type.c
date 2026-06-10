@@ -1,12 +1,12 @@
 #include "vault_content_type_internal.h"
 #include <stddef.h>
 
-int vault_is_valid_content_type(const char* content_type) {
+int vault_is_valid_content_type(const char* content_type, size_t len) {
     if (content_type == NULL) {
         return 0;
     }
 
-    if (content_type[0] == '\0') {
+    if (len == 0) {
         return 0;
     }
 
@@ -14,7 +14,7 @@ int vault_is_valid_content_type(const char* content_type) {
     int pre_slash_len = 0;
     int post_slash_len = 0;
 
-    for (int i = 0; content_type[i] != '\0'; ++i) {
+    for (size_t i = 0; i < len; ++i) {
         unsigned char c = (unsigned char)content_type[i];
 
         // Reject control characters 0x00 - 0x1F and 0x7F
