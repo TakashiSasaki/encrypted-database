@@ -56,7 +56,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | C | C++ | Notes |
 |---|---|---|---|---|---|---|---|---|---|
 | UUID validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | Strict UUID policy. C/C++ have internal helpers. |
-| JCS canonicalization | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | Payload validation boundary. |
+| JCS canonicalization | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | C/C++ have an internal generated-AST JCS basic-vector serializer scaffold only; no JSON parser, full RFC 8785 implementation, or public JCS API. |
 | provider config validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | JCS strictness. |
 | metadata table validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | `storage_metadata_tbl` initialization. |
 | SQLite profile validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | `PRAGMA application_id` handling. |
@@ -121,7 +121,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 - **Python / Node.js**: Baseline implementations. Lifecycle, store, retrieve, update, and delete APIs are exposed publicly.
 - **browser-test**: Test-harness implementation with payload operation parity. Does not represent full real-browser WebCrypto runtime coverage (it relies on sql.js and a Node `crypto` shim, not browser `crypto.subtle`).
 - **Go / Rust**: Portability validation and writer scaffolds. Useful for Storage Format V1 Stable verification; not full production storage libraries.
-- **C / C++**: Bootstrap scaffolds only. They currently provide smoke-testable CLI/library entrypoints, partial AAD shared-vector conformance, and internal UUID syntax validation through internal scaffold helpers. They do not implement Storage Format V1 cryptography, SQLite read/write support, or production public APIs. C++ architecture relative to C remains `needs-decision`.
+- **C / C++**: Bootstrap scaffolds only. They currently provide smoke-testable CLI/library entrypoints, partial AAD shared-vector conformance, internal JSON escaping for AAD construction, an internal generated-AST JCS basic-vector serializer scaffold, internal UUID syntax validation, and internal content-type boundary validation. They do not implement Storage Format V1 cryptography, SQLite read/write support, or production public APIs. C++ architecture relative to C remains `needs-decision`.
 
 ## Known gaps
 
