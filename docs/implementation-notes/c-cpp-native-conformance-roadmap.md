@@ -11,7 +11,7 @@ The immediate goal is to incrementally establish a native testing boundary and v
 1. **Bootstrap build/test scaffold** — done
 2. **AAD shared-vector conformance** — partial/done (AAD construction conformance and internal escaping implemented)
 3. **UUID syntax validation scaffold** — done (Internal conformance helpers implemented)
-4. **Content-type boundary decision** — future
+4. **Content-type boundary decision** — done (Internal boundary validation scaffold implemented)
 5. **KDF dependency decision for Argon2id** — future
 6. **AEAD dependency decision for AES-256-GCM** — future
 7. **Key-wrap vector conformance** — future

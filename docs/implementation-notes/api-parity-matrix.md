@@ -45,8 +45,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 | retrieve / read | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | Go/Rust retrieval is via read-only reader API. Zig has a generalized read-only scaffold CLI. |
 | update / modify | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | Go/Rust/Zig update is an `implemented-scaffold` for writers. |
 | delete / remove | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | Go/Rust/Zig delete is an `implemented-scaffold` for writers. |
-| object UUID handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | Preservation on update. |
-| content type handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | Zig carries these through read result. |
+| object UUID handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | Preservation on update. C/C++ have internal format validation helpers. |
+| content type handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | Zig carries these through read result. C/C++ have internal format validation helpers. |
 | metadata handling | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | `schema_uuid` / `content_type` support. Zig carries these through read result. |
 | payload listing | missing | missing | missing | missing | missing | missing | missing | missing | Currently no API to list payloads. |
 | payload existence checks | missing | missing | missing | missing | missing | missing | missing | missing | Must read to check existence. |
@@ -55,7 +55,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | C | C++ | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| UUID validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | Strict UUID policy |
+| UUID validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | Strict UUID policy. C/C++ have internal helpers. |
 | JCS canonicalization | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | Payload validation boundary. |
 | provider config validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | JCS strictness. |
 | metadata table validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | `storage_metadata_tbl` initialization. |
