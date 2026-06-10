@@ -93,8 +93,8 @@ The following controlled vocabulary is strictly used to classify API implementat
 |---|---|---|---|---|---|---|---|
 | Shared vector conformance | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | |
 | Python ↔ Node roundtrip | implemented-public | implemented-public | out-of-scope | out-of-scope | out-of-scope | out-of-scope | `integration-tests/roundtrip/` |
-| Python writer outputs matrix | partial | missing | out-of-scope | out-of-scope | out-of-scope | out-of-scope | Python public writer APIs exist, but Python writer outputs are not included in write-matrix coverage. |
-| Node.js writer outputs matrix | missing | partial | out-of-scope | out-of-scope | out-of-scope | out-of-scope | Node.js public writer APIs exist, but Node.js writer outputs are not included in write-matrix coverage. |
+| Python writer outputs matrix | partial | missing | out-of-scope | out-of-scope | out-of-scope | out-of-scope | Python writer outputs are validated against Go/Rust/Zig/Python/Node.js readers. |
+| Node.js writer outputs matrix | missing | partial | out-of-scope | out-of-scope | out-of-scope | out-of-scope | Node.js writer outputs are validated against Go/Rust/Zig/Python/Node.js readers. |
 | browser-test parity coverage | out-of-scope | out-of-scope | implemented-test-harness | out-of-scope | out-of-scope | out-of-scope | Does not cover export/import matrix yet. |
 | Go/Rust read-only matrix | partial | partial | out-of-scope | implemented-scaffold | implemented-scaffold | partial | Py/Node fixtures read by Go/Rust/Zig. Zig support provides read-only CLI and fixture coverage. |
 | Go/Rust/Zig write-matrix | missing | missing | out-of-scope | implemented-scaffold | implemented-scaffold | implemented-scaffold | Go/Rust/Zig/Python/Node writer outputs are validated against Go/Rust/Zig/Python/Node readers. This improves Storage Format V1 interoperability validation. |
@@ -124,7 +124,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 ## Known gaps
 
 1. Go/Rust status as scaffolds means API stability/compatibility promises are intentionally limited. Go/Wasm remains an explicit target but incomplete.
-2. Python and Node.js writer-generated databases are now included in write-matrix coverage.
+2. Python および Node.js によって生成されたデータベースは、現在 write-matrix の検証カバレッジに含まれています。
 3. Key lifecycle APIs, rewrap, additional unlock providers, blind index, packaging/distribution maturity, safe integer policy, schema fingerprint/hash, optional feature read-only fallback, and dynamic `created_by_version` remain future/general gaps.
 
 ## Recommended API convergence follow-ups
