@@ -26,6 +26,8 @@ SQLite などのローカル永続化層に秘匿対象データを保存する�
 ```text
 .
 ├── docs/               # 仕様書・設計ドキュメント
+├── c/                  # C ポータビリティ検証 bootstrap scaffold
+├── cpp/                # C++ ポータビリティ検証 bootstrap scaffold
 ├── python/             # Python 向け baseline implementation
 ├── nodejs/             # Node.js 向け baseline implementation
 ├── browser-test/       # browser/sql.js 向けテスト実装・検証ハーネス
@@ -49,6 +51,12 @@ Node.js 向けの baseline implementation です。
 
 ### browser-test/
 browser/sql.js 向けのテスト実装・検証ハーネスです。Jest JSDOM/sql.js 環境での検証を含みますが、完全な real-browser WebCrypto runtime coverage を意味するものではありません。
+
+### C
+C 実装は Storage Format V1 のポータビリティ検証 bootstrap scaffold を目的としたものです。現時点では full production storage library ではなく、Storage Format V1 の機能（暗号化、SQLite 読み書きなど）は実装されていません。
+
+### C++
+C++ 実装は Storage Format V1 のポータビリティ検証 bootstrap scaffold を目的としたものです。現時点では full production storage library ではなく、Storage Format V1 の機能（暗号化、SQLite 読み書きなど）は実装されていません。なお、将来的に C のコア層をラップするか、独立した C++ 実装とするかは未決定 (`needs-decision`) です。
 
 ### Go
 Go 実装は Storage Format V1 のポータビリティ検証と writer scaffold を目的としたものです。現時点では full production storage library ではありません。
@@ -91,6 +99,8 @@ Alternatively, you can run individual tests or matrices manually for troubleshoo
 - **Node.js tests**: `cd nodejs && npm test`
 - **browser-test tests**: `cd browser-test && npm test`
 - **Go tests**: `cd go && go test ./...`
+- **C tests**: `cd c && cmake -S . -B build && cmake --build build && ctest --test-dir build --output-on-failure`
+- **C++ tests**: `cd cpp && cmake -S . -B build && cmake --build build && ctest --test-dir build --output-on-failure`
 - **Rust tests**: `cd rust && cargo test`
 - **Zig tests**: `cd zig && zig build run` and `cd zig && zig build test`
 - **roundtrip integration tests**: `./integration-tests/roundtrip/test_roundtrip.sh`
@@ -120,6 +130,8 @@ Our CI workflows run on standard `ubuntu-latest` environments and are split into
 - Node.js Tests
 - Browser Tests
 - Go Tests
+- C Tests
+- C++ Tests
 - Rust Tests
 - Zig Smoke Test
 - Integration Tests / Roundtrip

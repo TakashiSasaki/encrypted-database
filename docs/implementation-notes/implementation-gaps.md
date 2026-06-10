@@ -271,3 +271,13 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 **Expected or intended state:** Go, Rust, and Zig implementations eventually transition from portability validation/scaffolds to complete, full production storage libraries integrated into the cross-language roundtrip matrix.
 **Why it matters:** Required to establish true portability and multi-language support.
 **Recommended next action:** Monitor the promoted Write Matrix workflow before proceeding to key lifecycle APIs.
+
+
+### C and C++ initial bootstrap scaffolds
+
+**Status:** Active
+**Area:** Implementation / Portability
+**Current state:** C and C++ directories now exist only as smoke-testable bootstrap scaffolds. No Storage Format V1 cryptography, SQLite reader, writer, or matrix support is implemented yet.
+**Expected or intended state:** Expand C and C++ to eventually participate in portability validation and potentially become full implementations.
+**Why it matters:** Ensures the repository correctly supports foundational native languages.
+**Recommended next action:** Future work should decide (`needs-decision`) whether C is the low-level core and C++ wraps it, or whether C and C++ are independent portability-validation implementations. Then proceed with shared-vector parsing and deterministic test harness integration.

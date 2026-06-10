@@ -1,0 +1,29 @@
+name: C Tests
+
+on:
+  push:
+    branches: [ vault.moukaeritai.work ]
+    paths:
+      - "c/**"
+      - ".github/workflows/test-c.yml"
+      - "docs/spec/**"
+  pull_request:
+    branches: [ vault.moukaeritai.work ]
+    paths:
+      - "c/**"
+      - ".github/workflows/test-c.yml"
+      - "docs/spec/**"
+
+jobs:
+  test-c:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Run C Tests
+        run: |
+          cd c
+          cmake -S . -B build
+          cmake --build build
+          ctest --test-dir build --output-on-failure

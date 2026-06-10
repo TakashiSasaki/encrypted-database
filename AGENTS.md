@@ -13,13 +13,14 @@ The repository uses a monorepo setup for multi-language implementations of an en
 *   **browser-test:** Found under `browser-test/`. This acts as a browser/sql.js-oriented validation harness. It does *not* represent full real-browser WebCrypto runtime coverage.
 *   **Go:** Found under `go/`. This is a **portability validation and writer scaffold**. It is *not* a full production storage library.
 *   **Rust:** Found under `rust/`. This is a **portability validation and writer scaffold**. It is *not* a full production storage library.
+*   **C:** Found under `c/`. This is an **implemented-scaffold** for a bootstrap testing environment. It is *not* a production storage library.
+*   **C++:** Found under `cpp/`. This is an **implemented-scaffold** for a bootstrap testing environment. It is *not* a production storage library. Architecture is `needs-decision`.
 *   **Zig:** Found under `zig/`. This is an **implemented-scaffold** for selected shared-vector conformance and SQLite read-only fixture decrypt validation. It is *not* a production storage library and lacks full public read-only parity and writer support. The target stable Zig version for the repository is strictly **0.16.0**.
 
 ## Terminology and Documentation
 
 *   API Parity documentation must strictly use the controlled vocabulary: `implemented-public`, `implemented-test-harness`, `implemented-scaffold`, `partial`, `missing`, `out-of-scope`, `needs-decision`.
 *   Documentation terminology must distinctly use **"Storage Format V1 Stable"** for the baseline format, **"Python/Node.js baseline implementation"** for mature implementations, and **"Go/Rust/Zig portability validation"** or **"Go/Rust/Zig writer scaffold"** for experimental language implementations. Do not describe them as full production storage libraries.
-*   When updating documentation, use Japanese prose for descriptions while retaining established English technical terms (e.g., 'baseline implementation', 'writer scaffold', 'Storage Format V1').
 *   Documentation utilizing Mermaid diagrams must also explain the same information in standard text or tables.
 
 ## Cryptography and Database Constraints

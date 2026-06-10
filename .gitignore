@@ -11,3 +11,7 @@ rust/target/
 go/bin/
 /zig/.zig-cache/
 /zig/zig-out/
+
+# C/C++ build directories
+/c/build/
+/cpp/build/
