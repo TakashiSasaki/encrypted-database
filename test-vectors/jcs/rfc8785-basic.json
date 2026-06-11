@@ -88,5 +88,57 @@
     ],
     "expected_string": "[3,1,{\"a\":1,\"b\":2}]",
     "expected_hex": "5b332c312c7b2261223a312c2262223a327d5d"
+  },
+  {
+    "name": "booleans-and-null",
+    "description": "Boolean and null values inside an object, testing sorting of new types",
+    "input": {
+      "true_val": true,
+      "null_val": null,
+      "false_val": false
+    },
+    "expected_string": "{\"false_val\":false,\"null_val\":null,\"true_val\":true}",
+    "expected_hex": "7b2266616c73655f76616c223a66616c73652c226e756c6c5f76616c223a6e756c6c2c22747275655f76616c223a747275657d"
+  },
+  {
+    "name": "nested-arrays",
+    "description": "Arrays nested inside arrays and objects",
+    "input": {
+      "list": [
+        1,
+        [
+          2,
+          3,
+          null
+        ],
+        false
+      ],
+      "empty": [
+        []
+      ]
+    },
+    "expected_string": "{\"empty\":[[]],\"list\":[1,[2,3,null],false]}",
+    "expected_hex": "7b22656d707479223a5b5b5d5d2c226c697374223a5b312c5b322c332c6e756c6c5d2c66616c73655d7d"
+  },
+  {
+    "name": "unicode-preservation-symbols",
+    "description": "Preservation of unicode symbols without normalization",
+    "input": {
+      "symbols": "☃★☺"
+    },
+    "expected_string": "{\"symbols\":\"☃★☺\"}",
+    "expected_hex": "7b2273796d626f6c73223a22e29883e29885e298ba227d"
+  },
+  {
+    "name": "object-key-ordering-ascii",
+    "description": "Object key ordering with various ASCII characters",
+    "input": {
+      "Z": 2,
+      "a": 3,
+      "A": 1,
+      "z": 4
+    },
+    "expected_string": "{\"A\":1,\"Z\":2,\"a\":3,\"z\":4}",
+    "expected_hex": "7b2241223a312c225a223a322c2261223a332c227a223a347d"
   }
 ]

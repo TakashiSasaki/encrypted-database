@@ -53,14 +53,14 @@ We recommend **Option 3: Hybrid staged approach** as the proposed path.
 
 Specifically, the implementation plan is to:
 1. Keep the current generated-AST scaffold as the conformance seed.
-2. Expand and classify JCS test vectors before attempting full implementation.
+2. Expand and classify JCS test vectors before attempting full implementation. *(The first vector expansion and classification stride has been completed.)*
 3. Do not add a JSON parser yet.
 4. Do not add third-party dependencies yet.
 5. Document the parser/dependency decision in a separate, later stride.
 6. Document number handling and UTF-16 object-key sorting explicitly before implementation.
 7. Only then, proceed to generic JCS implementation.
 
-This is a proposed strategy, not a completed implementation.
+This is a proposed strategy, not a completed implementation. Generic JCS is not currently implemented.
 
 ## Required Coverage Before Implementation
 Before generic JCS is implemented, the following RFC 8785 boundaries and edge cases must be explicitly resolved and documented:
