@@ -75,7 +75,9 @@ The documentation has been refactored into focused modules.
 - [`implementation-notes/api-parity-matrix.md`](./implementation-notes/api-parity-matrix.md): API parity matrix and known gaps.
 - [`implementation-notes/c-cpp-architecture-decision.md`](./implementation-notes/c-cpp-architecture-decision.md): Architecture decision for C and C++.
 - [`implementation-notes/c-cpp-native-conformance-roadmap.md`](./implementation-notes/c-cpp-native-conformance-roadmap.md): Roadmap for C/C++ native conformance.
+- [`implementation-notes/c-cpp-generic-jcs-implementation-decision.md`](./implementation-notes/c-cpp-generic-jcs-implementation-decision.md): Generic JCS implementation decision for C/C++.
 - [`implementation-notes/c-cpp-jcs-boundary.md`](./implementation-notes/c-cpp-jcs-boundary.md): JCS boundary decision for C/C++.
+- [`implementation-notes/c-cpp-jcs-fixture-contract.md`](./implementation-notes/c-cpp-jcs-fixture-contract.md): Generated-AST fixture contract for C/C++ JCS.
 - [`implementation-notes/c-cpp-content-type-boundary.md`](./implementation-notes/c-cpp-content-type-boundary.md): Content-type boundary decision for C/C++.
 
 ### Legacy

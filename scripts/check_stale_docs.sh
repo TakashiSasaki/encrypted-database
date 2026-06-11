@@ -19,7 +19,7 @@ FOUND_STALE=0
 check_phrase() {
     local pattern="$1"
     local desc="$2"
-    local matches=$(grep -rnEi "$pattern" docs/ go/ rust/ python/ nodejs/ browser-test/ --exclude-dir="node_modules" --exclude-dir="__pycache__" --exclude-dir="target" --exclude-dir="dist" 2>/dev/null || true)
+    local matches=$(grep -rnEi "$pattern" docs/ c/ cpp/ go/ rust/ python/ nodejs/ browser-test/ --exclude-dir="node_modules" --exclude-dir="__pycache__" --exclude-dir="target" --exclude-dir="dist" --exclude-dir="build" 2>/dev/null || true)
     if [ -n "$matches" ]; then
         echo "❌ Found stale phrase: $desc (pattern: '$pattern')"
         echo "$matches"
@@ -117,6 +117,16 @@ check_phrase_file "It remains needs-decision whether C\+\+ will wrap a shared C 
 check_phrase_file "C\+\+ architecture relative to C remains \`needs-decision\`" "Stale claim: C/C++ are independent" "docs/implementation-notes/api-parity-matrix.md"
 check_phrase_file "whether C is the low-level core and C\+\+ wraps it" "Stale claim: C/C++ are independent" "docs/implementation-notes/implementation-gaps.md"
 check_phrase_file "Architecture relative to C is \`needs-decision\`" "Stale claim: C/C++ are independent" "AGENTS.md"
+
+# 18. Narrow guards against C/C++ generic JCS false claims
+check_phrase "C/C\+\+ implement full generic JCS" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ implements full generic JCS" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ provide a public JCS API" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ provides a public JCS API" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ JCS is production-ready" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ JCS implementation is production-ready" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ have full RFC 8785 coverage" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ has full RFC 8785 coverage" "Stale/false claim: C/C++ generic JCS is future"
 
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."

@@ -20,6 +20,9 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **C/C++ independent implementation architecture decision**
 - **JCS fixture contract cleanup**
 
+### Near-term
+- **Generic JCS implementation strategy decision (Proposed)**
+
 ### Future
 - **Generic JCS implementation**
 - **Argon2id dependency decision**
@@ -33,12 +36,5 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **Writer scaffold**
 - **Matrix integration**
 - **Production public API decision**
-
-## Next: Generic JCS implementation
-
-Before proceeding to implement generic JCS, the project must decide:
-- dependency-free internal implementation vs third-party library
-- JSON parser decision or implementation if appropriate
-- RFC 8785 coverage boundary beyond basic vectors
 
 *Note: This roadmap is intended for planning purposes only and does not imply that cryptographic or SQLite implementation work has commenced.*
