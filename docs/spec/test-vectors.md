@@ -8,6 +8,8 @@ These test vectors serve as the foundational conformance suite for the Storage F
 
 Implementations must ensure their JSON serialization exactly matches the bytes produced by an RFC 8785 compliant parser. The canonicalization boundaries in both Python and Node.js implementations are backed by RFC 8785 JCS compliant libraries and verified against shared cross-language test vectors.
 
+For a detailed breakdown of the included and deferred JCS test vectors, see the [JCS Vector Classification](../implementation-notes/jcs-vector-classification.md) document. JCS vectors may include baseline-supported vectors and future classification notes, but unsupported parser/number-policy cases must not be forced into current C/C++ generated-AST harness.
+
 Any JSON values whose bytes are authenticated, hashed, MACed, signed, indexed, or used as UUID/hash input, or compared across test suites, must be strictly canonicalized.
 
 ## AAD Test Vectors

@@ -79,6 +79,7 @@ The documentation has been refactored into focused modules.
 - [`implementation-notes/c-cpp-jcs-boundary.md`](./implementation-notes/c-cpp-jcs-boundary.md): JCS boundary decision for C/C++.
 - [`implementation-notes/c-cpp-jcs-fixture-contract.md`](./implementation-notes/c-cpp-jcs-fixture-contract.md): Generated-AST fixture contract for C/C++ JCS.
 - [`implementation-notes/c-cpp-content-type-boundary.md`](./implementation-notes/c-cpp-content-type-boundary.md): Content-type boundary decision for C/C++.
+- [`implementation-notes/jcs-vector-classification.md`](./implementation-notes/jcs-vector-classification.md): JCS vector classification and coverage policy.
 
 ### Legacy
 - [`legacy/encrypted_storage_key_management_spec.md`](./legacy/encrypted_storage_key_management_spec.md): The original integrated draft specification (Archived for reference).

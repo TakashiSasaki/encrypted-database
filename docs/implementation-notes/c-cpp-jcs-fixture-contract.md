@@ -20,10 +20,13 @@ To mitigate duplication and reduce drift risk, C and C++ share a single generate
 
 ## Supported and Unsupported Types
 
+For a full classification of test vectors and policies on what is safely included, refer to the [JCS Vector Classification](./jcs-vector-classification.md) document.
+
 ### Supported by the Fixture Contract
-- objects
+The current generated-AST fixture contract supports only the following types:
+- objects (with basic string keys, and ASCII-based ordering)
 - arrays
-- strings (with required JSON escaping, ASCII focus)
+- strings (with required JSON escaping, ASCII focus, and basic Unicode preservation)
 - signed 64-bit integers
 - booleans
 - null
