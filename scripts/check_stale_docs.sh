@@ -19,7 +19,7 @@ FOUND_STALE=0
 check_phrase() {
     local pattern="$1"
     local desc="$2"
-    local matches=$(grep -rnEi "$pattern" docs/ go/ rust/ python/ nodejs/ browser-test/ --exclude-dir="node_modules" --exclude-dir="__pycache__" --exclude-dir="target" --exclude-dir="dist" 2>/dev/null || true)
+    local matches=$(grep -rnEi "$pattern" docs/ c/ cpp/ go/ rust/ python/ nodejs/ browser-test/ --exclude-dir="node_modules" --exclude-dir="__pycache__" --exclude-dir="target" --exclude-dir="dist" --exclude-dir="build" 2>/dev/null || true)
     if [ -n "$matches" ]; then
         echo "❌ Found stale phrase: $desc (pattern: '$pattern')"
         echo "$matches"
