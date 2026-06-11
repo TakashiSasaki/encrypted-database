@@ -18,6 +18,7 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **JCS scaffold boundary decision**
 - **Limited generated-AST JCS basic-vector serializer scaffold**
 - **C/C++ independent implementation architecture decision**
+- **JCS fixture contract cleanup**
 
 ### Future
 - **Generic JCS implementation**
