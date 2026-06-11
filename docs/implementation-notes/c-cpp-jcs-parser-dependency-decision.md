@@ -55,7 +55,7 @@ Before embarking on a generic JCS implementation for C and C++, several fundamen
 - A third-party parser may not expose the exact duplicate-key or strict numeric behavior needed for the stringent JCS policy.
 
 ### Option 3: Parser-free generic serializer over an internal value model first
-In this approach, future generic JCS would accept an internal, typed value model, not raw JSON text. Parsing remains explicitly out of scope initially. The current generated-AST fixture contract can inform the value model but must not be treated as the final public API.
+In this approach, future generic JCS would accept an internal, typed value model, not raw JSON text. Parsing remains explicitly out of scope initially. The current generated-AST fixture contract can inform the value model but must not be treated as the final public API. The boundary for this model is documented in the [C/C++ JCS Internal Value Model Decision](./c-cpp-jcs-internal-value-model-decision.md).
 
 **Pros:**
 - Lowest risk next step.
@@ -79,7 +79,7 @@ In this approach, future generic JCS would accept an internal, typed value model
 - Does not advance the C/C++ native conformance roadmap.
 
 ## Recommended Direction
-We recommend **Option 3: Parser-free generic serializer over an internal value model first**.
+We recommend **Option 3: Parser-free generic serializer over an internal value model first**. This option now has a proposed internal value model boundary document.
 
 **Rationale:**
 - It is the lowest-risk next implementation boundary.
@@ -103,6 +103,8 @@ While not implemented in this stride, a future generic serializer would operate 
 - integer (within a strictly defined safe range)
 - array
 - object (with string keys)
+
+See the [C/C++ JCS Internal Value Model Decision](./c-cpp-jcs-internal-value-model-decision.md) for detailed boundaries.
 - explicit representations for unsupported/future number cases
 
 **Constraints on the internal value model:**

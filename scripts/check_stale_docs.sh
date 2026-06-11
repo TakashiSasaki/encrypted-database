@@ -134,6 +134,16 @@ check_phrase "C/C\+\+ JCS parser and dependency decision is decided" "Stale/fals
 check_phrase "C/C\+\+ raw JSON parser decision is complete" "Stale/false claim: The document is currently Proposed"
 check_phrase "C/C\+\+ JCS dependency choice is complete" "Stale/false claim: The document is currently Proposed"
 
+# 20. Narrow guards against C/C++ internal value model false claims
+check_phrase "C/C\+\+ internal value model is implemented" "Stale/false claim: The internal value model is proposed, not implemented"
+check_phrase "C/C\+\+ JCS internal value model is implemented" "Stale/false claim: The internal value model is proposed, not implemented"
+check_phrase "C/C\+\+ generic serializer is implemented" "Stale/false claim: The generic serializer is not yet implemented"
+check_phrase "C/C\+\+ JCS generic serializer is implemented" "Stale/false claim: The generic serializer is not yet implemented"
+check_phrase "C/C\+\+ parser-free generic serializer is implemented" "Stale/false claim: The generic serializer is not yet implemented"
+check_phrase "C/C\+\+ expose a public JCS API" "Stale/false claim: C/C++ do not expose a public JCS API"
+check_phrase "C/C\+\+ support embedded NUL in JCS strings" "Stale/false claim: Embedded NUL support remains needs-decision"
+check_phrase "C/C\+\+ support \\\u0000 in JCS strings" "Stale/false claim: Embedded NUL support remains needs-decision"
+
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
     exit 1
