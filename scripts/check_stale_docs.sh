@@ -118,6 +118,16 @@ check_phrase_file "C\+\+ architecture relative to C remains \`needs-decision\`" 
 check_phrase_file "whether C is the low-level core and C\+\+ wraps it" "Stale claim: C/C++ are independent" "docs/implementation-notes/implementation-gaps.md"
 check_phrase_file "Architecture relative to C is \`needs-decision\`" "Stale claim: C/C++ are independent" "AGENTS.md"
 
+# 18. Narrow guards against C/C++ generic JCS false claims
+check_phrase "C/C\+\+ implement full generic JCS" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ implements full generic JCS" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ provide a public JCS API" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ provides a public JCS API" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ JCS is production-ready" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ JCS implementation is production-ready" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ have full RFC 8785 coverage" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ has full RFC 8785 coverage" "Stale/false claim: C/C++ generic JCS is future"
+
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
     exit 1

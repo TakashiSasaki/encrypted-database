@@ -56,7 +56,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | C | C++ | Notes |
 |---|---|---|---|---|---|---|---|---|---|
 | UUID validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | Strict UUID policy. C/C++ have internal helpers. |
-| JCS canonicalization | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | C/C++ have an internal generated-AST JCS basic-vector serializer scaffold only; no JSON parser, full RFC 8785 implementation, or public JCS API. |
+| JCS canonicalization | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | partial | partial | C/C++ have an internal generated-AST JCS basic-vector serializer scaffold only; generic JCS implementation is a proposed future phase. |
 | provider config validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | JCS strictness. |
 | metadata table validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | `storage_metadata_tbl` initialization. |
 | SQLite profile validation | implemented-public | implemented-public | implemented-test-harness | implemented-scaffold | implemented-scaffold | implemented-scaffold | missing | missing | `PRAGMA application_id` handling. |
