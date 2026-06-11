@@ -4,41 +4,8 @@
 #include <sstream>
 #include <iomanip>
 
-// Define the generated types since we are consuming the C header's layout
-extern "C" {
-    typedef enum {
-        VAULT_JCS_NULL,
-        VAULT_JCS_BOOLEAN,
-        VAULT_JCS_INTEGER,
-        VAULT_JCS_STRING,
-        VAULT_JCS_ARRAY,
-        VAULT_JCS_OBJECT
-    } VaultJcsType;
-
-    struct VaultJcsValue;
-
-    typedef struct {
-        const char* key;
-        const struct VaultJcsValue* value;
-    } VaultJcsObjectMember;
-
-    struct VaultJcsValue {
-        VaultJcsType type;
-        union {
-            bool boolean_val;
-            int64_t integer_val;
-            const char* string_val;
-            struct {
-                const struct VaultJcsValue* const* elements;
-                size_t count;
-            } array;
-            struct {
-                const VaultJcsObjectMember* members;
-                size_t count;
-            } object;
-        } value;
-    };
-}
+// Include the C-compatible fixture layout directly
+#include "vault_jcs_internal.h"
 
 namespace vault {
 namespace jcs {

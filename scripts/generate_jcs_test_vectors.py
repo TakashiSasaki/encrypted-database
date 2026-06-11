@@ -104,49 +104,7 @@ def generate_header(json_path, out_path):
     with open(out_path, 'w', encoding='utf-8') as f:
         f.write("#ifndef GENERATED_JCS_VECTORS_H\n")
         f.write("#define GENERATED_JCS_VECTORS_H\n\n")
-        f.write("#include <stdbool.h>\n")
-        f.write("#include <stdint.h>\n\n")
-
-        f.write("typedef enum {\n")
-        f.write("    VAULT_JCS_NULL,\n")
-        f.write("    VAULT_JCS_BOOLEAN,\n")
-        f.write("    VAULT_JCS_INTEGER,\n")
-        f.write("    VAULT_JCS_STRING,\n")
-        f.write("    VAULT_JCS_ARRAY,\n")
-        f.write("    VAULT_JCS_OBJECT\n")
-        f.write("} VaultJcsType;\n\n")
-
-        f.write("typedef struct VaultJcsValue VaultJcsValue;\n\n")
-
-        f.write("typedef struct {\n")
-        f.write("    const char* key;\n")
-        f.write("    const VaultJcsValue* value;\n")
-        f.write("} VaultJcsObjectMember;\n\n")
-
-        f.write("struct VaultJcsValue {\n")
-        f.write("    VaultJcsType type;\n")
-        f.write("    union {\n")
-        f.write("        bool boolean_val;\n")
-        f.write("        int64_t integer_val;\n")
-        f.write("        const char* string_val;\n")
-        f.write("        struct {\n")
-        f.write("            const VaultJcsValue* const* elements;\n")
-        f.write("            size_t count;\n")
-        f.write("        } array;\n")
-        f.write("        struct {\n")
-        f.write("            const VaultJcsObjectMember* members;\n")
-        f.write("            size_t count;\n")
-        f.write("        } object;\n")
-        f.write("    } value;\n")
-        f.write("};\n\n")
-
-        f.write("typedef struct {\n")
-        f.write("    const char* name;\n")
-        f.write("    const char* description;\n")
-        f.write("    const VaultJcsValue* input;\n")
-        f.write("    const char* expected_string;\n")
-        f.write("    const char* expected_hex;\n")
-        f.write("} JcsTestVector;\n\n")
+        f.write("#include \"vault_jcs_internal.h\"\n\n")
 
         index_state = {"node_index": 0}
         vector_node_indices = []

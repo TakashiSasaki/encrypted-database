@@ -4,40 +4,6 @@
 #include <string.h>
 #include <inttypes.h>
 
-// Forward decls of generated types needed internally for compilation.
-// These match the definitions in generated_jcs_vectors.h
-typedef enum {
-    VAULT_JCS_NULL,
-    VAULT_JCS_BOOLEAN,
-    VAULT_JCS_INTEGER,
-    VAULT_JCS_STRING,
-    VAULT_JCS_ARRAY,
-    VAULT_JCS_OBJECT
-} VaultJcsType;
-
-typedef struct VaultJcsValue VaultJcsValue;
-typedef struct {
-    const char* key;
-    const VaultJcsValue* value;
-} VaultJcsObjectMember;
-
-struct VaultJcsValue {
-    VaultJcsType type;
-    union {
-        bool boolean_val;
-        int64_t integer_val;
-        const char* string_val;
-        struct {
-            const VaultJcsValue* const* elements;
-            size_t count;
-        } array;
-        struct {
-            const VaultJcsObjectMember* members;
-            size_t count;
-        } object;
-    } value;
-};
-
 // --- Internal String Buffer ---
 
 typedef struct {

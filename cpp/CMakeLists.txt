@@ -34,6 +34,7 @@ add_custom_target(generate_jcs_vectors DEPENDS ${GENERATED_JCS_HEADER})
 
 # Library
 add_library(vault_cpp_lib src/vault.cpp src/vault_aad.cpp src/vault_uuid.cpp src/vault_content_type.cpp src/vault_jcs.cpp)
+target_include_directories(vault_cpp_lib PRIVATE ${CMAKE_SOURCE_DIR}/../c/src)
 
 # CLI Executable
 add_executable(vault_cpp_smoke src/main.cpp)
@@ -62,7 +63,7 @@ target_link_libraries(test_content_type PRIVATE vault_cpp_lib)
 add_test(NAME test_content_type COMMAND test_content_type)
 
 add_executable(test_jcs tests/test_jcs.cpp)
-target_include_directories(test_jcs PRIVATE src ${CMAKE_BINARY_DIR})
+target_include_directories(test_jcs PRIVATE src ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/../c/src)
 target_link_libraries(test_jcs PRIVATE vault_cpp_lib)
 add_dependencies(test_jcs generate_jcs_vectors)
 add_test(NAME test_jcs COMMAND test_jcs)
