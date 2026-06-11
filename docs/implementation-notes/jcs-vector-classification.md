@@ -58,10 +58,10 @@ The following categories should remain documentation-only or deferred to future 
 - floats / decimals
 - exponent notation
 - negative zero (`-0`) as a numeric type
-- arbitrary precision numbers outside the signed 64-bit integer range
-- duplicate object keys
-- invalid raw JSON text
-- raw JSON parser error behavior and limits
+- arbitrary precision numbers outside the signed 64-bit integer range (deferred until number representation policy is decided)
+- duplicate object keys (deferred until parser behavior is decided)
+- invalid raw JSON text (deferred until parser behavior is decided)
+- raw JSON parser error behavior and limits (deferred until parser behavior is decided, see [C/C++ JCS Parser and Dependency Decision](./c-cpp-jcs-parser-dependency-decision.md))
 
 ## C/C++ Applicability
 
