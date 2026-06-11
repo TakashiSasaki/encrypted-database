@@ -128,6 +128,12 @@ check_phrase "C/C\+\+ JCS implementation is production-ready" "Stale/false claim
 check_phrase "C/C\+\+ have full RFC 8785 coverage" "Stale/false claim: C/C++ generic JCS is future"
 check_phrase "C/C\+\+ has full RFC 8785 coverage" "Stale/false claim: C/C++ generic JCS is future"
 
+# 19. Narrow guards against C/C++ parser/dependency false claims
+check_phrase "C/C\+\+ JCS parser/dependency decision is decided" "Stale/false claim: The document is currently Proposed"
+check_phrase "C/C\+\+ JCS parser and dependency decision is decided" "Stale/false claim: The document is currently Proposed"
+check_phrase "C/C\+\+ raw JSON parser decision is complete" "Stale/false claim: The document is currently Proposed"
+check_phrase "C/C\+\+ JCS dependency choice is complete" "Stale/false claim: The document is currently Proposed"
+
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
     exit 1
