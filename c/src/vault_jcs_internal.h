@@ -13,8 +13,9 @@ extern "C" {
  * @brief JCS Test Fixture Contract
  *
  * This section defines the generated-AST test fixture ABI/layout for JCS basic vectors.
- * C and C++ share this generated-AST fixture layout as an internal test-harness contract;
- * serialization remains independently implemented in each language.
+ * C and C++ share this generated-AST fixture layout strictly as an internal test-harness contract.
+ * It is not a production or public API, nor is it a shared C/C++ runtime core data model.
+ * C and C++ serializer/runtime implementations remain entirely independent.
  */
 
 typedef enum {
