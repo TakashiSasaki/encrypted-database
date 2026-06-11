@@ -58,6 +58,7 @@ The following categories should remain documentation-only or deferred to future 
 - floats / decimals
 - exponent notation
 - negative zero (`-0`) as a numeric type
+- integer ranges exceeding IEEE-754 exact precision limits (Note: The future internal model safe range is defined in [C/C++ JCS Internal Value Model Decision](./c-cpp-jcs-internal-value-model-decision.md), but rejection vectors have not yet been added.)
 - arbitrary precision numbers outside the signed 64-bit integer range (deferred until number representation policy is decided)
 - duplicate object keys (deferred until parser behavior is decided)
 - invalid raw JSON text (deferred until parser behavior is decided)
@@ -68,6 +69,7 @@ The following categories should remain documentation-only or deferred to future 
 The current C and C++ generated-AST JCS tests should only consume vectors that fit the fixture contract (which currently forbids floats and arbitrary precision).
 
 - Unsupported or future vectors MUST NOT be forced into the C/C++ generated-AST harness yet.
+- The `rfc8785-basic.json` file remains restricted to supported fixture-compatible values.
 - The fail-closed behavior of the C/C++ generator for unsupported types must not be weakened.
 - Do not add a JSON parser to the scaffolds.
 

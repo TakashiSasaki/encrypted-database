@@ -24,6 +24,7 @@ The immediate goal is to incrementally establish a native testing boundary and v
 ### Near-term
 - **Generic JCS implementation strategy decision (Proposed)**
 - **Generic JCS parser/dependency decision (Proposed)**
+- **Generic JCS internal value model decision (Proposed)**
 
 ### Future
 - **Generic JCS implementation**
