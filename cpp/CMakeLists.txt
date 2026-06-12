@@ -74,3 +74,8 @@ add_executable(test_jcs_model tests/test_jcs_model.cpp)
 target_include_directories(test_jcs_model PRIVATE src)
 target_link_libraries(test_jcs_model PRIVATE vault_cpp_lib)
 add_test(NAME test_jcs_model COMMAND test_jcs_model)
+
+add_executable(test_jcs_model_serialize tests/test_jcs_model_serialize.cpp)
+target_include_directories(test_jcs_model_serialize PRIVATE src)
+target_link_libraries(test_jcs_model_serialize PRIVATE vault_cpp_lib)
+add_test(NAME test_jcs_model_serialize COMMAND test_jcs_model_serialize)

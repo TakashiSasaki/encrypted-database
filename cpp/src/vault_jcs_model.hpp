@@ -17,7 +17,8 @@ enum class ModelError {
     INVALID_ARG,
     UNSAFE_INTEGER,
     DUPLICATE_KEY,
-    EMBEDDED_NUL_UNSUPPORTED
+    EMBEDDED_NUL_UNSUPPORTED,
+    SERIALIZE_ERROR
 };
 
 // Internal model type identifier (analogous to the C enum, but mapped locally)
@@ -94,6 +95,12 @@ public:
     static Result<ModelValue> make_string(std::string value);
     static Result<ModelValue> make_array(ArrayValue elements);
     static Result<ModelValue> make_object(ObjectValue members);
+
+    // Serialization
+    // Serializes the internal model value into a compact JSON string.
+    // Note: Object key sorting currently uses simple std::string byte ordering,
+    // which is a scaffold limitation and not full RFC 8785 UTF-16 key ordering.
+    Result<std::string> serialize() const;
 
 private:
     ModelType type_;
