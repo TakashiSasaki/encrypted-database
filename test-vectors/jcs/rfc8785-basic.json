@@ -50,9 +50,9 @@
     "name": "unicode-strings",
     "description": "Unicode strings",
     "input": {
-      "unicode": "こんにちは世界"
+      "unicode": "\u3053\u3093\u306b\u3061\u306f\u4e16\u754c"
     },
-    "expected_string": "{\"unicode\":\"こんにちは世界\"}",
+    "expected_string": "{\"unicode\":\"\u3053\u3093\u306b\u3061\u306f\u4e16\u754c\"}",
     "expected_hex": "7b22756e69636f6465223a22e38193e38293e381abe381a1e381afe4b896e7958c227d"
   },
   {
@@ -124,9 +124,9 @@
     "name": "unicode-preservation-symbols",
     "description": "Preservation of unicode symbols without normalization",
     "input": {
-      "symbols": "☃★☺"
+      "symbols": "\u2603\u2605\u263a"
     },
-    "expected_string": "{\"symbols\":\"☃★☺\"}",
+    "expected_string": "{\"symbols\":\"\u2603\u2605\u263a\"}",
     "expected_hex": "7b2273796d626f6c73223a22e29883e29885e298ba227d"
   },
   {
@@ -163,9 +163,9 @@
     "name": "control-characters",
     "description": "ASCII control characters without NUL",
     "input": {
-      "ctrl": "\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u000b\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f"
+      "ctrl": "\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u000b\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f\u007f"
     },
-    "expected_string": "{\"ctrl\":\"\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\u000b\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f\"}",
+    "expected_string": "{\"ctrl\":\"\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\u000b\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f\u007f\"}",
     "expected_hex": "7b226374726c223a225c75303030315c75303030325c75303030335c75303030345c75303030355c75303030365c75303030375c75303030625c75303030655c75303030665c75303031305c75303031315c75303031325c75303031335c75303031345c75303031355c75303031365c75303031375c75303031385c75303031395c75303031615c75303031625c75303031635c75303031645c75303031655c75303031667f227d"
   },
   {
@@ -184,5 +184,57 @@
     },
     "expected_string": "{\"a\":[-9007199254740991,0,9007199254740991],\"b\":{\"max\":9007199254740991,\"min\":-9007199254740991}}",
     "expected_hex": "7b2261223a5b2d393030373139393235343734303939312c302c393030373139393235343734303939315d2c2262223a7b226d6178223a393030373139393235343734303939312c226d696e223a2d393030373139393235343734303939317d7d"
+  },
+  {
+    "name": "nested-empty-structures",
+    "description": "Mixing empty objects and empty arrays to test deep empty recursion.",
+    "input": [
+      {},
+      [],
+      {
+        "a": []
+      }
+    ],
+    "expected_string": "[{},[],{\"a\":[]}]",
+    "expected_hex": "5b7b7d2c5b5d2c7b2261223a5b5d7d5d"
+  },
+  {
+    "name": "mixed-type-arrays",
+    "description": "An array containing numbers, strings, boolean, null, and object.",
+    "input": [
+      1,
+      "two",
+      true,
+      null,
+      {
+        "k": "v"
+      }
+    ],
+    "expected_string": "[1,\"two\",true,null,{\"k\":\"v\"}]",
+    "expected_hex": "5b312c2274776f222c747275652c6e756c6c2c7b226b223a2276227d5d"
+  },
+  {
+    "name": "string-escaped-control",
+    "description": "Escaping characters like carriage return, newline, and tabs.",
+    "input": {
+      "text": "\r\n\t"
+    },
+    "expected_string": "{\"text\":\"\\r\\n\\t\"}",
+    "expected_hex": "7b2274657874223a225c725c6e5c74227d"
+  },
+  {
+    "name": "deeply-nested-object",
+    "description": "Moderate nested serialization / recursion smoke coverage.",
+    "input": {
+      "a": {
+        "b": {
+          "c": {
+            "d": 1
+          }
+        }
+      }
+    },
+    "expected_string": "{\"a\":{\"b\":{\"c\":{\"d\":1}}}}",
+    "expected_hex": "7b2261223a7b2262223a7b2263223a7b2264223a317d7d7d7d"
   }
 ]

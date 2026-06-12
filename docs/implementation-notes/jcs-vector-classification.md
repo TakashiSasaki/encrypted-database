@@ -17,6 +17,9 @@ This file currently covers basic JSON canonicalization aspects that are safe for
 - Basic and Unicode strings
 - Required JSON string escaping
 - Signed 64-bit integers
+- Moderate nested serialization/recursion smoke coverage
+- Mixed array types
+- Common string escaped controls
 
 Each vector in this file MUST include the following fields:
 - `name`: A stable, descriptive identifier.
