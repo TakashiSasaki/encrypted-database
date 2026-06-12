@@ -163,15 +163,20 @@ void test_copy_and_move() {
     // State of copied is technically unspecified/valid but moved-from,
     // for std::string typically empty but we won't strictly assert value here.
 
-    // Test copying complex nested object to ensure shared_ptr semantics or deep copy
+    // Test copying complex nested object to demonstrate shared_ptr semantics
     // Note: This C++ implementation uses shared_ptr for Array and Object, which provides
-    // shallow copies of the collection structure but safe lifetime management.
+    // shallow copies of the collection structure. This ensures safe lifetime management
+    // but does NOT provide deep-copy value semantics. Mutating the underlying collection
+    // (if it were not const) would affect all copies.
     ObjectValue members;
     members.push_back({"key", ModelValue::make_integer(1).value});
     auto complex = ModelValue::make_object(std::move(members)).value;
 
     ModelValue complex_copy = complex;
     assert(complex_copy.as_object()[0].second.as_integer() == 1);
+
+    // Explicitly verify they share the same underlying memory via reference comparison
+    assert(&complex.as_object() == &complex_copy.as_object());
 }
 
 int main() {

@@ -96,7 +96,7 @@ void test_serialize_array() {
     assert(ser_mixed.value == "[null,true,42,\"test\"]");
 }
 
-void test_serialize_object() {
+void test_serialize_object_ordering() {
     // Empty object
     auto res_empty = ModelValue::make_object(ObjectValue{});
     assert(res_empty.error == ModelError::OK);
@@ -104,7 +104,9 @@ void test_serialize_object() {
     assert(ser_empty.error == ModelError::OK);
     assert(ser_empty.value == "{}");
 
-    // Object with unsorted ASCII keys to confirm sort
+    // Object with unsorted ASCII keys to confirm sort.
+    // Note: This validates only simple std::string ASCII/basic-compatible ordering.
+    // It explicitly does NOT provide full RFC 8785 UTF-16 surrogate key ordering coverage.
     ObjectValue members;
     members.push_back({"z", ModelValue::make_integer(3).value});
     members.push_back({"a", ModelValue::make_integer(1).value});
@@ -147,6 +149,42 @@ void test_serialize_nested() {
     assert(ser.value == "{\"key\":[\"value\",null]}");
 }
 
+void test_serialize_repeated() {
+    // Ensure output remains stable after repeated serialization calls
+    auto res_normal = ModelValue::make_string("stable value");
+    assert(res_normal.error == ModelError::OK);
+
+    auto ser1 = res_normal.value.serialize();
+    assert(ser1.error == ModelError::OK);
+
+    auto ser2 = res_normal.value.serialize();
+    assert(ser2.error == ModelError::OK);
+
+    assert(ser1.value == ser2.value);
+    assert(ser1.value == "\"stable value\"");
+}
+
+void test_serialize_large_array() {
+    // Large but bounded array serialization to exercise string growth
+    const size_t array_size = 2000;
+    ArrayValue elements;
+    elements.reserve(array_size);
+    for (size_t i = 0; i < array_size; ++i) {
+        elements.push_back(ModelValue::make_string("test_growth_element").value);
+    }
+
+    auto res_array = ModelValue::make_array(std::move(elements));
+    assert(res_array.error == ModelError::OK);
+
+    auto ser = res_array.value.serialize();
+    assert(ser.error == ModelError::OK);
+
+    assert(ser.value.front() == '[');
+    assert(ser.value.back() == ']');
+    // Check prefix
+    assert(ser.value.substr(0, 23) == "[\"test_growth_element\",");
+}
+
 int main() {
     std::cout << "Running C++ JCS model serializer tests..." << std::endl;
     test_serialize_null();
@@ -154,8 +192,10 @@ int main() {
     test_serialize_integer();
     test_serialize_string();
     test_serialize_array();
-    test_serialize_object();
+    test_serialize_object_ordering();
     test_serialize_nested();
+    test_serialize_repeated();
+    test_serialize_large_array();
     std::cout << "C++ JCS model serializer tests passed." << std::endl;
     return 0;
 }
