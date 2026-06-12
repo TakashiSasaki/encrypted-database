@@ -10,7 +10,7 @@ Currently, the C and C++ generic JCS implementations are still pending, and the 
 
 The current `future-boundary-plan.json` file contains `utf16-surrogate-key-ordering` as a planning-only vector. This vector is not consumed by the generated-AST scaffold or any strictly typed active-vector harness.
 
-The goal of this document is to define the plan for UTF-16 key-ordering vectors, separating their active use from their future conformance requirements.
+The goal of this document is to define the plan for UTF-16 key-ordering vectors, separating their active use from their future conformance requirements. UTF-16 key-ordering conformance requires future generic JCS implementation work and must not be treated as covered by the current generated-AST scaffold.
 
 ## Current State
 - UTF-16 key-ordering vectors (such as `utf16-surrogate-key-ordering`) are strictly **future conformance vectors** and are not currently active generated-AST vectors.
