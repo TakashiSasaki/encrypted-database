@@ -79,13 +79,13 @@ Before proceeding with a future generic JCS implementation in C/C++, the followi
 
 ### Required Future Vector Groups:
 
-- **Safe Integer Accepted Vectors:** Values strictly within the IEEE-754 safe integer range.
-- **Unsafe Integer Rejection Vectors:** Values outside the safe integer range that must fail closed in the generic model.
-- **String Escaping and Control-Character Vectors:** Exhaustive tests for JSON escaping rules (including ASCII control bytes < 0x20, DEL 0x7f, backslash, quotes, etc).
-- **UTF-16 Object-Key Ordering Vectors:** Vectors that specifically test non-ASCII keys and surrogate-pair sensitive ordering as per RFC 8785.
-- **Duplicate-Key Boundary Vectors:** Vectors explicitly verifying rejection or safe handling of duplicate keys.
-- **Embedded NUL Future/Unsupported Vectors:** Vectors testing `\u0000` handling (either failing safely or succeeding if/when length-aware strings are supported).
-- **Generated-AST-Runnable vs. Future-Generic-Only:** Explicit separation and metadata documenting which vectors are safe for the current limited generated-AST scaffold, versus vectors strictly intended for testing the future raw JSON parser or generic model.
+- **Safe Integer Accepted Vectors:** Values strictly within the IEEE-754 safe integer range. (Initial seed implemented in `rfc8785-basic.json` e.g., `safe-integer-max`).
+- **Unsafe Integer Rejection Vectors:** Values outside the safe integer range that must fail closed in the generic model. (Planned in `future-boundary-plan.json`).
+- **String Escaping and Control-Character Vectors:** Exhaustive tests for JSON escaping rules (including ASCII control bytes < 0x20, DEL 0x7f, backslash, quotes, etc). (Initial seed implemented in `rfc8785-basic.json`).
+- **UTF-16 Object-Key Ordering Vectors:** Vectors that specifically test non-ASCII keys and surrogate-pair sensitive ordering as per RFC 8785. (Planned in `future-boundary-plan.json`).
+- **Duplicate-Key Boundary Vectors:** Vectors explicitly verifying rejection or safe handling of duplicate keys. (Planned in `future-boundary-plan.json`).
+- **Embedded NUL Future/Unsupported Vectors:** Vectors testing `\u0000` handling (either failing safely or succeeding if/when length-aware strings are supported). (Planned in `future-boundary-plan.json`).
+- **Generated-AST-Runnable vs. Future-Generic-Only:** Explicit separation and metadata documenting which vectors are safe for the current limited generated-AST scaffold, versus vectors strictly intended for testing the future raw JSON parser or generic model. (`future-boundary-plan.json` is a planning file only and MUST NOT be ingested by current generated-AST scaffolds or strictly typed test runners until a generic JSON parser and generic internal model are fully implemented).
 
 ## Future Expansion Plan
 
