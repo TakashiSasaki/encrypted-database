@@ -1,0 +1,3 @@
+## 2024-05-18 - Tab Accessibility and Disabled State Hints
+**Learning:** Found that custom tabs lack semantic roles out of the box, requiring explicit `role="tablist"`, `role="tab"`, and `role="tabpanel"` along with dynamic `aria-selected` tracking in JS. Furthermore, custom buttons don't have default disabled states in CSS. A screen reader also misses logs printed dynamically to a `div` without an `aria-live` attribute.
+**Action:** Always add semantic roles/attributes to custom tabs, explicitly style `button:disabled`, and ensure dynamic console-like outputs have `aria-live="polite"` so updates are announced to screen readers nicely.

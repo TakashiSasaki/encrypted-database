@@ -17,13 +17,17 @@ function initializeTabs() {
             const targetId = event.currentTarget.getAttribute('data-tab-target');
 
             tabContents.forEach(content => content.classList.remove('active'));
-            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-selected', 'false');
+            });
 
             const targetContent = container.querySelector(`#${targetId}`);
             if (targetContent) {
                 targetContent.classList.add('active');
             }
             event.currentTarget.classList.add('active');
+            event.currentTarget.setAttribute('aria-selected', 'true');
         });
     });
 }
