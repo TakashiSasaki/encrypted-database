@@ -18,6 +18,7 @@ For a detailed breakdown of planned future steps, see the [C/C++ Native Conforma
 - Limited internal generated-AST JCS basic-vector serializer scaffold
 - Internal UUID syntax validation scaffold
 - Internal content-type boundary validation scaffold
+- C parser-free JCS internal model scaffold
 
 ## Missing
 
