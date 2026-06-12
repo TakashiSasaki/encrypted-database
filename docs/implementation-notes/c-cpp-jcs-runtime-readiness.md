@@ -41,13 +41,13 @@ The following prerequisites must be resolved before proceeding with generic JCS 
 | Duplicate-key policy status | `ready` | Rejected from the internal value model / must be impossible by construction. |
 | Future raw parser boundary status | `deferred` | Not in scope for initial runtime slice. |
 
-## First Runtime Implementation Slice
+## Parser-Free Internal Model Scaffold Phase
 
-**Completed.** The first runtime implementation slice was small and language-specific:
+**Completed.** The internal model scaffold phase was small and incremental, completing first for C and now extending to C++:
 
-**Target:** `C parser-free JCS internal model scaffold`, `C parser-free JCS internal model serializer seed`, and `hardened generated-vector bridge`
+**Target:** `C/C++ parser-free JCS internal model scaffold`, `C parser-free JCS internal model serializer seed`, and `hardened generated-vector bridge`
 
-This started the runtime work safely in one language (C) to establish the pattern before replicating or adapting to C++. The model supports null, boolean, safe integer, string (without embedded NUL), array, and object types. A serializer seed exists for these types.
+This established the runtime work in C first, and now C++ implements a fully independent, C++17 RAII-based internal model scaffold. The model supports null, boolean, safe integer, string (without embedded NUL), array, and object types. A serializer seed exists for these types.
 
 ### Scope (Completed)
 *   Internal C value type enum (`VaultJcsModelType`), extended with arrays and objects.
@@ -61,6 +61,10 @@ This started the runtime work safely in one language (C) to establish the patter
 ### Touched Files
 *   `c/src/vault_jcs_model.h`
 *   `c/src/vault_jcs_model.c`
+*   `cpp/src/vault_jcs_model.hpp`
+*   `cpp/src/vault_jcs_model.cpp`
+*   `cpp/tests/test_jcs_model.cpp`
+*   `cpp/CMakeLists.txt`
 *   `c/tests/test_jcs_model.c`
 *   `c/CMakeLists.txt`
 
@@ -80,7 +84,6 @@ This started the runtime work safely in one language (C) to establish the patter
 *   Raw JSON parser.
 *   Rejection-vector runtime harness logic.
 *   Public JCS API.
-*   C++ implementation.
 *   Crypto, SQLite, matrix integration, or production API.
 
 ## Error and Ownership Readiness
