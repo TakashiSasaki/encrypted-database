@@ -19,6 +19,7 @@ For a detailed breakdown of planned future steps, see the [C/C++ Native Conforma
 - Internal UUID syntax validation scaffold
 - Internal content-type boundary validation scaffold
 - C parser-free JCS internal model scaffold
+- C parser-free JCS internal model array/object scaffold
 
 ## Missing
 

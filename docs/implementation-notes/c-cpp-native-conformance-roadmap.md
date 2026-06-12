@@ -32,9 +32,10 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **UTF-16 key-ordering vector planning**
 - **C/C++ parser-free generic JCS runtime readiness package**
 - **C parser-free JCS internal model scaffold**
+- **C parser-free JCS internal model array/object scaffold**
 
 ### Near-term
-- **C parser-free JCS internal model array/object scaffold**
+- **C parser-free JCS internal model serializer seed**
 
 ### Future
 - **Generic JCS implementation**

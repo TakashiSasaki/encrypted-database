@@ -75,9 +75,6 @@ VaultJcsModelError vault_jcs_model_init_array(VaultJcsModelValue* value, const V
         return VAULT_JCS_MODEL_ERROR_INVALID_ARG;
     }
 
-    if (count > SIZE_MAX / sizeof(VaultJcsModelValue)) {
-        return VAULT_JCS_MODEL_ERROR_MEMORY;
-    }
     VaultJcsModelValue* copy = NULL;
     if (count > 0) {
         copy = (VaultJcsModelValue*)malloc(count * sizeof(VaultJcsModelValue));
@@ -124,9 +121,6 @@ VaultJcsModelError vault_jcs_model_init_object(VaultJcsModelValue* value, const 
         }
     }
 
-    if (count > SIZE_MAX / sizeof(VaultJcsModelObjectMember)) {
-        return VAULT_JCS_MODEL_ERROR_MEMORY;
-    }
     VaultJcsModelObjectMember* copy = NULL;
     if (count > 0) {
         copy = (VaultJcsModelObjectMember*)malloc(count * sizeof(VaultJcsModelObjectMember));
