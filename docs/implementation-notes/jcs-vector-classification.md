@@ -86,6 +86,8 @@ Future and rejection vectors represent boundaries, error conditions, or features
 
 The `test-vectors/jcs/future-boundary-plan.json` file uses this representation. It is entirely planning-only and MUST NOT be consumed by current generated-AST scaffolds. Active consumed vector files (like `rfc8785-basic.json`) must remain strictly compatible with existing typed consumers and use only the active positive-vector schema.
 
+For more details on how these future boundary and rejection vectors will be consumed in the future generic implementation stages, see the [C/C++ JCS Rejection-Vector Harness Decision](./c-cpp-jcs-rejection-vector-harness-decision.md).
+
 ## Boundary-Vector Plan
 
 Before proceeding with a future generic JCS implementation in C/C++, the following boundary vectors must be added and classified. This planning ensures that the implementation boundary is unambiguous.
