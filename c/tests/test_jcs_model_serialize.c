@@ -223,6 +223,97 @@ void test_invalid_arguments() {
     vault_jcs_model_free(&v);
 }
 
+void test_malformed_internal_values() {
+    VaultJcsModelValue v;
+    char* output = (char*)0x1234;
+    VaultJcsModelError err;
+
+    // Invalid enum type
+    v.type = (VaultJcsModelType)999;
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_ERROR_SERIALIZE);
+    assert(output == NULL);
+
+    // String type with NULL string
+    v.type = VAULT_JCS_MODEL_TYPE_STRING;
+    v.value.string_value = NULL;
+    output = (char*)0x1234;
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_ERROR_SERIALIZE);
+    assert(output == NULL);
+
+    // Array type with count > 0 but NULL elements
+    v.type = VAULT_JCS_MODEL_TYPE_ARRAY;
+    v.value.array_value.count = 1;
+    v.value.array_value.elements = NULL;
+    output = (char*)0x1234;
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_ERROR_SERIALIZE);
+    assert(output == NULL);
+
+    // Object type with count > 0 but NULL members
+    v.type = VAULT_JCS_MODEL_TYPE_OBJECT;
+    v.value.object_value.count = 1;
+    v.value.object_value.members = NULL;
+    output = (char*)0x1234;
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_ERROR_SERIALIZE);
+    assert(output == NULL);
+
+    // Object member with NULL key
+    VaultJcsModelObjectMember members[1];
+    members[0].key = NULL;
+    vault_jcs_model_init_null(&members[0].value);
+
+    v.type = VAULT_JCS_MODEL_TYPE_OBJECT;
+    v.value.object_value.count = 1;
+    v.value.object_value.members = members;
+    output = (char*)0x1234;
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_ERROR_SERIALIZE);
+    assert(output == NULL);
+
+    vault_jcs_model_free(&members[0].value);
+}
+
+void test_serialize_buffer_growth() {
+    VaultJcsModelValue v;
+    char* output = NULL;
+    VaultJcsModelError err;
+
+    const size_t array_size = 2000;
+    VaultJcsModelValue* elements = (VaultJcsModelValue*)malloc(array_size * sizeof(VaultJcsModelValue));
+    assert(elements != NULL);
+
+    for (size_t i = 0; i < array_size; i++) {
+        vault_jcs_model_init_string(&elements[i], "test_growth_element");
+    }
+
+    err = vault_jcs_model_init_array(&v, elements, array_size);
+    assert(err == VAULT_JCS_MODEL_OK);
+
+    for (size_t i = 0; i < array_size; i++) {
+        vault_jcs_model_free(&elements[i]);
+    }
+    free(elements);
+
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_OK);
+    assert(output != NULL);
+
+    // Verify format
+    size_t out_len = strlen(output);
+    assert(out_len > 0);
+    assert(output[0] == '[');
+    assert(output[out_len - 1] == ']');
+
+    // Verify content prefix
+    assert(strncmp(output, "[\"test_growth_element\",", 23) == 0);
+
+    free(output);
+    vault_jcs_model_free(&v);
+}
+
 int main() {
     test_serialize_null();
     test_serialize_boolean();
@@ -232,6 +323,8 @@ int main() {
     test_serialize_object();
     test_serialize_nested();
     test_invalid_arguments();
+    test_malformed_internal_values();
+    test_serialize_buffer_growth();
 
     printf("C JCS model serializer tests passed.\n");
     return 0;

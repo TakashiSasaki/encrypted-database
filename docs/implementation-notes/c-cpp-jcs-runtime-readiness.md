@@ -56,6 +56,7 @@ This started the runtime work safely in one language (C) to establish the patter
 *   Cleanup/free functions for explicit ownership, including recursive deep cleanup.
 *   Internal serializer seed (`vault_jcs_model_serialize`) emitting compact JSON, including basic string escaping.
 *   Minimal internal-only tests validating construction, deep copies, cleanup, and serialization.
+*   **Serializer Hardening:** Overflow protection for buffer allocation, memory limits, and explicit null/malformed AST failure safety returning detailed error codes instead of silent crashes.
 
 ### Touched Files
 *   `c/src/vault_jcs_model.h`

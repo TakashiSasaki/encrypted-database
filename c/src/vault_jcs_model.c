@@ -226,29 +226,42 @@ typedef struct {
     char* data;
     size_t length;
     size_t capacity;
-    bool error;
+    VaultJcsModelError error;
 } ModelStringBuffer;
 
 static void model_buf_init(ModelStringBuffer* buf) {
     buf->capacity = 64;
     buf->length = 0;
     buf->data = (char*)malloc(buf->capacity);
-    buf->error = (buf->data == NULL);
-    if (!buf->error) {
+    if (!buf->data) {
+        buf->error = VAULT_JCS_MODEL_ERROR_MEMORY;
+    } else {
+        buf->error = VAULT_JCS_MODEL_OK;
         buf->data[0] = '\0';
     }
 }
 
 static void model_buf_append_len(ModelStringBuffer* buf, const char* str, size_t len) {
-    if (buf->error) return;
-    if (buf->length + len + 1 > buf->capacity) {
-        size_t new_cap = buf->capacity * 2;
-        while (buf->length + len + 1 > new_cap) {
+    if (buf->error != VAULT_JCS_MODEL_OK) return;
+
+    if (len > SIZE_MAX - buf->length - 1) {
+        buf->error = VAULT_JCS_MODEL_ERROR_MEMORY;
+        return;
+    }
+
+    size_t required = buf->length + len + 1;
+    if (required > buf->capacity) {
+        size_t new_cap = buf->capacity;
+        while (new_cap < required) {
+            if (new_cap > SIZE_MAX / 2) {
+                buf->error = VAULT_JCS_MODEL_ERROR_MEMORY;
+                return;
+            }
             new_cap *= 2;
         }
         char* new_data = (char*)realloc(buf->data, new_cap);
         if (!new_data) {
-            buf->error = true;
+            buf->error = VAULT_JCS_MODEL_ERROR_MEMORY;
             return;
         }
         buf->data = new_data;
@@ -309,7 +322,7 @@ static int model_compare_members(const void* a, const void* b) {
 }
 
 static void model_serialize_value(ModelStringBuffer* buf, const VaultJcsModelValue* val) {
-    if (buf->error) return;
+    if (buf->error != VAULT_JCS_MODEL_OK) return;
 
     switch (val->type) {
         case VAULT_JCS_MODEL_TYPE_NULL:
@@ -329,9 +342,17 @@ static void model_serialize_value(ModelStringBuffer* buf, const VaultJcsModelVal
             break;
         }
         case VAULT_JCS_MODEL_TYPE_STRING:
+            if (!val->value.string_value) {
+                buf->error = VAULT_JCS_MODEL_ERROR_SERIALIZE;
+                return;
+            }
             model_serialize_string(buf, val->value.string_value);
             break;
         case VAULT_JCS_MODEL_TYPE_ARRAY:
+            if (val->value.array_value.count > 0 && !val->value.array_value.elements) {
+                buf->error = VAULT_JCS_MODEL_ERROR_SERIALIZE;
+                return;
+            }
             model_buf_append_char(buf, '[');
             for (size_t i = 0; i < val->value.array_value.count; i++) {
                 if (i > 0) model_buf_append_char(buf, ',');
@@ -340,12 +361,26 @@ static void model_serialize_value(ModelStringBuffer* buf, const VaultJcsModelVal
             model_buf_append_char(buf, ']');
             break;
         case VAULT_JCS_MODEL_TYPE_OBJECT: {
+            if (val->value.object_value.count > 0 && !val->value.object_value.members) {
+                buf->error = VAULT_JCS_MODEL_ERROR_SERIALIZE;
+                return;
+            }
+            for (size_t i = 0; i < val->value.object_value.count; i++) {
+                if (!val->value.object_value.members[i].key) {
+                    buf->error = VAULT_JCS_MODEL_ERROR_SERIALIZE;
+                    return;
+                }
+            }
             model_buf_append_char(buf, '{');
             size_t count = val->value.object_value.count;
             if (count > 0) {
+                if (count > SIZE_MAX / sizeof(VaultJcsModelObjectMember*)) {
+                    buf->error = VAULT_JCS_MODEL_ERROR_MEMORY;
+                    return;
+                }
                 const VaultJcsModelObjectMember** sorted = (const VaultJcsModelObjectMember**)malloc(count * sizeof(VaultJcsModelObjectMember*));
                 if (!sorted) {
-                    buf->error = true;
+                    buf->error = VAULT_JCS_MODEL_ERROR_MEMORY;
                     return;
                 }
                 for (size_t i = 0; i < count; i++) {
@@ -364,6 +399,9 @@ static void model_serialize_value(ModelStringBuffer* buf, const VaultJcsModelVal
             model_buf_append_char(buf, '}');
             break;
         }
+        default:
+            buf->error = VAULT_JCS_MODEL_ERROR_SERIALIZE;
+            return;
     }
 }
 
@@ -378,10 +416,11 @@ VaultJcsModelError vault_jcs_model_serialize(const VaultJcsModelValue* value, ch
 
     model_serialize_value(&buf, value);
 
-    if (buf.error) {
+    if (buf.error != VAULT_JCS_MODEL_OK) {
+        VaultJcsModelError err = buf.error;
         model_buf_free(&buf);
         *output = NULL;
-        return VAULT_JCS_MODEL_ERROR_SERIALIZE;
+        return err;
     }
 
     *output = buf.data;
