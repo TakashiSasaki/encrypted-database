@@ -53,7 +53,7 @@ We recommend **Option 3: Hybrid staged approach** as the accepted path. This pat
 
 Specifically, the implementation plan is to:
 1. Keep the current generated-AST scaffold as the conformance seed.
-2. Expand and classify JCS test vectors before attempting full implementation. *(The first vector expansion and classification stride has been completed.)*
+2. Expand and classify JCS test vectors before attempting full implementation. *(The first vector expansion and classification stride has been completed. Note: `future-boundary-plan.json` is not an active conformance suite and must not be consumed by active scaffolds.)*
 3. Do not add a JSON parser yet.
 4. Do not add third-party dependencies yet.
 5. Rely on the accepted parser/dependency sub-decision and the accepted [C/C++ JCS Internal Value Model Decision](./c-cpp-jcs-internal-value-model-decision.md) to guide future steps.
@@ -73,13 +73,14 @@ Before generic JCS is implemented, the following RFC 8785 boundaries and edge ca
 - Floats and decimals.
 - Exponent notation handling.
 - Negative zero (`-0`).
-- Large integers outside the exact IEEE-754 safe integer range.
+- Large integers outside the exact IEEE-754 safe integer range. (Note: Unsafe integer rejection is future generic-model behavior, not current generated-AST harness behavior.)
 - Arbitrary precision numbers.
 
 ### Unicode Handling
 - Strict UTF-8 byte preservation.
 - Ensuring no unintended Unicode normalization occurs during parsing.
 - Correct escaping of control characters.
+- Embedded NUL support remains unsupported / needs-decision until length-aware string ownership and serialization rules are specified.
 
 ### Invalid Input Behavior
 - Rejection policy for unsupported numbers.

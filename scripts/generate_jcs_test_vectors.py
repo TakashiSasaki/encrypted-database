@@ -97,9 +97,19 @@ def generate_node(data, index_state, header_f):
     else:
         raise ValueError(f"Unsupported data type: {type(data)}")
 
+import os
+
 def generate_header(json_path, out_path):
+    if os.path.basename(json_path) == "future-boundary-plan.json":
+        raise ValueError(f"The input file {json_path} is planning-only and must not be consumed by the current generated-AST scaffold.")
+
     with open(json_path, 'r', encoding='utf-8') as f:
         vectors = json.load(f)
+
+    for v in vectors:
+        for restricted_key in ["future_only", "expected_error", "input_raw_json"]:
+            if restricted_key in v:
+                raise ValueError(f"Vector '{v.get('name')}' contains planning/rejection-only key '{restricted_key}'. This vector is not safe for current generated-AST consumption.")
 
     with open(out_path, 'w', encoding='utf-8') as f:
         f.write("#ifndef GENERATED_JCS_VECTORS_H\n")

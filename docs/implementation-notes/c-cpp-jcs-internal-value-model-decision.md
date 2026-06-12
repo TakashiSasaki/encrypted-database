@@ -74,7 +74,7 @@ When defining the integer boundaries for the internal generic value model, sever
 - **Option B:** IEEE-754 safe integer range only. Aligns better with conservative cross-language JSON number interoperability, but is narrower than the current generated-AST scaffold.
 - **Option C:** No generic numeric support beyond existing vectors until number-policy vectors are added.
 
-**Decision:** The future parser-free generic internal value model will initially accept only JSON integers within the IEEE-754 safe integer range (Option B). Unsafe integers should fail closed in the future generic model.
+**Decision:** The future parser-free generic internal value model will initially accept only JSON integers within the IEEE-754 safe integer range (Option B). Unsafe integers should fail closed in the future generic model. (Note: Unsafe integer rejection is future generic-model behavior, not current generated-AST harness behavior.)
 
 The existing generated-AST scaffold’s signed 64-bit behavior remains scaffold-specific and does not define the future generic value model boundary. The generic value model should remain conservative unless a later number-policy stride decides otherwise.
 
@@ -119,7 +119,7 @@ Before generic implementation, the following concerns must be addressed:
 ## Relationship to Generated-AST Fixture Contract
 
 - The generated-AST fixture contract may inform the internal value model.
-- The generated-AST fixture contract is not the final runtime model.
+- The generated-AST fixture contract is not the final runtime model. (`future-boundary-plan.json` is explicitly not an active conformance suite for the current harness.)
 - The generated-AST fixture contract exists to feed test vectors into scaffold serializers.
 - The future internal value model may use different language-specific types.
 - C and C++ may implement separate internal model representations.
