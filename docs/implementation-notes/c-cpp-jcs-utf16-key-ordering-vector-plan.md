@@ -105,3 +105,10 @@ UTF-16 key-ordering vectors remain planning-only and are not activated in this s
 - Go, Rust, and Zig strict loaders must not be broken by the activation of these vectors.
 - The generated-AST fixture constraints must be compatible or explicitly handled by a future generic harness.
 - No new metadata fields (e.g., `category` or `scope`) should be added to `rfc8785-basic.json` to bypass current constraints.
+
+## Status Implementation Updates
+
+- **Prototype Complete:** A parser-free UTF-16 key comparator prototype has been implemented for both C and C++ internal models (`c/src/vault_jcs_model.c` and `cpp/src/vault_jcs_model.cpp`). This prototype sorts keys by their parsed UTF-16 code units using internal UTF-8-to-UTF-16 iteration, failing closed on invalid UTF-8.
+- **Active Vectors:** The `future-boundary-plan.json` vectors (such as `utf16-surrogate-key-ordering`) remain strictly **planning-only** and have not been activated. The prototype was validated using narrow, parser-free, hardcoded internal model tests to remain independent of future generic JCS constraints.
+- The current generated-AST JCS basic-vector serializer scaffold still does not rely on this prototype. Generated-AST scaffolds remain unchanged and independent.
+- Raw JSON parser and generic loader are still unimplemented.
