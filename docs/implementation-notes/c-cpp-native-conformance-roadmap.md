@@ -24,9 +24,12 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **Generic JCS parser/dependency decision (Accepted)**
 - **Generic JCS internal value model decision (Accepted)**
 - **Generic JCS boundary-vector plan**
+- **Initial generic JCS safe-integer positive boundary-vector seed**
+- **Initial generic JCS future boundary-vector classification plan**
 
 ### Near-term
 - **Generic JCS boundary-vector implementation**
+- **Generic JCS rejection-vector representation decision**
 
 ### Future
 - **Generic JCS implementation**

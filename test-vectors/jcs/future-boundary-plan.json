@@ -1,0 +1,44 @@
+[
+  {
+    "name": "unsafe-integer-max-plus-one",
+    "description": "Integer outside IEEE-754 safe range, should fail closed in future models",
+    "input": {"max_plus_one": 9007199254740992},
+    "expected_error": "unsafe_integer",
+    "future_only": true
+  },
+  {
+    "name": "unsafe-integer-min-minus-one",
+    "description": "Integer outside IEEE-754 safe range, should fail closed in future models",
+    "input": {"min_minus_one": -9007199254740992},
+    "expected_error": "unsafe_integer",
+    "future_only": true
+  },
+  {
+    "name": "utf16-surrogate-key-ordering",
+    "description": "UTF-16 surrogate pair sorting edge case",
+    "input": {"\ud83d\ude00": 1, "\u2603": 2},
+    "expected_error": "pending_sorting_implementation",
+    "future_only": true
+  },
+  {
+    "name": "duplicate-keys",
+    "description": "Duplicate object keys should be rejected",
+    "input_raw_json": "{\"a\": 1, \"a\": 2}",
+    "expected_error": "duplicate_key",
+    "future_only": true
+  },
+  {
+    "name": "embedded-nul",
+    "description": "Embedded NUL handling (needs-decision on length-aware strings)",
+    "input": {"nul": "a\u0000b"},
+    "expected_error": "embedded_nul_unsupported",
+    "future_only": true
+  },
+  {
+    "name": "invalid-json-trailing-comma",
+    "description": "Invalid JSON text with trailing comma should be rejected by parser",
+    "input_raw_json": "[1,2,3,]",
+    "expected_error": "parse_error",
+    "future_only": true
+  }
+]
