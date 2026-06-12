@@ -14,6 +14,9 @@ For a detailed breakdown of planned future steps, see the [C/C++ Native Conforma
 
 ## Completed
 
+C and C++ parser-free generated-vector bridges now exist. Both are generated-fixture bridges, not raw parsers or runtime JSON loaders. Both validate active generated vector expected_string and expected_hex. Both remain bootstrap scaffolds. Neither implements full generic JCS. Neither implements UTF-16 key ordering. Neither consumes future/rejection vectors. Neither is a production public API.
+
+
 - Bootstrap build/test scaffold with CMake
 - Smoke CLI and library entrypoints
 - Partial AAD shared-vector conformance
@@ -23,6 +26,7 @@ For a detailed breakdown of planned future steps, see the [C/C++ Native Conforma
 - Internal C++ parser-free JCS internal model serializer seed
 - Internal C++ parser-free JCS model serializer hardening
 - Internal C++ parser-free JCS generated-vector bridge
+- C/C++ parser-free JCS bridge parity cleanup
 - Internal UUID syntax validation scaffold
 - Internal content-type boundary validation scaffold
 

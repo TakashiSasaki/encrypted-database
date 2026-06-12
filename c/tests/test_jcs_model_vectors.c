@@ -122,7 +122,7 @@ static VaultJcsModelError convert_generated_to_model(const VaultJcsValue* input,
 }
 
 static int run_vector_test(const JcsTestVector* vector) {
-    printf("Running vault_jcs_model vector test: %s\n", vector->name);
+    printf("Running C JCS model vector test: %s\n", vector->name);
 
     VaultJcsModelValue v;
     VaultJcsModelError err = convert_generated_to_model(vector->input, &v);
@@ -176,7 +176,7 @@ static int run_vector_test(const JcsTestVector* vector) {
 }
 
 int main(void) {
-    printf("Running vault_jcs_model_vectors tests from shared generated vectors...\n");
+    printf("Running C JCS model vector tests from shared generated vectors...\n");
     int failures = 0;
 
     if (NUM_JCS_TEST_VECTORS <= 0) {
@@ -189,10 +189,10 @@ int main(void) {
     }
 
     if (failures == 0) {
-        printf("All vault_jcs_model_vectors tests passed.\n");
+        printf("All C JCS model vector tests passed.\n");
         return 0;
     } else {
-        printf("%d vault_jcs_model_vectors tests failed.\n", failures);
+        printf("%d C JCS model vector tests failed.\n", failures);
         return 1;
     }
 }

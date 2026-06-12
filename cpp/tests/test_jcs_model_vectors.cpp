@@ -22,7 +22,6 @@ using namespace vault::jcs;
  * - It DOES NOT cover future UTF-16 key-ordering vectors.
  */
 
-// Implementation will follow.
 
 static Result<ModelValue> convert_generated_to_model(const VaultJcsValue* input) {
     if (!input) {
@@ -76,7 +75,7 @@ static std::string bytes_to_hex(const std::string& input) {
 }
 
 static int run_vector_test(const JcsTestVector& vector) {
-    std::cout << "Running vault_jcs_model vector test: " << vector.name << "\n";
+    std::cout << "Running C++ JCS model vector test: " << vector.name << "\n";
 
     auto res = convert_generated_to_model(vector.input);
     if (res.error != ModelError::OK) {
@@ -112,7 +111,7 @@ static int run_vector_test(const JcsTestVector& vector) {
 }
 
 int main() {
-    std::cout << "Running vault_jcs_model_vectors tests from shared generated vectors...\n";
+    std::cout << "Running C++ JCS model vector tests from shared generated vectors...\n";
     int failures = 0;
 
     if (NUM_JCS_TEST_VECTORS <= 0) {
@@ -125,10 +124,10 @@ int main() {
     }
 
     if (failures == 0) {
-        std::cout << "All vault_jcs_model_vectors tests passed.\n";
+        std::cout << "All C++ JCS model vector tests passed.\n";
         return 0;
     } else {
-        std::cout << failures << " vault_jcs_model_vectors tests failed.\n";
+        std::cout << failures << " C++ JCS model vector tests failed.\n";
         return 1;
     }
 }

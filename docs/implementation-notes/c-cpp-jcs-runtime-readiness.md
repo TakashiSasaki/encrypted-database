@@ -43,6 +43,9 @@ The following prerequisites must be resolved before proceeding with generic JCS 
 
 ## Parser-Free Internal Model Scaffold Phase
 
+C and C++ parser-free generated-vector bridges now exist. Both are generated-fixture bridges, not raw parsers or runtime JSON loaders. Both validate active generated vector expected_string and expected_hex. Both remain bootstrap scaffolds. Neither implements full generic JCS. Neither implements UTF-16 key ordering. Neither consumes future/rejection vectors. Neither is a production public API.
+
+
 **Completed.** The internal model scaffold phase was small and incremental, completing first for C and now extending to C++:
 
 **Target:** `C/C++ parser-free JCS internal model scaffold`, `C/C++ parser-free JCS internal model serializer seed`, `C/C++ parser-free JCS model serializer hardening`, and `hardened generated-vector bridge`
