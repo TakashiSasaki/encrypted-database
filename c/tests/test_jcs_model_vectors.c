@@ -6,6 +6,16 @@
 #include <string.h>
 #include <assert.h>
 
+// Helper for explicit string duplication
+static char* duplicate_string(const char* src) {
+    if (!src) return NULL;
+    size_t len = strlen(src);
+    char* dst = (char*)malloc(len + 1);
+    if (!dst) return NULL;
+    memcpy(dst, src, len + 1);
+    return dst;
+}
+
 // Forward declaration
 static VaultJcsModelError convert_generated_to_model(const VaultJcsValue* input, VaultJcsModelValue* output);
 
@@ -52,7 +62,7 @@ static VaultJcsModelError convert_generated_to_model(const VaultJcsValue* input,
                 if (!members) return VAULT_JCS_MODEL_ERROR_MEMORY;
 
                 for (size_t i = 0; i < input->value.object.count; ++i) {
-                    members[i].key = strdup(input->value.object.members[i].key);
+                    members[i].key = duplicate_string(input->value.object.members[i].key);
                     if (!members[i].key) {
                         for (size_t j = 0; j < i; ++j) {
                             free(members[j].key);
