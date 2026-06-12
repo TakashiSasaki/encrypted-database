@@ -88,6 +88,8 @@ The `test-vectors/jcs/future-boundary-plan.json` file uses this representation. 
 
 For more details on how these future boundary and rejection vectors will be consumed in the future generic implementation stages, see the [C/C++ JCS Rejection-Vector Harness Decision](./c-cpp-jcs-rejection-vector-harness-decision.md).
 
+For details on the planning and activation of UTF-16 key-ordering conformance vectors, see the [C/C++ JCS UTF-16 Key-Ordering Vector Plan](./c-cpp-jcs-utf16-key-ordering-vector-plan.md).
+
 ## Boundary-Vector Plan
 
 Before proceeding with a future generic JCS implementation in C/C++, the following boundary vectors must be added and classified. This planning ensures that the implementation boundary is unambiguous.
