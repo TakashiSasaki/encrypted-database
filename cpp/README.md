@@ -29,6 +29,7 @@ C and C++ parser-free generated-vector bridges now exist. Both are generated-fix
 - C/C++ parser-free JCS bridge parity cleanup
 - Internal UUID syntax validation scaffold
 - Internal content-type boundary validation scaffold
+- UTF-16 key-ordering implementation planning
 
 ## Missing
 

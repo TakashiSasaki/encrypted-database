@@ -32,7 +32,7 @@ The following prerequisites must be resolved before proceeding with generic JCS 
 | Fixture contract cleanup | `ready` | Clarified as test-harness seed only. |
 | Active/future vector separation | `ready` | `rfc8785-basic.json` active; `future-boundary-plan.json` planning. |
 | Future/rejection vector harness decision | `ready` | Staged approach defined. |
-| UTF-16 key-ordering vector plan | `ready` | Classified as future conformance vectors. |
+| UTF-16 key-ordering vector plan | `ready` | Classified as future conformance vectors; planning phase is complete. |
 | C ownership model decision status | `ready-for-first-slice`| Explicit ownership and preliminary error codes expected. |
 | C++ ownership model decision status | `ready-for-first-slice`| Standard RAII containers expected. |
 | Error taxonomy decision status | `deferred` | Preliminary internal error codes acceptable for the first slice; full taxonomy deferred. |
