@@ -121,7 +121,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 - **Python / Node.js**: Baseline implementations. Lifecycle, store, retrieve, update, and delete APIs are exposed publicly.
 - **browser-test**: Test-harness implementation with payload operation parity. Does not represent full real-browser WebCrypto runtime coverage (it relies on sql.js and a Node `crypto` shim, not browser `crypto.subtle`).
 - **Go / Rust**: Portability validation and writer scaffolds. Useful for Storage Format V1 Stable verification; not full production storage libraries.
-- **C / C++**: Independent native scaffold implementations. They currently provide smoke-testable CLI/library entrypoints, partial AAD shared-vector conformance, internal JSON escaping for AAD construction, a limited internal generated-AST JCS basic-vector serializer scaffold, internal UUID syntax validation, and internal content-type boundary validation. They do not implement Storage Format V1 cryptography, SQLite read/write support, or production public APIs.
+- **C / C++**: Independent native scaffold implementations. They currently provide smoke-testable CLI/library entrypoints, partial AAD shared-vector conformance, internal JSON escaping for AAD construction, a limited internal generated-AST JCS basic-vector serializer scaffold, an initial parser-free JCS internal model scaffold (with a hardened serializer seed), internal UUID syntax validation, and internal content-type boundary validation. They do not implement Storage Format V1 cryptography, SQLite read/write support, or production public APIs.
 
 ## Known gaps
 

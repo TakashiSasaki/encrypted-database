@@ -45,9 +45,9 @@ The following prerequisites must be resolved before proceeding with generic JCS 
 
 **Completed.** The internal model scaffold phase was small and incremental, completing first for C and now extending to C++:
 
-**Target:** `C/C++ parser-free JCS internal model scaffold`, `C parser-free JCS internal model serializer seed`, and `hardened generated-vector bridge`
+**Target:** `C/C++ parser-free JCS internal model scaffold`, `C/C++ parser-free JCS internal model serializer seed`, `C/C++ parser-free JCS model serializer hardening`, and `hardened generated-vector bridge`
 
-This established the runtime work in C first, and now C++ implements a fully independent, C++17 RAII-based internal model scaffold. The model supports null, boolean, safe integer, string (without embedded NUL), array, and object types. A serializer seed exists for these types.
+This established the runtime work in C first, and now C++ implements a fully independent, C++17 RAII-based internal model scaffold. The model supports null, boolean, safe integer, string (without embedded NUL), array, and object types. A hardened serializer seed exists for these types.
 
 ### Scope (Completed)
 *   Internal C value type enum (`VaultJcsModelType`), extended with arrays and objects.

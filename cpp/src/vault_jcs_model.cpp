@@ -114,8 +114,14 @@ Result<ModelValue> ModelValue::make_string(std::string value) {
 }
 
 Result<ModelValue> ModelValue::make_array(ArrayValue elements) {
-    auto ptr = std::make_shared<ArrayValue>(std::move(elements));
-    return Result<ModelValue>::ok(ModelValue(ModelType::Array, ptr));
+    try {
+        auto ptr = std::make_shared<ArrayValue>(std::move(elements));
+        return Result<ModelValue>::ok(ModelValue(ModelType::Array, ptr));
+    } catch (const std::bad_alloc&) {
+        return Result<ModelValue>::err(ModelError::MEMORY_ERROR);
+    } catch (const std::exception&) {
+        return Result<ModelValue>::err(ModelError::INVALID_ARG);
+    }
 }
 
 Result<ModelValue> ModelValue::make_object(ObjectValue members) {
@@ -131,15 +137,27 @@ Result<ModelValue> ModelValue::make_object(ObjectValue members) {
         }
     }
 
-    auto ptr = std::make_shared<ObjectValue>(std::move(members));
-    return Result<ModelValue>::ok(ModelValue(ModelType::Object, ptr));
+    try {
+        auto ptr = std::make_shared<ObjectValue>(std::move(members));
+        return Result<ModelValue>::ok(ModelValue(ModelType::Object, ptr));
+    } catch (const std::bad_alloc&) {
+        return Result<ModelValue>::err(ModelError::MEMORY_ERROR);
+    } catch (const std::exception&) {
+        return Result<ModelValue>::err(ModelError::INVALID_ARG);
+    }
 }
 
 Result<std::string> ModelValue::serialize() const {
     std::string out;
-    ModelError err = serialize_value(out, *this);
-    if (err != ModelError::OK) {
-        return Result<std::string>::err(err);
+    try {
+        ModelError err = serialize_value(out, *this);
+        if (err != ModelError::OK) {
+            return Result<std::string>::err(err);
+        }
+    } catch (const std::bad_alloc&) {
+        return Result<std::string>::err(ModelError::MEMORY_ERROR);
+    } catch (const std::exception&) {
+        return Result<std::string>::err(ModelError::SERIALIZE_ERROR);
     }
     return Result<std::string>::ok(std::move(out));
 }

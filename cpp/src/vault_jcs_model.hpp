@@ -18,7 +18,8 @@ enum class ModelError {
     UNSAFE_INTEGER,
     DUPLICATE_KEY,
     EMBEDDED_NUL_UNSUPPORTED,
-    SERIALIZE_ERROR
+    SERIALIZE_ERROR,
+    MEMORY_ERROR
 };
 
 // Internal model type identifier (analogous to the C enum, but mapped locally)
@@ -73,6 +74,9 @@ public:
     ModelValue() : type_(ModelType::Null), val_(std::monostate{}) {}
 
     // Copy and Move constructors
+    // Note: Due to the use of std::shared_ptr for composite types (Array/Object),
+    // default copy construction and assignment result in shallow copies.
+    // This provides safe lifetime management but does not provide deep-copy value semantics.
     ModelValue(const ModelValue& other) = default;
     ModelValue(ModelValue&& other) noexcept = default;
     ModelValue& operator=(const ModelValue& other) = default;
