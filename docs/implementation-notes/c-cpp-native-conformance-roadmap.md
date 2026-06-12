@@ -30,9 +30,10 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **Additional active positive JCS boundary-vector tranche**
 - **Future JCS rejection-vector harness decision**
 - **UTF-16 key-ordering vector planning**
+- **C/C++ parser-free generic JCS runtime readiness package**
 
 ### Near-term
-- **C/C++ parser-free generic JCS internal model implementation plan**
+- **C parser-free JCS internal model scaffold**
 
 ### Future
 - **Generic JCS implementation**
