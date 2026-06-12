@@ -50,11 +50,11 @@ The following prerequisites must be resolved before proceeding with generic JCS 
 This started the runtime work safely in one language (C) to establish the pattern before replicating or adapting to C++. The model supports null, boolean, safe integer, and string (without embedded NUL).
 
 ### Scope (Completed)
-*   Internal C value type enum (`VaultJcsModelType`).
-*   Internal C value struct skeleton defining the internal nodes (`VaultJcsModelValue`).
-*   Construction helpers for `null`, `boolean`, `safe integer`, and `string` (without embedded NUL).
-*   Cleanup/free functions for explicit ownership.
-*   Minimal internal-only tests validating construction and cleanup.
+*   Internal C value type enum (`VaultJcsModelType`), now extended with arrays and objects.
+*   Internal C value struct skeleton defining the internal nodes (`VaultJcsModelValue`), now supporting nested composite types.
+*   Construction helpers for `null`, `boolean`, `safe integer`, `string` (without embedded NUL), `array`, and `object` (with duplicate key rejection).
+*   Cleanup/free functions for explicit ownership, including recursive deep cleanup.
+*   Minimal internal-only tests validating construction, deep copies, and cleanup.
 
 ### Touched Files
 *   `c/src/vault_jcs_model.h`
