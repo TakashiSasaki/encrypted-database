@@ -91,7 +91,7 @@ The `test-vectors/jcs/future-boundary-plan.json` file uses this representation. 
 
 For more details on how these future boundary and rejection vectors will be consumed in the future generic implementation stages, see the [C/C++ JCS Rejection-Vector Harness Decision](./c-cpp-jcs-rejection-vector-harness-decision.md).
 
-For details on the planning and activation of UTF-16 key-ordering conformance vectors, see the [C/C++ JCS UTF-16 Key-Ordering Vector Plan](./c-cpp-jcs-utf16-key-ordering-vector-plan.md).
+For details on the planning and activation of UTF-16 key-ordering conformance vectors, see the [C/C++ JCS UTF-16 Key-Ordering Vector Plan](./c-cpp-jcs-utf16-key-ordering-vector-plan.md). UTF-16 key-ordering is not yet implemented; the planning phase is complete and a prototype is the next near-term item.
 
 ## Boundary-Vector Plan
 

@@ -10,7 +10,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 ## Active Gaps (Future Hardening)
 
-Note: C and C++ parser-free generated-vector bridges now exist. Both are generated-fixture bridges, not raw parsers or runtime JSON loaders. Both validate active generated vector expected_string and expected_hex. Both remain bootstrap scaffolds. Neither implements full generic JCS. Neither implements UTF-16 key ordering. Neither consumes future/rejection vectors. Neither is a production public API.
+Note: C and C++ parser-free generated-vector bridges now exist. Both are generated-fixture bridges, not raw parsers or runtime JSON loaders. Both validate active generated vector expected_string and expected_hex. Both remain bootstrap scaffolds. Neither implements full generic JCS. Neither implements UTF-16 key ordering. Neither consumes future/rejection vectors. Neither is a production public API. UTF-16 key-ordering implementation planning is complete, and a prototype is the next near-term step.
 
 
 ### Dynamic `created_by_version` discovery
