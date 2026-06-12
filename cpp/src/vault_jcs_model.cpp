@@ -56,7 +56,7 @@ public:
         else if ((b0 & 0xF8) == 0xF0) { cp = b0 & 0x07; extra = 3; }
         else return 0xFFFFFFFF; // Invalid
 
-        if (p_ + extra > end_) return 0xFFFFFFFF; // Truncated
+        if (end_ - p_ < extra) return 0xFFFFFFFF; // Truncated
 
         for (int i = 0; i < extra; i++) {
             uint8_t b = static_cast<uint8_t>(*p_);
