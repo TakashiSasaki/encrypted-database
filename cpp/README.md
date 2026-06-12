@@ -22,6 +22,7 @@ For a detailed breakdown of planned future steps, see the [C/C++ Native Conforma
 - Internal C++ parser-free JCS internal model scaffold
 - Internal C++ parser-free JCS internal model serializer seed
 - Internal C++ parser-free JCS model serializer hardening
+- Internal C++ parser-free JCS generated-vector bridge
 - Internal UUID syntax validation scaffold
 - Internal content-type boundary validation scaffold
 
