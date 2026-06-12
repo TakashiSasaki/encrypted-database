@@ -27,9 +27,9 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **Initial generic JCS safe-integer positive boundary-vector seed**
 - **Initial generic JCS future boundary-vector classification plan**
 - **Generic JCS future boundary-vector representation decision**
+- **Additional active positive JCS boundary-vector tranche**
 
 ### Near-term
-- **Next active positive JCS boundary-vector tranche**
 - **Future JCS rejection-vector harness decision**
 - **UTF-16 key-ordering vector planning**
 
