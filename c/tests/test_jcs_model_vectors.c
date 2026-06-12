@@ -1,3 +1,16 @@
+/**
+ * C Parser-free JCS Internal Model Generated-Vector Bridge
+ *
+ * Contract Clarifications:
+ * - This is a generated-fixture bridge reusing the existing `generated_jcs_vectors.h` test artifact.
+ * - It converts generated-AST `VaultJcsValue` values into parser-free `VaultJcsModelValue` values.
+ * - It does not parse raw JSON text.
+ * - It does not load JSON vector files from disk at runtime.
+ * - It does not consume `future-boundary-plan.json`.
+ * - It does not prove full RFC 8785 generic JCS conformance.
+ * - It does not cover future UTF-16 key-ordering vectors.
+ */
+
 #include "vault_jcs_model.h"
 #include "vault_jcs_internal.h"
 #include "generated_jcs_vectors.h"
@@ -5,6 +18,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
+static char* bytes_to_hex(const char* input) {
+    if (!input) return NULL;
+    size_t len = strlen(input);
+    char* hex = (char*)malloc(len * 2 + 1);
+    if (!hex) return NULL;
+
+    for (size_t i = 0; i < len; ++i) {
+        sprintf(hex + (i * 2), "%02x", (unsigned char)input[i]);
+    }
+    hex[len * 2] = '\0';
+    return hex;
+}
 
 // Helper for explicit string duplication
 static char* duplicate_string(const char* src) {
@@ -124,6 +150,25 @@ static int run_vector_test(const JcsTestVector* vector) {
         return 1;
     }
 
+    char* hex_output = bytes_to_hex(output);
+    if (!hex_output) {
+        printf("  FAIL: hex allocation failed\n");
+        free(output);
+        vault_jcs_model_free(&v);
+        return 1;
+    }
+
+    if (strcmp(hex_output, vector->expected_hex) != 0) {
+        printf("  FAIL: hex mismatch\n");
+        printf("    Expected: %s\n", vector->expected_hex);
+        printf("    Got:      %s\n", hex_output);
+        free(hex_output);
+        free(output);
+        vault_jcs_model_free(&v);
+        return 1;
+    }
+
+    free(hex_output);
     free(output);
     vault_jcs_model_free(&v);
     printf("  PASS\n");
@@ -133,6 +178,8 @@ static int run_vector_test(const JcsTestVector* vector) {
 int main(void) {
     printf("Running vault_jcs_model_vectors tests from shared generated vectors...\n");
     int failures = 0;
+
+    assert(NUM_JCS_TEST_VECTORS > 0);
 
     for (int i = 0; i < NUM_JCS_TEST_VECTORS; i++) {
         failures += run_vector_test(&JCS_TEST_VECTORS[i]);
