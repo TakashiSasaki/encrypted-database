@@ -83,7 +83,7 @@ We recommend **Option 3: Parser-free generic serializer over an internal value m
 
 **Rationale:**
 - It is the lowest-risk next implementation boundary.
-- It builds logically on the existing generated-AST conformance scaffold without prematurely calcifying that scaffold into a public API.
+- It builds logically on the existing generated-AST conformance scaffold without prematurely calcifying that scaffold into a public API. (Note: `future-boundary-plan.json` is not an active conformance suite for the current scaffold.)
 - It defers and avoids the complex raw parser and dependency selection.
 - It keeps the C and C++ implementations fully independent.
 - It permits the use of shared test vectors to enforce strict cross-language canonicalization behavior.
@@ -105,7 +105,7 @@ While not implemented in this stride, a future generic serializer would operate 
 - object (with string keys)
 
 See the [C/C++ JCS Internal Value Model Decision](./c-cpp-jcs-internal-value-model-decision.md) for detailed boundaries.
-- explicit representations for unsupported/future number cases
+- explicit representations for unsupported/future number cases (Note: Unsafe integer rejection is future generic-model behavior, not current generated-AST harness behavior. Embedded NUL support remains unsupported / needs-decision until length-aware string ownership and serialization rules are specified.)
 
 **Constraints on the internal value model:**
 - This value model is not a public API.

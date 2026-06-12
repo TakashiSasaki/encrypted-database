@@ -73,6 +73,16 @@ The current C and C++ generated-AST JCS tests should only consume vectors that f
 - The fail-closed behavior of the C/C++ generator for unsupported types must not be weakened.
 - Do not add a JSON parser to the scaffolds.
 
+## Future/Rejection Vector Representation
+
+Future and rejection vectors represent boundaries, error conditions, or features that are unsupported by the current C/C++ generated-AST scaffolds (and potentially by future generic implementations). They must be represented using specific metadata to prevent accidental consumption by strict active-vector test runners.
+
+- `future_only`: A boolean flag (e.g., `future_only: true`). When present, this explicitly signals that the vector is planning-only or intended for a future generic implementation/parser. It MUST NOT be consumed by current generated-AST test runners or strictly typed active loaders.
+- `expected_error`: A string denoting the type of parse or internal validation error expected (e.g., `"unsafe_integer"`, `"duplicate_key"`, `"embedded_nul_unsupported"`). This is strictly planning metadata until a generic serializer, parser, and error model test harness are implemented.
+- `input_raw_json`: A string representing raw, unparsed JSON text. This is allowed only for parser-boundary planning cases (e.g., testing trailing commas, invalid raw syntax, or duplicate keys). It MUST NOT be processed as current generated-AST input.
+
+The `test-vectors/jcs/future-boundary-plan.json` file uses this representation. It is entirely planning-only and MUST NOT be consumed by current generated-AST scaffolds. Active consumed vector files (like `rfc8785-basic.json`) must remain strictly compatible with existing typed consumers and use only the active positive-vector schema.
+
 ## Boundary-Vector Plan
 
 Before proceeding with a future generic JCS implementation in C/C++, the following boundary vectors must be added and classified. This planning ensures that the implementation boundary is unambiguous.
