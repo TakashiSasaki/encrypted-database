@@ -34,6 +34,9 @@ Result<ModelValue> ModelValue::make_array(ArrayValue elements) {
 Result<ModelValue> ModelValue::make_object(ObjectValue members) {
     // Check for duplicate keys using simple O(N^2) comparison for this scaffold
     for (size_t i = 0; i < members.size(); ++i) {
+        if (members[i].first.find('\0') != std::string::npos) {
+            return Result<ModelValue>::err(ModelError::EMBEDDED_NUL_UNSUPPORTED);
+        }
         for (size_t j = i + 1; j < members.size(); ++j) {
             if (members[i].first == members[j].first) {
                 return Result<ModelValue>::err(ModelError::DUPLICATE_KEY);

@@ -121,6 +121,12 @@ void test_object_construction() {
 
     auto res3 = ModelValue::make_object(std::move(dup_members));
     assert(res3.error == ModelError::DUPLICATE_KEY);
+    // Test object key embedded NUL rejection
+    ObjectValue nul_key_members;
+    std::string nul_key("hello\0world", 11);
+    nul_key_members.push_back({nul_key, ModelValue::make_integer(1).value});
+    auto res4 = ModelValue::make_object(std::move(nul_key_members));
+    assert(res4.error == ModelError::EMBEDDED_NUL_UNSUPPORTED);
 }
 
 void test_nested_composite() {
