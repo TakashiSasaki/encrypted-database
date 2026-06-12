@@ -38,9 +38,10 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **C parser-free JCS model serializer vector bridge**
 - **C parser-free JCS model serializer vector bridge expansion**
 - **C++ parser-free JCS internal model scaffold**
+- **C++ parser-free JCS internal model serializer seed**
 
 ### Near-term
-- **C++ parser-free JCS internal model serializer seed**
+- **C++ parser-free JCS model serializer hardening**
 
 ### Future
 - **Generic JCS implementation**

@@ -20,6 +20,7 @@ For a detailed breakdown of planned future steps, see the [C/C++ Native Conforma
 - Internal JSON escaping for AAD construction
 - Limited internal generated-AST JCS basic-vector serializer scaffold
 - Internal C++ parser-free JCS internal model scaffold
+- Internal C++ parser-free JCS internal model serializer seed
 - Internal UUID syntax validation scaffold
 - Internal content-type boundary validation scaffold
 
