@@ -69,7 +69,7 @@ The following categories should remain documentation-only or deferred to future 
 
 ## C/C++ Applicability
 
-The current C and C++ generated-AST JCS tests should only consume vectors that fit the fixture contract (which currently forbids floats and arbitrary precision).
+The current C and C++ generated-AST JCS tests and internal bridges should only consume vectors that fit the fixture contract (which currently forbids floats and arbitrary precision).
 
 - Unsupported or future vectors MUST NOT be forced into the C/C++ generated-AST harness yet.
 - The `rfc8785-basic.json` file remains restricted to supported fixture-compatible values.

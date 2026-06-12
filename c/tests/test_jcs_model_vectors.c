@@ -6,6 +6,31 @@
 #include <string.h>
 #include <assert.h>
 
+
+/*
+ * Generated-Fixture Bridge Documentation:
+ *
+ * This bridge acts purely as a generated-fixture converter.
+ * - It reuses 'generated_jcs_vectors.h' from the generator output.
+ * - It converts generated-AST 'VaultJcsValue' values into parser-free 'VaultJcsModelValue' values.
+ * - It DOES NOT parse raw JSON.
+ * - It DOES NOT load JSON vector files at runtime.
+ * - It DOES NOT consume 'future-boundary-plan.json'.
+ * - It DOES NOT prove full RFC 8785 generic JCS conformance.
+ * - It DOES NOT cover future UTF-16 key-ordering vectors.
+ */
+
+static char* bytes_to_hex(const char* input) {
+    if (!input) return NULL;
+    size_t len = strlen(input);
+    char* hex = (char*)malloc(len * 2 + 1);
+    if (!hex) return NULL;
+    for (size_t i = 0; i < len; i++) {
+        sprintf(&hex[i * 2], "%02x", (unsigned char)input[i]);
+    }
+    return hex;
+}
+
 // Helper for explicit string duplication
 static char* duplicate_string(const char* src) {
     if (!src) return NULL;
@@ -115,15 +140,35 @@ static int run_vector_test(const JcsTestVector* vector) {
         return 1;
     }
 
-    if (strcmp(output, vector->expected_string) != 0) {
-        printf("  FAIL: string mismatch\n");
-        printf("    Expected: %s\n", vector->expected_string);
-        printf("    Got:      %s\n", output);
+    char* hex_output = bytes_to_hex(output);
+    if (!hex_output) {
+        printf("  FAIL: hex allocation failed\n");
         free(output);
         vault_jcs_model_free(&v);
         return 1;
     }
 
+    if (strcmp(output, vector->expected_string) != 0) {
+        printf("  FAIL: string mismatch\n");
+        printf("    Expected: %s\n", vector->expected_string);
+        printf("    Got:      %s\n", output);
+        free(hex_output);
+        free(output);
+        vault_jcs_model_free(&v);
+        return 1;
+    }
+
+    if (strcmp(hex_output, vector->expected_hex) != 0) {
+        printf("  FAIL: hex mismatch\n");
+        printf("    Expected: %s\n", vector->expected_hex);
+        printf("    Got:      %s\n", hex_output);
+        free(hex_output);
+        free(output);
+        vault_jcs_model_free(&v);
+        return 1;
+    }
+
+    free(hex_output);
     free(output);
     vault_jcs_model_free(&v);
     printf("  PASS\n");
@@ -133,6 +178,11 @@ static int run_vector_test(const JcsTestVector* vector) {
 int main(void) {
     printf("Running vault_jcs_model_vectors tests from shared generated vectors...\n");
     int failures = 0;
+
+    if (NUM_JCS_TEST_VECTORS <= 0) {
+        printf("FAIL: No vectors found.\n");
+        return 1;
+    }
 
     for (int i = 0; i < NUM_JCS_TEST_VECTORS; i++) {
         failures += run_vector_test(&JCS_TEST_VECTORS[i]);

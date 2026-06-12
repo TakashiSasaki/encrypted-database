@@ -22,6 +22,8 @@ For a detailed breakdown of planned future steps, see the [C/C++ Native Conforma
 - C parser-free JCS internal model array/object scaffold
 - C parser-free JCS internal model serializer seed
 - C parser-free JCS model serializer hardening
+- C parser-free JCS model serializer vector bridge
+- C parser-free JCS model serializer vector bridge expansion
 
 ## Missing
 
