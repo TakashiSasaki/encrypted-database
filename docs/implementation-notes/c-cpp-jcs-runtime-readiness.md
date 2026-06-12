@@ -43,24 +43,24 @@ The following prerequisites must be resolved before proceeding with generic JCS 
 
 ## First Runtime Implementation Slice
 
-The recommended next runtime implementation slice is small and language-specific:
+**Completed.** The first runtime implementation slice was small and language-specific:
 
 **Target:** `C parser-free JCS internal model scaffold`
 
-This starts the runtime work safely in one language (C) to establish the pattern before replicating or adapting to C++.
+This started the runtime work safely in one language (C) to establish the pattern before replicating or adapting to C++. The model supports null, boolean, safe integer, and string (without embedded NUL).
 
-### Scope
-*   Internal C value type enum (e.g., `vault_jcs_value_type`).
-*   Internal C value struct skeleton defining the internal nodes.
+### Scope (Completed)
+*   Internal C value type enum (`VaultJcsModelType`).
+*   Internal C value struct skeleton defining the internal nodes (`VaultJcsModelValue`).
 *   Construction helpers for `null`, `boolean`, `safe integer`, and `string` (without embedded NUL).
 *   Cleanup/free functions for explicit ownership.
 *   Minimal internal-only tests validating construction and cleanup.
 
-### Files Likely to be Touched
-*   `c/src/vault_jcs.h` (or a new internal header `c/src/vault_jcs_model.h`)
-*   `c/src/vault_jcs.c` (or a new internal source `c/src/vault_jcs_model.c`)
-*   `c/tests/test_jcs.c`
-*   `c/CMakeLists.txt` (if adding new files)
+### Touched Files
+*   `c/src/vault_jcs_model.h`
+*   `c/src/vault_jcs_model.c`
+*   `c/tests/test_jcs_model.c`
+*   `c/CMakeLists.txt`
 
 ### Acceptance Criteria
 1.  **C and C++ Independence:** C and C++ independence remains strictly intact.
