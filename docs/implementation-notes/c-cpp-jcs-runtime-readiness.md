@@ -45,16 +45,17 @@ The following prerequisites must be resolved before proceeding with generic JCS 
 
 **Completed.** The first runtime implementation slice was small and language-specific:
 
-**Target:** `C parser-free JCS internal model scaffold`
+**Target:** `C parser-free JCS internal model scaffold` and `C parser-free JCS internal model serializer seed`
 
-This started the runtime work safely in one language (C) to establish the pattern before replicating or adapting to C++. The model supports null, boolean, safe integer, and string (without embedded NUL).
+This started the runtime work safely in one language (C) to establish the pattern before replicating or adapting to C++. The model supports null, boolean, safe integer, string (without embedded NUL), array, and object types. A serializer seed exists for these types.
 
 ### Scope (Completed)
-*   Internal C value type enum (`VaultJcsModelType`), now extended with arrays and objects.
-*   Internal C value struct skeleton defining the internal nodes (`VaultJcsModelValue`), now supporting nested composite types.
+*   Internal C value type enum (`VaultJcsModelType`), extended with arrays and objects.
+*   Internal C value struct skeleton defining the internal nodes (`VaultJcsModelValue`), supporting nested composite types.
 *   Construction helpers for `null`, `boolean`, `safe integer`, `string` (without embedded NUL), `array`, and `object` (with duplicate key rejection).
 *   Cleanup/free functions for explicit ownership, including recursive deep cleanup.
-*   Minimal internal-only tests validating construction, deep copies, and cleanup.
+*   Internal serializer seed (`vault_jcs_model_serialize`) emitting compact JSON, including basic string escaping.
+*   Minimal internal-only tests validating construction, deep copies, cleanup, and serialization.
 
 ### Touched Files
 *   `c/src/vault_jcs_model.h`
@@ -73,10 +74,13 @@ This started the runtime work safely in one language (C) to establish the patter
 8.  **No Generated Artifacts:** No generated artifacts or build outputs are committed.
 
 ### Explicit Non-Goals
-*   Implementation of the full JCS serializer algorithm.
-*   Implementation of UTF-16 key sorting.
-*   Implementation of arrays and objects in the first minimal slice (unless safely simple to stub).
+*   Implementation of the full generic JCS serializer completion claim.
+*   Implementation of full RFC 8785 UTF-16 key sorting (the seed uses a simple `strcmp` limitation).
+*   Raw JSON parser.
 *   Rejection-vector runtime harness logic.
+*   Public JCS API.
+*   C++ implementation.
+*   Crypto, SQLite, matrix integration, or production API.
 
 ## Error and Ownership Readiness
 

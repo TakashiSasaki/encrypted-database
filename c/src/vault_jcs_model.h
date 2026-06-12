@@ -23,7 +23,8 @@ typedef enum VaultJcsModelError {
     VAULT_JCS_MODEL_ERROR_MEMORY,
     VAULT_JCS_MODEL_ERROR_INVALID_ARG,
     VAULT_JCS_MODEL_ERROR_UNSAFE_INTEGER,
-    VAULT_JCS_MODEL_ERROR_DUPLICATE_KEY
+    VAULT_JCS_MODEL_ERROR_DUPLICATE_KEY,
+    VAULT_JCS_MODEL_ERROR_SERIALIZE
 } VaultJcsModelError;
 
 typedef struct VaultJcsModelValue VaultJcsModelValue;
@@ -58,6 +59,8 @@ VaultJcsModelError vault_jcs_model_init_string(VaultJcsModelValue* value, const 
 VaultJcsModelError vault_jcs_model_init_array(VaultJcsModelValue* value, const VaultJcsModelValue* elements, size_t count);
 VaultJcsModelError vault_jcs_model_init_object(VaultJcsModelValue* value, const VaultJcsModelObjectMember* members, size_t count);
 void vault_jcs_model_free(VaultJcsModelValue* value);
+
+VaultJcsModelError vault_jcs_model_serialize(const VaultJcsModelValue* value, char** output);
 
 #ifdef __cplusplus
 }
