@@ -1,16 +1,3 @@
-/**
- * C Parser-free JCS Internal Model Generated-Vector Bridge
- *
- * Contract Clarifications:
- * - This is a generated-fixture bridge reusing the existing `generated_jcs_vectors.h` test artifact.
- * - It converts generated-AST `VaultJcsValue` values into parser-free `VaultJcsModelValue` values.
- * - It does not parse raw JSON text.
- * - It does not load JSON vector files from disk at runtime.
- * - It does not consume `future-boundary-plan.json`.
- * - It does not prove full RFC 8785 generic JCS conformance.
- * - It does not cover future UTF-16 key-ordering vectors.
- */
-
 #include "vault_jcs_model.h"
 #include "vault_jcs_internal.h"
 #include "generated_jcs_vectors.h"
@@ -19,16 +6,28 @@
 #include <string.h>
 #include <assert.h>
 
+
+/*
+ * Generated-Fixture Bridge Documentation:
+ *
+ * This bridge acts purely as a generated-fixture converter.
+ * - It reuses 'generated_jcs_vectors.h' from the generator output.
+ * - It converts generated-AST 'VaultJcsValue' values into parser-free 'VaultJcsModelValue' values.
+ * - It DOES NOT parse raw JSON.
+ * - It DOES NOT load JSON vector files at runtime.
+ * - It DOES NOT consume 'future-boundary-plan.json'.
+ * - It DOES NOT prove full RFC 8785 generic JCS conformance.
+ * - It DOES NOT cover future UTF-16 key-ordering vectors.
+ */
+
 static char* bytes_to_hex(const char* input) {
     if (!input) return NULL;
     size_t len = strlen(input);
     char* hex = (char*)malloc(len * 2 + 1);
     if (!hex) return NULL;
-
-    for (size_t i = 0; i < len; ++i) {
-        sprintf(hex + (i * 2), "%02x", (unsigned char)input[i]);
+    for (size_t i = 0; i < len; i++) {
+        sprintf(&hex[i * 2], "%02x", (unsigned char)input[i]);
     }
-    hex[len * 2] = '\0';
     return hex;
 }
 
@@ -180,7 +179,6 @@ int main(void) {
     printf("Running vault_jcs_model_vectors tests from shared generated vectors...\n");
     int failures = 0;
 
-    assert(NUM_JCS_TEST_VECTORS > 0);
     if (NUM_JCS_TEST_VECTORS <= 0) {
         printf("FAIL: No vectors found.\n");
         return 1;
