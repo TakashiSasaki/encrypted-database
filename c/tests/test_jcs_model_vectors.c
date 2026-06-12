@@ -141,18 +141,19 @@ static int run_vector_test(const JcsTestVector* vector) {
         return 1;
     }
 
-    if (strcmp(output, vector->expected_string) != 0) {
-        printf("  FAIL: string mismatch\n");
-        printf("    Expected: %s\n", vector->expected_string);
-        printf("    Got:      %s\n", output);
+    char* hex_output = bytes_to_hex(output);
+    if (!hex_output) {
+        printf("  FAIL: hex allocation failed\n");
         free(output);
         vault_jcs_model_free(&v);
         return 1;
     }
 
-    char* hex_output = bytes_to_hex(output);
-    if (!hex_output) {
-        printf("  FAIL: hex allocation failed\n");
+    if (strcmp(output, vector->expected_string) != 0) {
+        printf("  FAIL: string mismatch\n");
+        printf("    Expected: %s\n", vector->expected_string);
+        printf("    Got:      %s\n", output);
+        free(hex_output);
         free(output);
         vault_jcs_model_free(&v);
         return 1;
@@ -180,6 +181,10 @@ int main(void) {
     int failures = 0;
 
     assert(NUM_JCS_TEST_VECTORS > 0);
+    if (NUM_JCS_TEST_VECTORS <= 0) {
+        printf("FAIL: No vectors found.\n");
+        return 1;
+    }
 
     for (int i = 0; i < NUM_JCS_TEST_VECTORS; i++) {
         failures += run_vector_test(&JCS_TEST_VECTORS[i]);

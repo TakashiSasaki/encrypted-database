@@ -45,7 +45,7 @@ The following prerequisites must be resolved before proceeding with generic JCS 
 
 **Completed.** The first runtime implementation slice was small and language-specific:
 
-**Target:** `C parser-free JCS internal model scaffold` and `C parser-free JCS internal model serializer seed`
+**Target:** `C parser-free JCS internal model scaffold`, `C parser-free JCS internal model serializer seed`, and `hardened generated-vector bridge`
 
 This started the runtime work safely in one language (C) to establish the pattern before replicating or adapting to C++. The model supports null, boolean, safe integer, string (without embedded NUL), array, and object types. A serializer seed exists for these types.
 
@@ -55,7 +55,7 @@ This started the runtime work safely in one language (C) to establish the patter
 *   Construction helpers for `null`, `boolean`, `safe integer`, `string` (without embedded NUL), `array`, and `object` (with duplicate key rejection).
 *   Cleanup/free functions for explicit ownership, including recursive deep cleanup.
 *   Internal serializer seed (`vault_jcs_model_serialize`) emitting compact JSON, including basic string escaping.
-*   Minimal internal-only tests validating construction, deep copies, cleanup, and serialization.
+*   Minimal internal-only tests validating construction, deep copies, cleanup, serialization, and a strictly-bounded generated-fixture bridge against active vectors.
 *   **Serializer Hardening:** Overflow protection for buffer allocation, memory limits, and explicit null/malformed AST failure safety returning detailed error codes instead of silent crashes.
 
 ### Touched Files
