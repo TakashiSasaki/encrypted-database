@@ -1,12 +1,12 @@
 # C/C++ JCS Internal Value Model Decision
 
 ## Status
-Proposed
+Accepted
 
 ## Context
 The C and C++ implementations are independent, native conformance scaffolds. Currently, they feature a limited generated-AST JCS basic-vector serializer scaffold.
 
-- PR #168 proposed a parser-free generic serializer over an internal value model as the next implementation path.
+- A parser-free generic serializer over an internal value model is the accepted next implementation path.
 - C/C++ do not currently have generic JCS.
 - C/C++ do not currently have a raw JSON parser.
 - C/C++ do not currently expose public JCS APIs.
@@ -17,17 +17,18 @@ The C and C++ implementations are independent, native conformance scaffolds. Cur
 
 ## Decision Scope
 
-This document defines the proposed internal typed value model boundary for a future parser-free generic JCS serializer in C and C++. It covers:
+This document defines the accepted internal typed value model boundary for a future parser-free generic JCS serializer in C and C++. It covers:
 - What value types should the first parser-free generic serializer accept?
 - How strings and embedded NULs should be represented internally.
 - What integer range is safe for the initial model.
 - How unsupported numeric cases should be treated.
 - Object boundaries, key ordering, and duplicate key handling.
+- C and C++ ownership models.
 - Independence of C and C++ implementations.
 
-## Proposed Value Types
+## Accepted Value Types
 
-The proposed first-stage internal value model supports the following types:
+The accepted first-stage internal value model supports the following types:
 - null
 - boolean
 - string
@@ -63,7 +64,7 @@ Embedded NUL / `\u0000` support remains `needs-decision`.
 - The current generated-AST fixture generation rejects embedded NUL due to C string-literal / NUL-terminated string constraints.
 - A future runtime/internal value model may need length-aware strings if `\u0000` support is required.
 - Supporting `\u0000` has ownership, allocation, escaping, test-vector, and cross-language API implications.
-- The first-stage internal value model should not claim support until length-aware string ownership and serialization rules are explicitly specified.
+- The first-stage generic value model explicitly does not support embedded NUL until length-aware string ownership and serialization rules are explicitly specified.
 
 ## Integer Boundary
 
@@ -73,7 +74,7 @@ When defining the integer boundaries for the internal generic value model, sever
 - **Option B:** IEEE-754 safe integer range only. Aligns better with conservative cross-language JSON number interoperability, but is narrower than the current generated-AST scaffold.
 - **Option C:** No generic numeric support beyond existing vectors until number-policy vectors are added.
 
-**Recommended proposal:** The future parser-free generic internal value model should initially accept only JSON integers within the IEEE-754 safe integer range (Option B).
+**Decision:** The future parser-free generic internal value model will initially accept only JSON integers within the IEEE-754 safe integer range (Option B). Unsafe integers should fail closed in the future generic model.
 
 The existing generated-AST scaffold’s signed 64-bit behavior remains scaffold-specific and does not define the future generic value model boundary. The generic value model should remain conservative unless a later number-policy stride decides otherwise.
 
@@ -93,10 +94,27 @@ Future unsupported numbers should be handled conceptually as follows:
 - Object keys are strings.
 - Object values are valid model values.
 - Duplicate keys are not accepted in the internal value model.
-- If the model is constructed programmatically, construction should reject duplicate keys or tests must ensure duplicates are impossible.
+- If the model is constructed programmatically, construction should either reject duplicate keys or make duplicates impossible by construction.
 - The future raw JSON parser phase must separately define duplicate-key behavior.
 - The serializer is responsible for ordering keys for canonical output.
 - UTF-16 object member sorting remains a future precise implementation requirement.
+
+## C and C++ Ownership Model Planning
+
+Before generic implementation, the following concerns must be addressed:
+
+### C Ownership Model
+- **Explicit Ownership:** C must explicitly define whether values take ownership of memory or borrow it.
+- **Length-Aware Strings:** If embedded NUL is eventually supported, length-aware string/buffer representations will be required.
+- **Allocator Strategy:** Must define allocation, particularly if dynamically growing arrays or strings are used.
+- **Error Codes:** Failures must be propagated using explicit error codes or null returns, rather than complex error objects.
+- **No C++ Dependency:** C implementation must remain completely decoupled from C++ standard libraries or runtime.
+
+### C++ Ownership Model
+- **RAII:** C++ should leverage RAII for memory management of the internal model.
+- **Standard Types:** `std::string`, `std::vector`, and `std::string_view` should be used where appropriate.
+- **Exception vs Error-Code:** The decision to use exceptions or `std::expected` / error codes must be left explicit or decided prior to implementation.
+- **No Wrapper Dependency:** C++ must not be a wrapper around the C runtime serializer/model logic.
 
 ## Relationship to Generated-AST Fixture Contract
 
