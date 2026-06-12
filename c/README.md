@@ -20,6 +20,7 @@ For a detailed breakdown of planned future steps, see the [C/C++ Native Conforma
 - Internal content-type boundary validation scaffold
 - C parser-free JCS internal model scaffold
 - C parser-free JCS internal model array/object scaffold
+- C parser-free JCS internal model serializer seed
 
 ## Missing
 
