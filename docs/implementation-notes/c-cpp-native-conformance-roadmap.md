@@ -20,11 +20,13 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **C/C++ independent implementation architecture decision**
 - **JCS fixture contract cleanup**
 - **JCS vector expansion and classification**
+- **Generic JCS implementation strategy decision (Accepted)**
+- **Generic JCS parser/dependency decision (Accepted)**
+- **Generic JCS internal value model decision (Accepted)**
+- **Generic JCS boundary-vector plan**
 
 ### Near-term
-- **Generic JCS implementation strategy decision (Proposed)**
-- **Generic JCS parser/dependency decision (Proposed)**
-- **Generic JCS internal value model decision (Proposed)**
+- **Generic JCS boundary-vector implementation**
 
 ### Future
 - **Generic JCS implementation**

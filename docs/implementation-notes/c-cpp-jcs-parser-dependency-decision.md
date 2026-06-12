@@ -1,7 +1,7 @@
 # C/C++ JCS Parser and Dependency Decision
 
 ## Status
-Proposed
+Accepted
 
 ## Context
 Storage Format V1 requires strict JSON Canonicalization Scheme (RFC 8785) for ALL JSON stored in the database, including any JSON bytes that are authenticated, hashed, indexed, or compared. Python and Node.js currently serve as the baseline implementations.
@@ -79,7 +79,7 @@ In this approach, future generic JCS would accept an internal, typed value model
 - Does not advance the C/C++ native conformance roadmap.
 
 ## Recommended Direction
-We recommend **Option 3: Parser-free generic serializer over an internal value model first**. This option now has a proposed internal value model boundary document.
+We recommend **Option 3: Parser-free generic serializer over an internal value model first**. This option now has an accepted internal value model boundary document.
 
 **Rationale:**
 - It is the lowest-risk next implementation boundary.
@@ -95,7 +95,7 @@ We recommend **Option 3: Parser-free generic serializer over an internal value m
 - This approach does not solve provider config or metadata table validation.
 - This approach does not yet settle all number canonicalization and UTF-16 sorting edge cases.
 
-## Proposed Internal Value Model Boundary
+## Internal Value Model Boundary
 While not implemented in this stride, a future generic serializer would operate over an internal value model boundary supporting:
 - `null`
 - boolean
@@ -115,7 +115,7 @@ See the [C/C++ JCS Internal Value Model Decision](./c-cpp-jcs-internal-value-mod
 - It may be informed by the existing generated-AST fixture contract, but it should be allowed to evolve independently.
 
 ## Dependency Policy
-For this stride and the proposed immediate future work:
+For this stride and the accepted immediate future work:
 - No third-party dependency is added.
 - No vendored dependency is added.
 - No Conan or vcpkg integration is added.

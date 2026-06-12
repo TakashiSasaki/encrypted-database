@@ -73,6 +73,20 @@ The current C and C++ generated-AST JCS tests should only consume vectors that f
 - The fail-closed behavior of the C/C++ generator for unsupported types must not be weakened.
 - Do not add a JSON parser to the scaffolds.
 
+## Boundary-Vector Plan
+
+Before proceeding with a future generic JCS implementation in C/C++, the following boundary vectors must be added and classified. This planning ensures that the implementation boundary is unambiguous.
+
+### Required Future Vector Groups:
+
+- **Safe Integer Accepted Vectors:** Values strictly within the IEEE-754 safe integer range.
+- **Unsafe Integer Rejection Vectors:** Values outside the safe integer range that must fail closed in the generic model.
+- **String Escaping and Control-Character Vectors:** Exhaustive tests for JSON escaping rules (including ASCII control bytes < 0x20, DEL 0x7f, backslash, quotes, etc).
+- **UTF-16 Object-Key Ordering Vectors:** Vectors that specifically test non-ASCII keys and surrogate-pair sensitive ordering as per RFC 8785.
+- **Duplicate-Key Boundary Vectors:** Vectors explicitly verifying rejection or safe handling of duplicate keys.
+- **Embedded NUL Future/Unsupported Vectors:** Vectors testing `\u0000` handling (either failing safely or succeeding if/when length-aware strings are supported).
+- **Generated-AST-Runnable vs. Future-Generic-Only:** Explicit separation and metadata documenting which vectors are safe for the current limited generated-AST scaffold, versus vectors strictly intended for testing the future raw JSON parser or generic model.
+
 ## Future Expansion Plan
 
 Future strides will introduce separate vector files or structured metadata for:
