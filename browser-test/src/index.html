@@ -8,6 +8,7 @@
         body { font-family: sans-serif; padding: 20px; }
         #output { margin-top: 20px; padding: 10px; background: #f0f0f0; border: 1px solid #ccc; font-family: monospace; white-space: pre-wrap; min-height: 200px; max-height: 300px; overflow-y: auto; }
         button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        button:disabled { cursor: not-allowed; opacity: 0.6; }
 
         #tables-container { margin-top: 30px; }
         .tabs { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 0; position: relative; z-index: 1; }
@@ -58,14 +59,14 @@
         <li class="step-item pending" id="step-8">[-] ステップ 9: ペイロードの削除</li>
     </ul>
 
-    <div id="output"></div>
+    <div id="output" aria-live="polite"></div>
     <div id="tables-container">
-        <div class="tabs">
-            <button class="tab-button active" data-tab-target="dynamic-tables">Dynamic Data</button>
-            <button class="tab-button" data-tab-target="setup-tables">Setup Data</button>
+        <div class="tabs" role="tablist" aria-label="Database Tables">
+            <button class="tab-button active" data-tab-target="dynamic-tables" role="tab" aria-selected="true" aria-controls="dynamic-tables" id="tab-dynamic-tables">Dynamic Data</button>
+            <button class="tab-button" data-tab-target="setup-tables" role="tab" aria-selected="false" aria-controls="setup-tables" id="tab-setup-tables">Setup Data</button>
         </div>
-        <div id="dynamic-tables" class="tab-content active"></div>
-        <div id="setup-tables" class="tab-content"></div>
+        <div id="dynamic-tables" class="tab-content active" role="tabpanel" aria-labelledby="tab-dynamic-tables" tabindex="0"></div>
+        <div id="setup-tables" class="tab-content" role="tabpanel" aria-labelledby="tab-setup-tables" tabindex="0"></div>
     </div>
 
     <script src="bundle.js"></script>
