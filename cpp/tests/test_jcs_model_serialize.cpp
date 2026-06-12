@@ -133,6 +133,81 @@ void test_serialize_object_ordering() {
     assert(original_obj[2].first == "m");
 }
 
+void test_serialize_object_ordering_utf16() {
+    // BMP non-ASCII: "あ" (U+3042), "い" (U+3044)
+    ObjectValue members_bmp;
+    members_bmp.push_back({"\xE3\x81\x84", ModelValue::make_integer(2).value}); // "い"
+    members_bmp.push_back({"\xE3\x81\x82", ModelValue::make_integer(1).value}); // "あ"
+    auto res_bmp = ModelValue::make_object(std::move(members_bmp));
+    assert(res_bmp.error == ModelError::OK);
+    auto ser_bmp = res_bmp.value.serialize();
+    assert(ser_bmp.error == ModelError::OK);
+    assert(ser_bmp.value == "{\"\xE3\x81\x82\":1,\"\xE3\x81\x84\":2}");
+
+    // Surrogate-pair sensitive: U+2603 SNOWMAN vs U+1F600 GRINNING FACE
+    ObjectValue members_surrogate;
+    members_surrogate.push_back({"\xF0\x9F\x98\x80", ModelValue::make_integer(2).value}); // U+1F600
+    members_surrogate.push_back({"\xE2\x98\x83", ModelValue::make_integer(1).value});     // U+2603
+    auto res_surrogate = ModelValue::make_object(std::move(members_surrogate));
+    assert(res_surrogate.error == ModelError::OK);
+    auto ser_surrogate = res_surrogate.value.serialize();
+    assert(ser_surrogate.error == ModelError::OK);
+    assert(ser_surrogate.value == "{\"\xE2\x98\x83\":1,\"\xF0\x9F\x98\x80\":2}");
+
+    // Mixed ASCII / non-ASCII
+    ObjectValue members_mixed;
+    members_mixed.push_back({"\xE2\x98\x83", ModelValue::make_integer(3).value}); // U+2603
+    members_mixed.push_back({"a", ModelValue::make_integer(1).value});            // U+0061
+    members_mixed.push_back({"\xC2\xA2", ModelValue::make_integer(2).value});     // U+00A2
+    auto res_mixed = ModelValue::make_object(std::move(members_mixed));
+    assert(res_mixed.error == ModelError::OK);
+    auto ser_mixed = res_mixed.value.serialize();
+    assert(ser_mixed.error == ModelError::OK);
+    assert(ser_mixed.value == "{\"a\":1,\"\xC2\xA2\":2,\"\xE2\x98\x83\":3}");
+
+    // No Unicode Normalization: Precomposed vs Decomposed
+    ObjectValue members_norm;
+    members_norm.push_back({"\xC3\xA9", ModelValue::make_integer(2).value});       // U+00E9
+    members_norm.push_back({"e\xCC\x81", ModelValue::make_integer(1).value});      // U+0065 U+0301
+    auto res_norm = ModelValue::make_object(std::move(members_norm));
+    assert(res_norm.error == ModelError::OK);
+    auto ser_norm = res_norm.value.serialize();
+    assert(ser_norm.error == ModelError::OK);
+    assert(ser_norm.value == "{\"e\xCC\x81\":1,\"\xC3\xA9\":2}");
+}
+
+void test_serialize_invalid_utf8() {
+    ObjectValue members;
+    members.push_back({"hello\xFFworld", ModelValue::make_integer(1).value});
+    auto res = ModelValue::make_object(std::move(members));
+    assert(res.error == ModelError::OK); // Init OK
+
+    auto ser = res.value.serialize();
+    assert(ser.error == ModelError::INVALID_ARG); // Serialize fails due to validation
+
+    // Check another invalid format: overlong encoding
+    ObjectValue members2;
+    members2.push_back({"\xC0\xAF", ModelValue::make_integer(1).value});
+    auto res2 = ModelValue::make_object(std::move(members2));
+    auto ser2 = res2.value.serialize();
+    assert(ser2.error == ModelError::INVALID_ARG);
+
+    // Missing continuation byte
+    ObjectValue members3;
+    members3.push_back({"\xE2\x98", ModelValue::make_integer(1).value});
+    auto res3 = ModelValue::make_object(std::move(members3));
+    auto ser3 = res3.value.serialize();
+    assert(ser3.error == ModelError::INVALID_ARG);
+
+    // Invalid surrogate in UTF-8
+    ObjectValue members4;
+    members4.push_back({"\xED\xA0\x80", ModelValue::make_integer(1).value}); // D800
+    auto res4 = ModelValue::make_object(std::move(members4));
+    auto ser4 = res4.value.serialize();
+    assert(ser4.error == ModelError::INVALID_ARG);
+}
+
+
 void test_serialize_nested() {
     ArrayValue inner_array;
     inner_array.push_back(ModelValue::make_string("value").value);
@@ -193,6 +268,8 @@ int main() {
     test_serialize_string();
     test_serialize_array();
     test_serialize_object_ordering();
+    test_serialize_object_ordering_utf16();
+    test_serialize_invalid_utf8();
     test_serialize_nested();
     test_serialize_repeated();
     test_serialize_large_array();

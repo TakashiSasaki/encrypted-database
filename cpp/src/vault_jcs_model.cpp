@@ -28,6 +28,85 @@ static void serialize_string(std::string& out, const std::string& str) {
     out.push_back('"');
 }
 
+// UTF-8 to UTF-16 Code Unit Iterator for std::string
+class Utf16Iterator {
+    const char* p_;
+    const char* end_;
+    uint32_t pending_surrogate_;
+
+public:
+    Utf16Iterator(const std::string& s) : p_(s.data()), end_(s.data() + s.size()), pending_surrogate_(0) {}
+
+    uint32_t next() {
+        if (pending_surrogate_ != 0) {
+            uint32_t cu = pending_surrogate_;
+            pending_surrogate_ = 0;
+            return cu;
+        }
+
+        if (p_ == end_) return 0;
+
+        uint8_t b0 = static_cast<uint8_t>(*p_++);
+        uint32_t cp = 0;
+        int extra = 0;
+
+        if (b0 < 0x80) return b0;
+        else if ((b0 & 0xE0) == 0xC0) { cp = b0 & 0x1F; extra = 1; }
+        else if ((b0 & 0xF0) == 0xE0) { cp = b0 & 0x0F; extra = 2; }
+        else if ((b0 & 0xF8) == 0xF0) { cp = b0 & 0x07; extra = 3; }
+        else return 0xFFFFFFFF; // Invalid
+
+        if (p_ + extra > end_) return 0xFFFFFFFF; // Truncated
+
+        for (int i = 0; i < extra; i++) {
+            uint8_t b = static_cast<uint8_t>(*p_);
+            if ((b & 0xC0) != 0x80) return 0xFFFFFFFF;
+            p_++;
+            cp = (cp << 6) | (b & 0x3F);
+        }
+
+        if (extra == 1 && cp < 0x80) return 0xFFFFFFFF;
+        if (extra == 2 && cp < 0x800) return 0xFFFFFFFF;
+        if (extra == 3 && cp < 0x10000) return 0xFFFFFFFF;
+        if (cp > 0x10FFFF) return 0xFFFFFFFF;
+        if (cp >= 0xD800 && cp <= 0xDFFF) return 0xFFFFFFFF;
+
+        if (cp <= 0xFFFF) return cp;
+
+        cp -= 0x10000;
+        pending_surrogate_ = 0xDC00 | (cp & 0x3FF);
+        return 0xD800 | (cp >> 10);
+    }
+};
+
+static bool is_valid_utf8(const std::string& s) {
+    Utf16Iterator it(s);
+    uint32_t cu;
+    while ((cu = it.next()) != 0) {
+        if (cu == 0xFFFFFFFF) return false;
+    }
+    return true;
+}
+
+static int compare_utf16(const std::string& a, const std::string& b) {
+    Utf16Iterator ita(a);
+    Utf16Iterator itb(b);
+
+    while (true) {
+        uint32_t cua = ita.next();
+        uint32_t cub = itb.next();
+
+        if (cua == 0xFFFFFFFF || cub == 0xFFFFFFFF) {
+            // Fallback for strict weak ordering in sort, though pre-validated
+            if (a < b) return -1;
+            if (b < a) return 1;
+            return 0;
+        }
+        if (cua != cub) return (cua < cub) ? -1 : 1;
+        if (cua == 0) return 0;
+    }
+}
+
 static ModelError serialize_value(std::string& out, const ModelValue& val) {
     switch (val.type()) {
         case ModelType::Null:
@@ -64,13 +143,14 @@ static ModelError serialize_value(std::string& out, const ModelValue& val) {
                 std::vector<const ObjectMember*> sorted;
                 sorted.reserve(obj.size());
                 for (size_t i = 0; i < obj.size(); ++i) {
+                    if (!is_valid_utf8(obj[i].first)) {
+                        return ModelError::INVALID_ARG;
+                    }
                     sorted.push_back(&obj[i]);
                 }
 
-                // Note: This simple std::string ordering is a scaffold limitation
-                // and does not implement full RFC 8785 UTF-16 key ordering.
                 std::sort(sorted.begin(), sorted.end(), [](const ObjectMember* a, const ObjectMember* b) {
-                    return a->first < b->first;
+                    return compare_utf16(a->first, b->first) < 0;
                 });
 
                 for (size_t i = 0; i < sorted.size(); ++i) {

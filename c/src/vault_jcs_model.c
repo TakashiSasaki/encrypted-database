@@ -311,14 +311,97 @@ static void model_serialize_string(ModelStringBuffer* buf, const char* str) {
     model_buf_append_char(buf, '"');
 }
 
-// Seed limitation: This uses simple strcmp byte ordering.
-// It is valid for current basic/ASCII-compatible key cases.
-// It does not implement full RFC 8785 UTF-16 key ordering.
-// UTF-16 key ordering remains future work.
+// UTF-8 to UTF-16 Code Unit Iterator
+typedef struct {
+    const uint8_t* p;
+    uint32_t pending_surrogate;
+} Utf16Iterator;
+
+static void iter_init(Utf16Iterator* it, const char* str) {
+    it->p = (const uint8_t*)str;
+    it->pending_surrogate = 0;
+}
+
+static uint32_t iter_next(Utf16Iterator* it) {
+    if (it->pending_surrogate != 0) {
+        uint32_t cu = it->pending_surrogate;
+        it->pending_surrogate = 0;
+        return cu;
+    }
+
+    if (*it->p == 0) {
+        return 0; // EOF
+    }
+
+    uint8_t b0 = *it->p++;
+    uint32_t cp = 0;
+    int extra = 0;
+
+    if (b0 < 0x80) {
+        return b0;
+    } else if ((b0 & 0xE0) == 0xC0) {
+        cp = b0 & 0x1F;
+        extra = 1;
+    } else if ((b0 & 0xF0) == 0xE0) {
+        cp = b0 & 0x0F;
+        extra = 2;
+    } else if ((b0 & 0xF8) == 0xF0) {
+        cp = b0 & 0x07;
+        extra = 3;
+    } else {
+        return 0xFFFFFFFF; // Invalid UTF-8
+    }
+
+    for (int i = 0; i < extra; i++) {
+        uint8_t b = *it->p;
+        if ((b & 0xC0) != 0x80) return 0xFFFFFFFF; // Invalid UTF-8
+        it->p++;
+        cp = (cp << 6) | (b & 0x3F);
+    }
+
+    if (extra == 1 && cp < 0x80) return 0xFFFFFFFF; // Overlong
+    if (extra == 2 && cp < 0x800) return 0xFFFFFFFF; // Overlong
+    if (extra == 3 && cp < 0x10000) return 0xFFFFFFFF; // Overlong
+    if (cp > 0x10FFFF) return 0xFFFFFFFF; // Out of range
+    if (cp >= 0xD800 && cp <= 0xDFFF) return 0xFFFFFFFF; // Surrogate in UTF-8
+
+    if (cp <= 0xFFFF) {
+        return cp;
+    } else {
+        cp -= 0x10000;
+        uint32_t high = 0xD800 | (cp >> 10);
+        uint32_t low = 0xDC00 | (cp & 0x3FF);
+        it->pending_surrogate = low;
+        return high;
+    }
+}
+
+static int compare_utf16_strings(const char* a, const char* b) {
+    Utf16Iterator ita, itb;
+    iter_init(&ita, a);
+    iter_init(&itb, b);
+
+    while (1) {
+        uint32_t cua = iter_next(&ita);
+        uint32_t cub = iter_next(&itb);
+
+        if (cua == 0xFFFFFFFF || cub == 0xFFFFFFFF) {
+            // Invalid UTF-8. Pre-validation should prevent this.
+            // Fallback to byte comparison to preserve a total order for qsort.
+            return strcmp(a, b);
+        }
+
+        if (cua != cub) {
+            return (cua < cub) ? -1 : 1;
+        }
+        if (cua == 0) return 0; // Both reached EOF
+    }
+}
+
 static int model_compare_members(const void* a, const void* b) {
     const VaultJcsModelObjectMember* ma = *(const VaultJcsModelObjectMember**)a;
     const VaultJcsModelObjectMember* mb = *(const VaultJcsModelObjectMember**)b;
-    return strcmp(ma->key, mb->key);
+    return compare_utf16_strings(ma->key, mb->key);
 }
 
 static void model_serialize_value(ModelStringBuffer* buf, const VaultJcsModelValue* val) {
@@ -386,6 +469,26 @@ static void model_serialize_value(ModelStringBuffer* buf, const VaultJcsModelVal
                 for (size_t i = 0; i < count; i++) {
                     sorted[i] = &val->value.object_value.members[i];
                 }
+
+                // Pre-validate all keys to be valid UTF-8
+                for (size_t i = 0; i < count; i++) {
+                    Utf16Iterator it;
+                    iter_init(&it, sorted[i]->key);
+                    uint32_t cu;
+                    while ((cu = iter_next(&it)) != 0) {
+                        if (cu == 0xFFFFFFFF) {
+                            buf->error = VAULT_JCS_MODEL_ERROR_INVALID_ARG;
+                            break;
+                        }
+                    }
+                    if (buf->error != VAULT_JCS_MODEL_OK) break;
+                }
+
+                if (buf->error != VAULT_JCS_MODEL_OK) {
+                    free(sorted);
+                    return;
+                }
+
                 qsort(sorted, count, sizeof(VaultJcsModelObjectMember*), model_compare_members);
 
                 for (size_t i = 0; i < count; i++) {

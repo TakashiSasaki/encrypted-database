@@ -175,6 +175,101 @@ void test_serialize_object() {
     vault_jcs_model_free(&members[2].value);
 }
 
+void test_serialize_object_ordering_utf16() {
+    VaultJcsModelValue v;
+    char* output = NULL;
+    VaultJcsModelError err;
+
+    // BMP non-ASCII: "あ" (U+3042), "い" (U+3044)
+    VaultJcsModelObjectMember members_bmp[2];
+    members_bmp[0].key = "\xE3\x81\x84"; // "い"
+    vault_jcs_model_init_integer(&members_bmp[0].value, 2);
+    members_bmp[1].key = "\xE3\x81\x82"; // "あ"
+    vault_jcs_model_init_integer(&members_bmp[1].value, 1);
+
+    err = vault_jcs_model_init_object(&v, members_bmp, 2);
+    assert(err == VAULT_JCS_MODEL_OK);
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_OK);
+    // "あ" (0x3042) < "い" (0x3044)
+    assert(strcmp(output, "{\"\\u3042\":1,\"\\u3044\":2}") == 0 || strcmp(output, "{\"\xE3\x81\x82\":1,\"\xE3\x81\x84\":2}") == 0);
+    // We check exact output, model outputs original strings (no re-escaping for non-control characters in this simple model, so it outputs UTF-8)
+    assert(strcmp(output, "{\"\xE3\x81\x82\":1,\"\xE3\x81\x84\":2}") == 0);
+    free(output);
+    vault_jcs_model_free(&v);
+
+    // Surrogate-pair sensitive: U+2603 SNOWMAN vs U+1F600 GRINNING FACE
+    VaultJcsModelObjectMember members_surrogate[2];
+    members_surrogate[0].key = "\xF0\x9F\x98\x80"; // U+1F600 (Surrogates: D83D DE00)
+    vault_jcs_model_init_integer(&members_surrogate[0].value, 2);
+    members_surrogate[1].key = "\xE2\x98\x83";     // U+2603 (Code unit: 2603)
+    vault_jcs_model_init_integer(&members_surrogate[1].value, 1);
+
+    err = vault_jcs_model_init_object(&v, members_surrogate, 2);
+    assert(err == VAULT_JCS_MODEL_OK);
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_OK);
+    // 0x2603 < 0xD83D
+    assert(strcmp(output, "{\"\xE2\x98\x83\":1,\"\xF0\x9F\x98\x80\":2}") == 0);
+    free(output);
+    vault_jcs_model_free(&v);
+
+    // Mixed ASCII / non-ASCII
+    VaultJcsModelObjectMember members_mixed[3];
+    members_mixed[0].key = "\xE2\x98\x83"; // U+2603
+    vault_jcs_model_init_integer(&members_mixed[0].value, 3);
+    members_mixed[1].key = "a";            // U+0061
+    vault_jcs_model_init_integer(&members_mixed[1].value, 1);
+    members_mixed[2].key = "\xC2\xA2";     // U+00A2 CENT SIGN
+    vault_jcs_model_init_integer(&members_mixed[2].value, 2);
+
+    err = vault_jcs_model_init_object(&v, members_mixed, 3);
+    assert(err == VAULT_JCS_MODEL_OK);
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_OK);
+    // 0x0061 < 0x00A2 < 0x2603
+    assert(strcmp(output, "{\"a\":1,\"\xC2\xA2\":2,\"\xE2\x98\x83\":3}") == 0);
+    free(output);
+    vault_jcs_model_free(&v);
+
+    // No Unicode Normalization: Precomposed vs Decomposed
+    VaultJcsModelObjectMember members_norm[2];
+    members_norm[0].key = "\xC3\xA9";       // U+00E9 (Precomposed é)
+    vault_jcs_model_init_integer(&members_norm[0].value, 2);
+    members_norm[1].key = "e\xCC\x81";      // U+0065 U+0301 (Decomposed é)
+    vault_jcs_model_init_integer(&members_norm[1].value, 1);
+
+    err = vault_jcs_model_init_object(&v, members_norm, 2);
+    assert(err == VAULT_JCS_MODEL_OK);
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_OK);
+    // U+0065 < U+00E9
+    assert(strcmp(output, "{\"e\xCC\x81\":1,\"\xC3\xA9\":2}") == 0);
+    free(output);
+    vault_jcs_model_free(&v);
+}
+
+void test_serialize_invalid_utf8() {
+    VaultJcsModelValue v;
+    char* output = NULL;
+    VaultJcsModelError err;
+
+    // Object with invalid UTF-8 key
+    VaultJcsModelObjectMember members[1];
+    members[0].key = "hello\xFFworld"; // Invalid byte \xFF
+    vault_jcs_model_init_integer(&members[0].value, 1);
+
+    err = vault_jcs_model_init_object(&v, members, 1);
+    assert(err == VAULT_JCS_MODEL_OK); // Init succeeds
+
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_ERROR_INVALID_ARG); // Serialize fails due to pre-validation
+    assert(output == NULL);
+
+    vault_jcs_model_free(&v);
+}
+
+
 void test_serialize_nested() {
     VaultJcsModelValue v;
     char* output = NULL;
@@ -321,6 +416,8 @@ int main() {
     test_serialize_string();
     test_serialize_array();
     test_serialize_object();
+    test_serialize_object_ordering_utf16();
+    test_serialize_invalid_utf8();
     test_serialize_nested();
     test_invalid_arguments();
     test_malformed_internal_values();
