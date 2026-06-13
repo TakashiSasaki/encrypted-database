@@ -112,6 +112,18 @@ The eventual test harness built upon this design will follow this flow:
 7. Free/cleanup all constructed models safely.
 8. Fail fast and clearly with the vector name on any mismatch or construction error.
 
+
+### Hardening Status (Completed)
+The generic positive vector loader scaffold has been hardened to better represent a fail-closed parser boundary:
+- **Length-Aware Strings/Keys:** Replaced naive `const char*` with a length-aware test representation (`VaultJcsTestBytes` in C, `std::string` in C++) to securely identify embedded NULs.
+- **Embedded NUL Rejection:** String values and object keys containing `\0` are explicitly rejected.
+- **UTF-8 Validation:** Added a self-contained, dependency-free byte-level UTF-8 validator to strictly fail-closed on invalid sequences without external library requirements.
+- **Safe Integer Bounds:** Ordinary integer nodes are now validated against the IEEE-754 safe integer range `[-9007199254740991, 9007199254740991]` and rejected cleanly before invoking model constructors.
+- **Error Mapping:** Expanded error enums (`LOADER_INVALID_UTF8`) and ensured deterministic mapping of all generic loader errors to strictly verify behavior.
+- **Recursive Mixed Fixtures:** Test coverage expanded to include objects containing arrays, arrays containing objects, surrogate UTF-16 key sorting cases, and diverse unsupported negative path conditions.
+
+*Note:* No raw JSON parser, runtime vector file loader, rejection harness, or `future-boundary-plan.json` consumption was added during this stride.
+
 ## Implementation Scaffold Status
 **Update (Current Stride):** The generic positive vector loader scaffold has been implemented as a test-harness-only mechanism.
 
