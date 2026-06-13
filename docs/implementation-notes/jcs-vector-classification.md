@@ -42,7 +42,7 @@ Vectors can be conceptually grouped into the following categories:
 - `integer`: Handling of standard 64-bit signed integers, including zero and negative values.
 - `array`: Correct formatting of lists.
 - `boolean-null`: Handling of `true`, `false`, and `null`.
-- `utf16-key-ordering`: Surrogate-pair sensitive and non-ASCII ordering. (A standalone seed file exists at `test-vectors/jcs/utf16-key-ordering.json` but is not yet wired into generated bridge tests).
+- `utf16-key-ordering`: Surrogate-pair sensitive and non-ASCII ordering. (A standalone seed file exists at `test-vectors/jcs/utf16-key-ordering.json` but is strictly non-active. It is currently manually verified via the `scripts/verify_jcs_utf16_vectors.py` standalone verifier, which requires the Python `jcs` package. It is deferred from CI and generated bridge tests until generic JSON loader logic exists).
 - `number-policy`: Floats, decimals, exponent notation, and negative zero.
 - `unsupported-or-future`: Arbitrary precision numbers and specific edge cases.
 - `invalid-json-or-parser-boundary`: Duplicate keys, comments, trailing commas, and malformed inputs.
@@ -91,7 +91,7 @@ The `test-vectors/jcs/future-boundary-plan.json` file uses this representation. 
 
 For more details on how these future boundary and rejection vectors will be consumed in the future generic implementation stages, see the [C/C++ JCS Rejection-Vector Harness Decision](./c-cpp-jcs-rejection-vector-harness-decision.md).
 
-For details on the planning and activation of UTF-16 key-ordering conformance vectors, see the [C/C++ JCS UTF-16 Key-Ordering Vector Plan](./c-cpp-jcs-utf16-key-ordering-vector-plan.md). The planning phase is complete and a parser-free prototype has been implemented; the full generic JCS implementation is not yet complete.
+For details on the planning and activation of UTF-16 key-ordering conformance vectors, see the [C/C++ JCS UTF-16 Key-Ordering Vector Plan](./c-cpp-jcs-utf16-key-ordering-vector-plan.md). The planning phase is complete and a parser-free prototype has been implemented. A decision has been made to keep the UTF-16 vectors strictly as a non-active standalone seed, deferred from CI until generic JSON loader logic exists. The full generic JCS implementation is not yet complete.
 
 ## Boundary-Vector Plan
 
