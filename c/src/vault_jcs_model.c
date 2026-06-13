@@ -376,6 +376,16 @@ static uint32_t iter_next(Utf16Iterator* it) {
     }
 }
 
+static bool is_valid_utf8_for_utf16_ordering(const char* s) {
+    Utf16Iterator it;
+    iter_init(&it, s);
+    uint32_t cu;
+    while ((cu = iter_next(&it)) != 0) {
+        if (cu == 0xFFFFFFFF) return false;
+    }
+    return true;
+}
+
 static int compare_utf16_strings(const char* a, const char* b) {
     Utf16Iterator ita, itb;
     iter_init(&ita, a);
@@ -386,9 +396,9 @@ static int compare_utf16_strings(const char* a, const char* b) {
         uint32_t cub = iter_next(&itb);
 
         if (cua == 0xFFFFFFFF || cub == 0xFFFFFFFF) {
-            // Invalid UTF-8. Pre-validation should prevent this.
-            // Fallback to byte comparison to preserve a total order for qsort.
-            return strcmp(a, b);
+            // Invalid UTF-8. Pre-validation must prevent this.
+            // If it occurs, return 0 to maintain sort stability without silent fallback to arbitrary byte comparison.
+            return 0;
         }
 
         if (cua != cub) {
@@ -472,16 +482,10 @@ static void model_serialize_value(ModelStringBuffer* buf, const VaultJcsModelVal
 
                 // Pre-validate all keys to be valid UTF-8
                 for (size_t i = 0; i < count; i++) {
-                    Utf16Iterator it;
-                    iter_init(&it, sorted[i]->key);
-                    uint32_t cu;
-                    while ((cu = iter_next(&it)) != 0) {
-                        if (cu == 0xFFFFFFFF) {
-                            buf->error = VAULT_JCS_MODEL_ERROR_INVALID_ARG;
-                            break;
-                        }
+                    if (!is_valid_utf8_for_utf16_ordering(sorted[i]->key)) {
+                        buf->error = VAULT_JCS_MODEL_ERROR_INVALID_ARG;
+                        break;
                     }
-                    if (buf->error != VAULT_JCS_MODEL_OK) break;
                 }
 
                 if (buf->error != VAULT_JCS_MODEL_OK) {

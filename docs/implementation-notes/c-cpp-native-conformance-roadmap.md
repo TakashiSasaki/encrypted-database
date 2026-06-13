@@ -44,9 +44,10 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **C/C++ parser-free JCS bridge parity cleanup**
 - **UTF-16 key-ordering implementation planning**
 - **C/C++ UTF-16 key comparator prototype**
+- **C/C++ UTF-16 comparator hardening**
 
 ### Near-term
-- **C/C++ UTF-16 comparator hardening**
+- **UTF-16 key-ordering vector activation decision**
 
 ### Future
 - **Generic JCS implementation**

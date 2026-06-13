@@ -254,18 +254,55 @@ void test_serialize_invalid_utf8() {
     char* output = NULL;
     VaultJcsModelError err;
 
-    // Object with invalid UTF-8 key
+    // 1. Invalid leading byte
     VaultJcsModelObjectMember members[1];
     members[0].key = "hello\xFFworld"; // Invalid byte \xFF
     vault_jcs_model_init_integer(&members[0].value, 1);
-
     err = vault_jcs_model_init_object(&v, members, 1);
-    assert(err == VAULT_JCS_MODEL_OK); // Init succeeds
-
+    assert(err == VAULT_JCS_MODEL_OK);
     err = vault_jcs_model_serialize(&v, &output);
-    assert(err == VAULT_JCS_MODEL_ERROR_INVALID_ARG); // Serialize fails due to pre-validation
+    assert(err == VAULT_JCS_MODEL_ERROR_INVALID_ARG);
     assert(output == NULL);
+    vault_jcs_model_free(&v);
 
+    // 2. Overlong encoding
+    members[0].key = "\xC0\xAF";
+    vault_jcs_model_init_integer(&members[0].value, 1);
+    err = vault_jcs_model_init_object(&v, members, 1);
+    assert(err == VAULT_JCS_MODEL_OK);
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_ERROR_INVALID_ARG);
+    assert(output == NULL);
+    vault_jcs_model_free(&v);
+
+    // 3. Truncated multi-byte sequence
+    members[0].key = "\xE2\x98";
+    vault_jcs_model_init_integer(&members[0].value, 1);
+    err = vault_jcs_model_init_object(&v, members, 1);
+    assert(err == VAULT_JCS_MODEL_OK);
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_ERROR_INVALID_ARG);
+    assert(output == NULL);
+    vault_jcs_model_free(&v);
+
+    // 4. UTF-8 encoding of surrogate U+D800
+    members[0].key = "\xED\xA0\x80";
+    vault_jcs_model_init_integer(&members[0].value, 1);
+    err = vault_jcs_model_init_object(&v, members, 1);
+    assert(err == VAULT_JCS_MODEL_OK);
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_ERROR_INVALID_ARG);
+    assert(output == NULL);
+    vault_jcs_model_free(&v);
+
+    // 5. Above U+10FFFF
+    members[0].key = "\xF4\x90\x80\x80"; // U+110000
+    vault_jcs_model_init_integer(&members[0].value, 1);
+    err = vault_jcs_model_init_object(&v, members, 1);
+    assert(err == VAULT_JCS_MODEL_OK);
+    err = vault_jcs_model_serialize(&v, &output);
+    assert(err == VAULT_JCS_MODEL_ERROR_INVALID_ARG);
+    assert(output == NULL);
     vault_jcs_model_free(&v);
 }
 
