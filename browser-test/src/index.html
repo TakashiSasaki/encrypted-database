@@ -15,6 +15,7 @@
         .tab-button { background-color: #f1f1f1; border: none; outline: none; cursor: pointer; padding: 10px 20px; transition: 0.3s; font-size: 16px; border-radius: 5px 5px 0 0; margin-right: 5px; border: 1px solid #ccc; border-bottom: none; }
         .tab-button:hover { background-color: #ddd; }
         .tab-button.active { background-color: #fff; border-bottom: 1px solid #fff; margin-bottom: -1px; font-weight: bold; }
+        .tab-button:focus-visible { outline: 2px solid #0969da; outline-offset: -2px; }
         .tab-content { display: none; border: 1px solid #ccc; border-top: none; padding: 20px; max-height: 600px; overflow-y: auto; background: #fff; }
         .tab-content.active { display: block; }
 
@@ -62,8 +63,8 @@
     <div id="output" aria-live="polite"></div>
     <div id="tables-container">
         <div class="tabs" role="tablist" aria-label="Database Tables">
-            <button class="tab-button active" data-tab-target="dynamic-tables" role="tab" aria-selected="true" aria-controls="dynamic-tables" id="tab-dynamic-tables">Dynamic Data</button>
-            <button class="tab-button" data-tab-target="setup-tables" role="tab" aria-selected="false" aria-controls="setup-tables" id="tab-setup-tables">Setup Data</button>
+            <button class="tab-button active" data-tab-target="dynamic-tables" role="tab" aria-selected="true" aria-controls="dynamic-tables" id="tab-dynamic-tables" tabindex="0">Dynamic Data</button>
+            <button class="tab-button" data-tab-target="setup-tables" role="tab" aria-selected="false" aria-controls="setup-tables" id="tab-setup-tables" tabindex="-1">Setup Data</button>
         </div>
         <div id="dynamic-tables" class="tab-content active" role="tabpanel" aria-labelledby="tab-dynamic-tables" tabindex="0"></div>
         <div id="setup-tables" class="tab-content" role="tabpanel" aria-labelledby="tab-setup-tables" tabindex="0"></div>
