@@ -10,7 +10,7 @@ None. Storage Format V1 core shape, metadata validation, and envelope rules are 
 
 ## Active Gaps (Future Hardening)
 
-Note: C and C++ parser-free generated-vector bridges now exist. Both are generated-fixture bridges, not raw parsers or runtime JSON loaders. Both validate active generated vector expected_string and expected_hex. Both remain bootstrap scaffolds. Neither implements full generic JCS. A parser-free UTF-16 key comparator has been implemented and hardened, and a non-active positive vector seed file exists. Neither consumes future/rejection vectors. Neither is a production public API.
+Note: C and C++ parser-free generated-vector bridges now exist. Both are generated-fixture bridges, not raw parsers or runtime JSON loaders. Both validate active generated vector expected_string and expected_hex. Both remain bootstrap scaffolds. Neither implements full generic JCS. A parser-free UTF-16 key comparator has been implemented and hardened, and a non-active positive vector seed file exists. A generic positive vector loader design now exists, but no generic loader implementation, raw JSON parser, rejection-vector harness, public C/C++ JCS API, or production integration exists yet. rfc8785-basic.json remains the active generated-AST positive vector suite. utf16-key-ordering.json remains a non-active positive seed. future-boundary-plan.json remains planning-only and must not be consumed by C/C++ test runners. Neither consumes future/rejection vectors. Neither is a production public API.
 
 
 ### Dynamic `created_by_version` discovery
