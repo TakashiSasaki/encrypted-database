@@ -37,8 +37,8 @@ set(POSITIVE_FIXTURES_CPP_HEADER "${CMAKE_BINARY_DIR}/generated_jcs_positive_loa
 
 add_custom_command(
     OUTPUT ${POSITIVE_FIXTURES_CPP_HEADER}
-    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/../scripts/generate_jcs_positive_loader_fixtures.py --cpp-out ${POSITIVE_FIXTURES_CPP_HEADER} ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/utf16-key-ordering.json ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/rfc8785-basic.json
-    DEPENDS ${CMAKE_SOURCE_DIR}/../scripts/generate_jcs_positive_loader_fixtures.py ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/utf16-key-ordering.json ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/rfc8785-basic.json
+    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/../scripts/generate_jcs_positive_loader_fixtures.py --cpp-out ${POSITIVE_FIXTURES_CPP_HEADER} ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/utf16-key-ordering.json ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/rfc8785-basic.json ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/generic-positive-coverage.json
+    DEPENDS ${CMAKE_SOURCE_DIR}/../scripts/generate_jcs_positive_loader_fixtures.py ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/utf16-key-ordering.json ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/rfc8785-basic.json ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/generic-positive-coverage.json
     COMMENT "Generating generic positive loader test fixtures for C++"
 )
 add_custom_target(generate_jcs_positive_loader_fixtures DEPENDS ${POSITIVE_FIXTURES_CPP_HEADER})

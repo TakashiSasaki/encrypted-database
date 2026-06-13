@@ -55,9 +55,10 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **Generic positive vector loader design**
 - **Generic positive vector loader scaffold**
 - **Generic positive vector loader scaffold hardening**
+- **Generic positive vector coverage expansion**
 
 ### Near-term
-- **Generic positive vector coverage expansion**
+- **Generic JCS implementation boundary review**
 
 ### Future
 - **Generic JCS implementation**
