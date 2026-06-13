@@ -14,9 +14,14 @@ For this repository, "Generic JCS implementation" means a fully compliant implem
 - Correctly failing closed when encountering rejection boundaries (e.g., duplicate keys, embedded NULs in object keys, unsafe/float numbers).
 - Handling valid non-ASCII UTF-8 and correct UTF-16 surrogate ordering for object keys.
 
-Currently, the C and C++ implementations are **parser-free test-harness scaffolds**. They serialize internal models to JCS output strings but intentionally lack raw JSON text parsing, file loading, and rejection capability.
+This is the long-term definition of a complete Generic JCS implementation. It is not the scope of the next implementation stride.
+
+Currently, the C and C++ implementations are **parser-free test-harness scaffolds**. They serialize internal models to JCS output strings but intentionally lack raw JSON text parsing, file loading, and rejection capability. The next stride remains parser-free and limited to serializer/model semantic hardening.
 
 C and C++ are **independent implementations**. C++ code does not and must not wrap, call, or rely on C runtime logic, models, comparators, serializers, or test helpers.
+
+## Boundary Review Checklist
+The following sections (Current Layers and Status, and Semantic Gap Audit) collectively serve as the boundary review checklist.
 
 ## Current Layers and Status
 
@@ -48,7 +53,7 @@ The following table audits the current C and C++ parser-free model serializers a
 | Solidus handling | `covered-by-tests` | Escaping solidus is explicitly prohibited by JCS; verified by vectors. |
 | UTF-8 handling | `covered-by-tests` | Natively preserved through string buffers. |
 | Embedded NUL rejection boundary | `deferred-parser-boundary` | Deferred until parser strings include explicit lengths. Currently models assume null-terminated strings. |
-| Invalid UTF-8 boundary | `covered-by-tests` | Tested by `test_serialize_invalid_utf8`. Fails closed. |
+| Invalid UTF-8 boundary | `implemented-but-needs-more-tests` | Object-key invalid UTF-8 is covered; string-value invalid UTF-8 needs explicit coverage. |
 | Object key ordering by UTF-16 code units | `covered-by-tests` | Covered by `utf16-key-ordering.json` logic mapping via surrogate checks. |
 | Array recursion | `covered-by-tests` | Tested with `mixed-type-arrays` and `deep-nesting`. |
 | Object recursion | `covered-by-tests` | Tested with `nested-objects` and `deeply-nested-object`. |
@@ -88,7 +93,7 @@ Rely on the existing wired tranches:
 - `test-vectors/jcs/generic-positive-coverage.json`
 
 ### Acceptance Criteria
-- C/C++ parser-free logic completes string escaping/control character semantic tests with complete alignment to RFC 8785.
+- C/C++ parser-free logic completes string escaping/control character semantic tests with alignment with RFC 8785 semantics within the existing parser-free safe model domain.
 - Existing tests and vectors pass without regression.
 - C and C++ remain strictly independent implementations.
 - No raw parser or file loading mechanics are introduced.
