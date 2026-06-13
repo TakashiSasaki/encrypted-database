@@ -49,12 +49,12 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **UTF-16 key-ordering positive vector seed**
 - **UTF-16 positive vector baseline integration decision**
 - **Generic JCS parser boundary decision**
-
-### Near-term
 - **C/C++ parser-free internal model conformance review**
 
-### Future
+### Near-term
 - **Generic positive vector loader design**
+
+### Future
 - **Generic JCS implementation**
 - **Argon2id dependency decision**
 - **Argon2id vector conformance**

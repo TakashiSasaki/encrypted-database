@@ -189,6 +189,35 @@ void test_object_construction() {
     vault_jcs_model_free(&null_key_members[0].value);
 }
 
+void test_utf16_surrogate_ordering() {
+    // U+10000 = F0 90 80 80 (UTF-8) -> D800 DC00 (UTF-16)
+    // U+E000  = EE 80 80 (UTF-8)    -> E000 (UTF-16)
+    // UTF-16 Order: D800 DC00 before E000 (U+10000 before U+E000)
+    const char* key1 = "\xf0\x90\x80\x80"; // U+10000
+    const char* key2 = "\xee\x80\x80";     // U+E000
+
+    VaultJcsModelObjectMember members[2];
+    members[0].key = (char*)key2;
+    vault_jcs_model_init_integer(&members[0].value, 2);
+    members[1].key = (char*)key1;
+    vault_jcs_model_init_integer(&members[1].value, 1);
+
+    VaultJcsModelValue v;
+    VaultJcsModelError err = vault_jcs_model_init_object(&v, members, 2);
+    assert(err == VAULT_JCS_MODEL_OK);
+
+    char* out = NULL;
+    err = vault_jcs_model_serialize(&v, &out);
+    assert(err == VAULT_JCS_MODEL_OK);
+
+    // Expected serialization: {"\xf0\x90\x80\x80":1,"\xee\x80\x80":2}
+    const char* expected = "{\"\xf0\x90\x80\x80\":1,\"\xee\x80\x80\":2}";
+    assert(strcmp(out, expected) == 0);
+
+    free(out);
+    vault_jcs_model_free(&v);
+}
+
 void test_nested_composite() {
     VaultJcsModelValue v;
     VaultJcsModelError err;
@@ -226,6 +255,7 @@ int main() {
     test_string_construction();
     test_array_construction();
     test_object_construction();
+    test_utf16_surrogate_ordering();
     test_nested_composite();
     printf("C JCS internal model tests passed.\n");
     return 0;
