@@ -83,4 +83,9 @@ target_link_libraries(test_jcs_model_vectors PRIVATE vault_c_lib)
 add_dependencies(test_jcs_model_vectors generate_jcs_vectors)
 add_test(NAME test_jcs_model_vectors COMMAND test_jcs_model_vectors)
 
+add_executable(test_jcs_positive_vector_loader tests/test_jcs_positive_vector_loader.c)
+target_include_directories(test_jcs_positive_vector_loader PRIVATE src)
+target_link_libraries(test_jcs_positive_vector_loader PRIVATE vault_c_lib)
+add_test(NAME test_jcs_positive_vector_loader COMMAND test_jcs_positive_vector_loader)
+
 add_test(NAME test_vault_c_smoke COMMAND ${CMAKE_COMMAND} -DEXECUTABLE=$<TARGET_FILE:vault_c_smoke> "-DEXPECTED_OUTPUT=vault c smoke test ok\n" -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_smoke.cmake)
