@@ -9,10 +9,29 @@ function initializeTabs() {
     const container = document.getElementById('tables-container');
     if (!container) return;
 
-    const tabButtons = container.querySelectorAll('.tab-button');
+    const tabButtons = Array.from(container.querySelectorAll('.tab-button'));
     const tabContents = container.querySelectorAll('.tab-content');
 
-    tabButtons.forEach(button => {
+    tabButtons.forEach((button, index) => {
+        button.addEventListener('keydown', (event) => {
+            let targetIndex = null;
+            if (event.key === 'ArrowRight') {
+                targetIndex = (index + 1) % tabButtons.length;
+            } else if (event.key === 'ArrowLeft') {
+                targetIndex = (index - 1 + tabButtons.length) % tabButtons.length;
+            } else if (event.key === 'Home') {
+                targetIndex = 0;
+            } else if (event.key === 'End') {
+                targetIndex = tabButtons.length - 1;
+            }
+
+            if (targetIndex !== null) {
+                event.preventDefault();
+                tabButtons[targetIndex].focus();
+                tabButtons[targetIndex].click();
+            }
+        });
+
         button.addEventListener('click', (event) => {
             const targetId = event.currentTarget.getAttribute('data-tab-target');
 
@@ -20,6 +39,7 @@ function initializeTabs() {
             tabButtons.forEach(btn => {
                 btn.classList.remove('active');
                 btn.setAttribute('aria-selected', 'false');
+                btn.setAttribute('tabindex', '-1');
             });
 
             const targetContent = container.querySelector(`#${targetId}`);
@@ -28,6 +48,7 @@ function initializeTabs() {
             }
             event.currentTarget.classList.add('active');
             event.currentTarget.setAttribute('aria-selected', 'true');
+            event.currentTarget.setAttribute('tabindex', '0');
         });
     });
 }
