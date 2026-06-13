@@ -47,12 +47,12 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **C/C++ UTF-16 comparator hardening**
 - **UTF-16 key-ordering vector activation decision**
 - **UTF-16 key-ordering positive vector seed**
-
-### Near-term
 - **UTF-16 positive vector baseline integration decision**
 
-### Future
+### Near-term
 - **Generic JCS parser boundary decision**
+
+### Future
 - **Generic JCS implementation**
 - **Argon2id dependency decision**
 - **Argon2id vector conformance**
