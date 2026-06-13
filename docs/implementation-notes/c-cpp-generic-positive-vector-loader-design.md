@@ -146,9 +146,10 @@ This design stride explicitly does **not** implement:
 - Direct runtime JSON file loading in C/C++ is deferred.
 - C/C++ raw JSON parser dependency is deferred.
 - The accepted interim wiring path is build-time Python generation of test-only generic positive loader fixtures from approved positive vector JSON files.
-- The Python generator enforces strict schema validation (exactly five allowed keys, strict type matching for metadata fields).
+- The Python generator enforces strict schema validation (exactly five allowed keys, strict type matching for metadata fields). Generator contract test coverage has been added.
 - **Duplicate-key Caveat:** The build-time fixture generator uses the standard Python `json` loader. Therefore, duplicate-key detection is not complete, as the Python parser natively collapses duplicates. Duplicate-key rejection remains deferred to raw-parser/rejection-harness work. This does not affect approved positive vector files that do not contain duplicate keys.
 - `utf16-key-ordering.json` is now wired to generic positive loader tests through this generated fixture path.
-- All current vectors in `test-vectors/jcs/rfc8785-basic.json` are wired through the build-time generated generic positive fixture path.
+- All current vectors in `test-vectors/jcs/rfc8785-basic.json` are wired through the build-time generated generic positive fixture path. `rfc8785-basic.json` remains the active generated-AST suite as well.
+- The new `test-vectors/jcs/generic-positive-coverage.json` vector source is added. It is a safe positive-only vector file and is consumed by the build-time generic positive fixture generator.
 - `future-boundary-plan.json` remains planning-only and is not consumed.
 - The existing generated-AST bridge remains intact and is not replaced.
