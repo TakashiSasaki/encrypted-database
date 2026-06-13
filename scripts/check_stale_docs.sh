@@ -144,6 +144,15 @@ check_phrase "C/C\+\+ expose a public JCS API" "Stale/false claim: C/C++ do not 
 check_phrase "C/C\+\+ support embedded NUL in JCS strings" "Stale/false claim: Embedded NUL support remains needs-decision"
 check_phrase "C/C\+\+ support \\\u0000 in JCS strings" "Stale/false claim: Embedded NUL support remains needs-decision"
 
+# 21. New guards added for matrix scope and public library status
+check_phrase "all languages are production-ready" "Stale/false claim: Not all languages are production-ready"
+check_phrase "C/C\+\+ are production storage libraries" "Stale/false claim: C/C++ are bootstrap scaffolds"
+check_phrase "Go/Rust/Zig are baseline-public" "Stale/false claim: Go/Rust/Zig are portability validation scaffolds"
+check_phrase "cross-language matrix passes for all languages" "Stale/false claim: Matrix only passes for baseline implementations"
+check_phrase "all language implementations have full public API parity" "Stale/false claim: API parity only applies to baseline implementations"
+
+# END OF NEW RULES
+
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
     exit 1

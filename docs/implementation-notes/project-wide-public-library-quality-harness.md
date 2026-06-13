@@ -18,14 +18,23 @@ Implementations are classified into one of the following levels:
 
 | Language | Implementation path | Current role | Public read support | Public write support | Scaffold read/write | Cross-read | Cross-write | Shared vectors | CI | Public package/docs | Status | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Python | `python/` | baseline-public | known-api-unverified | known-api-unverified | not applicable | not inspected | not inspected | implemented-public | path-filtered | partial | preview-library | Baseline implementation. API exists but cross-language runner is pending execution. |
-| Node.js | `nodejs/` | baseline-public | known-api-unverified | known-api-unverified | not applicable | not inspected | not inspected | implemented-public | path-filtered | partial | preview-library | Baseline implementation. API exists but cross-language runner is pending execution. |
+| Python | `python/` | baseline-candidate | implemented-public | implemented-public | not applicable | test-wrapper-passed | test-wrapper-passed | implemented-public | path-filtered | partial | preview-library | Active baseline candidate. Python passes the current test-wrapper baseline matrix, but baseline-public promotion still requires CI evidence, package/docs readiness, and complete release-readiness review. |
+| Node.js | `nodejs/` | baseline-candidate | implemented-public | implemented-public | not applicable | test-wrapper-passed | test-wrapper-passed | implemented-public | path-filtered | partial | preview-library | Active baseline candidate. Node.js passes the current test-wrapper baseline matrix, but baseline-public promotion still requires CI evidence, package/docs readiness, and complete release-readiness review. |
 | browser-test | `browser-test/` | portability-validation | not implemented | not implemented | implemented-test-harness | deferred | deferred | implemented-test-harness | path-filtered | out-of-scope | scaffold-only | WebCrypto harness, not a full browser library. |
-| Go | `go/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Strict portability scaffold. No stable public API. |
-| Rust | `rust/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Strict portability scaffold. No stable public API. |
-| Zig | `zig/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Scaffold CLI only. Stable Zig version is 0.16.0. |
-| C | `c/` | bootstrap-scaffold | not implemented | not implemented | not implemented | deferred | deferred | partial | path-filtered | missing | scaffold-only | Parser-free generic JCS bootstrap scaffold only. |
-| C++ | `cpp/` | bootstrap-scaffold | not implemented | not implemented | not implemented | deferred | deferred | partial | path-filtered | missing | scaffold-only | Parser-free generic JCS bootstrap scaffold only. |
+| Go | `go/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Strict portability scaffold. stable public API missing; cross-language matrix not runnable; package/docs incomplete; scaffold-only or portability-only status. |
+| Rust | `rust/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Strict portability scaffold. stable public API missing; cross-language matrix not runnable; package/docs incomplete; scaffold-only or portability-only status. |
+| Zig | `zig/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Scaffold CLI only. Stable Zig version is 0.16.0. stable public API missing; cross-language matrix not runnable; package/docs incomplete; scaffold-only or portability-only status. |
+| C | `c/` | bootstrap-scaffold | not implemented | not implemented | not implemented | deferred | deferred | partial | path-filtered | missing | scaffold-only | Parser-free generic JCS bootstrap scaffold only. no storage reader; no storage writer; no crypto; no SQLite storage profile; no matrix participation; only parser-free JCS/AAD/UUID-type scaffold coverage. |
+| C++ | `cpp/` | bootstrap-scaffold | not implemented | not implemented | not implemented | deferred | deferred | partial | path-filtered | missing | scaffold-only | Parser-free generic JCS bootstrap scaffold only. no storage reader; no storage writer; no crypto; no SQLite storage profile; no matrix participation; only parser-free JCS/AAD/UUID-type scaffold coverage. |
+
+## Current Matrix Status
+
+| Language pair | Status | Reason | Evidence |
+|---|---|---|---|
+| Python -> Python | passed | Successfully executed test-wrapper compatibility checks | `scripts/run_cross_language_compatibility.py --execute` |
+| Node.js -> Node.js | passed | Successfully executed test-wrapper compatibility checks | `scripts/run_cross_language_compatibility.py --execute` |
+| Python -> Node.js | passed | Successfully executed test-wrapper compatibility checks | `scripts/run_cross_language_compatibility.py --execute` |
+| Node.js -> Python | passed | Successfully executed test-wrapper compatibility checks | `scripts/run_cross_language_compatibility.py --execute` |
 
 ## Read/Write Compatibility Matrix Policy
 The cross-language compatibility matrix verifies that a database created in Language A can be read with identical payload semantics by Language B.

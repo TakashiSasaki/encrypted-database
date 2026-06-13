@@ -614,6 +614,28 @@ void test_serialize_backslash_escape() {
 }
 
 
+void test_serialize_invalid_utf8_string_values() {
+    VaultJcsModelValue v;
+    char* output = NULL;
+    VaultJcsModelError err;
+
+    const char* invalid_utf8_strings[] = {
+        "hello\xFFworld",
+        "\xC0\xAF",
+        "\xE2\x98",
+        "\xED\xA0\x80",
+        "\xF4\x90\x80\x80"
+    };
+
+    for (int i = 0; i < 5; i++) {
+        vault_jcs_model_init_string(&v, invalid_utf8_strings[i]);
+        err = vault_jcs_model_serialize(&v, &output);
+        assert(err == VAULT_JCS_MODEL_ERROR_INVALID_ARG);
+        assert(output == NULL);
+        vault_jcs_model_free(&v);
+    }
+}
+
 void test_serialize_invalid_utf8_object_keys_more() {
     VaultJcsModelValue v;
     char* output = NULL;
@@ -643,6 +665,7 @@ void test_serialize_invalid_utf8_object_keys_more() {
 }
 
 int main() {
+    test_serialize_invalid_utf8_string_values();
     test_serialize_invalid_utf8_object_keys_more();
     test_serialize_utf16_ordering();
     test_serialize_safe_integer_boundaries();

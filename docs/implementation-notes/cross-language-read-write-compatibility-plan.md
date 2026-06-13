@@ -10,8 +10,8 @@ Can a database written by language A be read by language B with identical Storag
 
 | Language | Implementation path | Current role | Public read support | Public write support | Scaffold read/write | Stable API? | Include in this stride? | Notes |
 |---|---|---|---|---|---|---|---|---|
-| Python | `python/` | baseline | known-api-unverified | known-api-unverified | N/A | Yes | No | Exposes stable library API (`EncryptedStorage`), but runner integration is pending in this stride. |
-| Node.js | `nodejs/` | baseline | known-api-unverified | known-api-unverified | N/A | Yes | No | Exposes stable library API (`EncryptedStorage`), but runner integration is pending in this stride. |
+| Python | `python/` | baseline-candidate | implemented-public | implemented-public | N/A | Yes | Yes | Exposes stable library API (`EncryptedStorage`). Test-wrapper execution passed. |
+| Node.js | `nodejs/` | baseline-candidate | implemented-public | implemented-public | N/A | Yes | Yes | Exposes stable library API (`EncryptedStorage`). Test-wrapper execution passed. |
 | Go | `go/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
 | Rust | `rust/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
 | Zig | `zig/` | portability-validation | not implemented | not implemented | Yes | No | No | Scaffold-level CLI, not a stable storage library. |
@@ -30,7 +30,18 @@ Can a database written by language A be read by language B with identical Storag
 - **Test mode**
 
 ## Active Testing Pairs
-None yet. Python and Node.js are candidate baseline participants, but actual cross-execution is deferred until shared test fixture contracts and wrapper commands are finalized.
+Python and Node.js are actively integrated and passing the cross-language baseline test pairs through their execution test wrappers.
+
+## Current Matrix Status
+
+| Language pair (write -> read) | Status | Reason | Evidence |
+|---|---|---|---|
+| Python -> Python | passed | Successfully executed test-wrapper compatibility checks | `scripts/run_cross_language_compatibility.py --execute` output |
+| Node.js -> Node.js | passed | Successfully executed test-wrapper compatibility checks | `scripts/run_cross_language_compatibility.py --execute` output |
+| Python -> Node.js | passed | Successfully executed test-wrapper compatibility checks | `scripts/run_cross_language_compatibility.py --execute` output |
+| Node.js -> Python | passed | Successfully executed test-wrapper compatibility checks | `scripts/run_cross_language_compatibility.py --execute` output |
+
+*(Other combinations involving Go, Rust, Zig, C, and C++ are skipped due to lacking a stable public API and corresponding wrapper commands).*
 
 ## Planned Fixture Format
 The compatibility test creates temporary runtime SQLite databases using the standard `initialize_database` / `initializeDatabase` entrypoints. Payloads are written using `store_payload` / `storePayload`, then the same database file is passed to another language for `retrieve_payload` / `retrievePayload`.

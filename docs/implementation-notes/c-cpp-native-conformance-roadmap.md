@@ -9,6 +9,7 @@ The immediate goal is to incrementally establish a native testing boundary and v
 ## Roadmap Stages
 
 ### Completed
+- **Cross-language read/write compatibility matrix baseline (discovery/execution implemented for baseline languages)**
 - **C/C++ parser-free JCS serializer semantic hardening**
 - **Generic positive vector loader runtime-vector wiring decision**
 - **Generic positive vector build-time fixture wiring**
@@ -59,7 +60,6 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **Generic JCS implementation boundary review**
 
 ### Near-term
-- **Cross-language read/write compatibility matrix baseline**
 
 ### Future
 - **Generic JCS implementation**
