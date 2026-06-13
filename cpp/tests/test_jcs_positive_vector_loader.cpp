@@ -51,6 +51,10 @@ struct JsonNode {
 
 // --- LOADER ERROR ENUM ---
 
+
+
+// --- LOADER ERROR ENUM ---
+
 enum class LoaderError {
     OK,
     INVALID_ARGUMENT,
@@ -195,6 +199,9 @@ static LoaderError convert_test_to_model(const JsonNode* input, ModelValue& outp
 
 using namespace vault::jcs::test;
 
+#include "generated_jcs_positive_loader_fixtures.hpp"
+
+
 // --- TEST UTILS ---
 
 static std::string bytes_to_hex(const std::string& input) {
@@ -319,6 +326,40 @@ int main() {
     JsonNode inner_obj; inner_obj.type = JsonType::OBJECT; inner_obj.object_members.push_back({"k", &bool_node});
     JsonNode arr_obj_node; arr_obj_node.type = JsonType::ARRAY; arr_obj_node.array_elements.push_back(&inner_obj);
     failures += run_positive_test("array containing object", &arr_obj_node, "[{\"k\":true}]", "5b7b226b223a747275657d5d");
+
+
+    // --- MANUAL HARDENING ADD-ONS ---
+    JsonNode empty_str_node;
+    empty_str_node.type = JsonType::STRING;
+    empty_str_node.string_val = "";
+    failures += run_positive_test("empty string", &empty_str_node, "\"\"", "2222");
+
+    JsonNode empty_key_obj;
+    empty_key_obj.type = JsonType::OBJECT;
+    empty_key_obj.object_members.push_back({"", &bool_node});
+    failures += run_positive_test("empty object key", &empty_key_obj, "{\"\":true}", "7b22223a747275657d");
+
+    JsonNode invalid_utf8_trunc;
+    invalid_utf8_trunc.type = JsonType::STRING;
+    invalid_utf8_trunc.string_val = "\xe2\x98";
+    failures += run_negative_test("invalid utf8 (truncated)", &invalid_utf8_trunc, LoaderError::INVALID_UTF8);
+
+    JsonNode invalid_utf8_surrogate;
+    invalid_utf8_surrogate.type = JsonType::STRING;
+    invalid_utf8_surrogate.string_val = "\xed\xa0\x80";
+    failures += run_negative_test("invalid utf8 (surrogate encoded in UTF-8)", &invalid_utf8_surrogate, LoaderError::INVALID_UTF8);
+
+    JsonNode invalid_utf8_toolarge;
+    invalid_utf8_toolarge.type = JsonType::STRING;
+    invalid_utf8_toolarge.string_val = "\xf4\x90\x80\x80";
+    failures += run_negative_test("invalid utf8 (code point above U+10FFFF)", &invalid_utf8_toolarge, LoaderError::INVALID_UTF8);
+
+    // --- GENERATED FIXTURES ---
+    generated_jcs_fixtures_init();
+    for (size_t i = 0; i < generated_jcs_vectors_count; i++) {
+        const GeneratedJcsVector* vec = generated_jcs_vectors[i];
+        failures += run_positive_test(vec->name, vec->input, vec->expected_string, vec->expected_hex);
+    }
 
     // --- NEGATIVE TESTS ---
 

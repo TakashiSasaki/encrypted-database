@@ -32,6 +32,17 @@ add_custom_command(
 )
 add_custom_target(generate_jcs_vectors DEPENDS ${GENERATED_JCS_HEADER})
 
+# Generate generic positive loader test fixtures
+set(POSITIVE_FIXTURES_CPP_HEADER "${CMAKE_BINARY_DIR}/generated_jcs_positive_loader_fixtures.hpp")
+
+add_custom_command(
+    OUTPUT ${POSITIVE_FIXTURES_CPP_HEADER}
+    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/../scripts/generate_jcs_positive_loader_fixtures.py --cpp-out ${POSITIVE_FIXTURES_CPP_HEADER} ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/utf16-key-ordering.json ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/rfc8785-basic.json
+    DEPENDS ${CMAKE_SOURCE_DIR}/../scripts/generate_jcs_positive_loader_fixtures.py ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/utf16-key-ordering.json ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/rfc8785-basic.json
+    COMMENT "Generating generic positive loader test fixtures for C++"
+)
+add_custom_target(generate_jcs_positive_loader_fixtures DEPENDS ${POSITIVE_FIXTURES_CPP_HEADER})
+
 # Library
 add_library(vault_cpp_lib src/vault.cpp src/vault_aad.cpp src/vault_uuid.cpp src/vault_content_type.cpp src/vault_jcs.cpp src/vault_jcs_model.cpp)
 target_include_directories(vault_cpp_lib PRIVATE ${CMAKE_SOURCE_DIR}/../c/src)
@@ -69,8 +80,9 @@ add_dependencies(test_jcs generate_jcs_vectors)
 add_test(NAME test_jcs COMMAND test_jcs)
 
 add_executable(test_jcs_positive_vector_loader tests/test_jcs_positive_vector_loader.cpp)
-target_include_directories(test_jcs_positive_vector_loader PRIVATE src)
+target_include_directories(test_jcs_positive_vector_loader PRIVATE src ${CMAKE_BINARY_DIR})
 target_link_libraries(test_jcs_positive_vector_loader PRIVATE vault_cpp_lib)
+add_dependencies(test_jcs_positive_vector_loader generate_jcs_positive_loader_fixtures)
 add_test(NAME test_jcs_positive_vector_loader COMMAND test_jcs_positive_vector_loader)
 
 add_test(NAME test_vault_cpp_smoke COMMAND ${CMAKE_COMMAND} -DEXECUTABLE=$<TARGET_FILE:vault_cpp_smoke> "-DEXPECTED_OUTPUT=vault cpp smoke test ok\n" -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_smoke.cmake)

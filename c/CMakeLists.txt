@@ -32,6 +32,17 @@ add_custom_command(
 )
 add_custom_target(generate_jcs_vectors DEPENDS ${GENERATED_JCS_HEADER})
 
+# Generate generic positive loader test fixtures
+set(POSITIVE_FIXTURES_C_HEADER "${CMAKE_BINARY_DIR}/generated_jcs_positive_loader_fixtures.h")
+
+add_custom_command(
+    OUTPUT ${POSITIVE_FIXTURES_C_HEADER}
+    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/../scripts/generate_jcs_positive_loader_fixtures.py --c-out ${POSITIVE_FIXTURES_C_HEADER} ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/utf16-key-ordering.json ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/rfc8785-basic.json
+    DEPENDS ${CMAKE_SOURCE_DIR}/../scripts/generate_jcs_positive_loader_fixtures.py ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/utf16-key-ordering.json ${CMAKE_SOURCE_DIR}/../test-vectors/jcs/rfc8785-basic.json
+    COMMENT "Generating generic positive loader test fixtures for C"
+)
+add_custom_target(generate_jcs_positive_loader_fixtures DEPENDS ${POSITIVE_FIXTURES_C_HEADER})
+
 # Library
 add_library(vault_c_lib src/vault.c src/vault_aad.c src/vault_uuid.c src/vault_content_type.c src/vault_jcs.c src/vault_jcs_model.c)
 
@@ -84,8 +95,9 @@ add_dependencies(test_jcs_model_vectors generate_jcs_vectors)
 add_test(NAME test_jcs_model_vectors COMMAND test_jcs_model_vectors)
 
 add_executable(test_jcs_positive_vector_loader tests/test_jcs_positive_vector_loader.c)
-target_include_directories(test_jcs_positive_vector_loader PRIVATE src)
+target_include_directories(test_jcs_positive_vector_loader PRIVATE src ${CMAKE_BINARY_DIR})
 target_link_libraries(test_jcs_positive_vector_loader PRIVATE vault_c_lib)
+add_dependencies(test_jcs_positive_vector_loader generate_jcs_positive_loader_fixtures)
 add_test(NAME test_jcs_positive_vector_loader COMMAND test_jcs_positive_vector_loader)
 
 add_test(NAME test_vault_c_smoke COMMAND ${CMAKE_COMMAND} -DEXECUTABLE=$<TARGET_FILE:vault_c_smoke> "-DEXPECTED_OUTPUT=vault c smoke test ok\n" -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_smoke.cmake)
