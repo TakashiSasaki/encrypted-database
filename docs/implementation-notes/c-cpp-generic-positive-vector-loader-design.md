@@ -11,6 +11,8 @@ The generic positive vector loader will be a test-harness mechanism that reads p
 ## Boundary Definition
 **Decision:** The generic positive vector loader is strictly a test-harness layer.
 
+*See also: [C/C++ Generic JCS Implementation Boundary Review](c-cpp-generic-jcs-implementation-boundary-review.md)*
+
 It is **not**:
 - a raw JSON text parser;
 - a public API;

@@ -56,9 +56,10 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **Generic positive vector loader scaffold**
 - **Generic positive vector loader scaffold hardening**
 - **Generic positive vector coverage expansion**
+- **Generic JCS implementation boundary review**
 
 ### Near-term
-- **Generic JCS implementation boundary review**
+- **C/C++ parser-free JCS serializer semantic hardening**
 
 ### Future
 - **Generic JCS implementation**
