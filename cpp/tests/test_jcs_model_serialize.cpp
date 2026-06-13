@@ -367,6 +367,25 @@ void test_serialize_backslash_escape() {
 }
 
 
+void test_serialize_invalid_utf8_string_values() {
+    const char* invalid_utf8_strings[] = {
+        "hello\xFFworld",
+        "\xC0\xAF",
+        "\xE2\x98",
+        "\xED\xA0\x80",
+        "\xF4\x90\x80\x80"
+    };
+
+    for (int i = 0; i < 5; i++) {
+        auto res = ModelValue::make_string(invalid_utf8_strings[i]);
+        assert(res.error == ModelError::OK);
+
+        auto ser = res.value.serialize();
+        assert(ser.error == ModelError::INVALID_ARG);
+        assert(ser.value.empty());
+    }
+}
+
 void test_serialize_invalid_utf8_object_keys_more() {
     ObjectValue members;
     members.push_back({"\xFF", ModelValue::make_integer(1).value});
@@ -382,6 +401,7 @@ void test_serialize_invalid_utf8_object_keys_more() {
 }
 
 int main() {
+    test_serialize_invalid_utf8_string_values();
     test_serialize_invalid_utf8_object_keys_more();
     test_serialize_utf16_ordering();
     test_serialize_safe_integer_boundaries();
