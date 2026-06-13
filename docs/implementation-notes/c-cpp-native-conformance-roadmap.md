@@ -52,6 +52,7 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **C/C++ parser-free internal model conformance review**
 - **Generic positive vector loader design**
 - **Generic positive vector loader scaffold**
+- **Generic positive vector loader scaffold hardening**
 
 ### Near-term
 - **Generic positive vector loader runtime-vector wiring decision**

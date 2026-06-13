@@ -7,6 +7,11 @@
 
 // --- TEST-HARNESS GENERIC JSON REPRESENTATION ---
 
+typedef struct {
+    const unsigned char* data;
+    size_t len;
+} VaultJcsTestBytes;
+
 typedef enum {
     TEST_JSON_NULL,
     TEST_JSON_BOOLEAN,
@@ -26,7 +31,7 @@ typedef enum {
 typedef struct VaultJcsTestJsonNode VaultJcsTestJsonNode;
 
 typedef struct {
-    const char* key;
+    VaultJcsTestBytes key;
     VaultJcsTestJsonNode* value;
 } VaultJcsTestObjectMember;
 
@@ -35,7 +40,7 @@ struct VaultJcsTestJsonNode {
     union {
         bool boolean_val;
         int64_t integer_val;
-        const char* string_val;
+        VaultJcsTestBytes string_val;
         struct {
             VaultJcsTestJsonNode* elements;
             size_t count;
@@ -56,6 +61,7 @@ typedef enum {
     LOADER_UNSUPPORTED_TYPE,
     LOADER_UNSAFE_INTEGER,
     LOADER_EMBEDDED_NUL,
+    LOADER_INVALID_UTF8,
     LOADER_DUPLICATE_KEY,
     LOADER_UNSUPPORTED_VECTOR_FIELD,
     LOADER_SERIALIZE_ERROR,
@@ -64,17 +70,55 @@ typedef enum {
 
 // --- LOADER IMPLEMENTATION (Test-only) ---
 
-static bool has_embedded_nul(const char* s) {
-    if (!s) return false;
-    // Assuming standard C strings for literal initializers, but if we pass length, we could check for \0 inside.
-    // For this scaffold, let's use a convention: if the string is meant to contain NUL, it's explicitly tested.
-    // However, C strings cannot natively contain embedded NULs without an explicit length.
-    // In our test structs, we'll assume string_val is null-terminated but we might pass a known sentinel.
-    // Let's implement a simple substring check for a specific literal sentinel: "\\u0000" if we want to simulate it,
-    // or just rely on a flag or explicit checking if we add a length field.
-    // To make it simple and strictly fail-closed on NULs: Since we don't have lengths in this mock,
-    // we'll add an explicit check for a known embedded-NUL string sentinel: "NUL\0TEST" but that's truncated.
+static bool has_embedded_nul(const VaultJcsTestBytes* bytes) {
+    for (size_t i = 0; i < bytes->len; ++i) {
+        if (bytes->data[i] == 0x00) return true;
+    }
     return false;
+}
+
+static bool is_valid_utf8_bytes(const VaultJcsTestBytes* bytes) {
+    const unsigned char* p = bytes->data;
+    size_t len = bytes->len;
+    size_t i = 0;
+    while (i < len) {
+        unsigned char c = p[i];
+        int extra = 0;
+        uint32_t min_cp = 0;
+        if (c < 0x80) {
+            i++;
+            continue;
+        } else if ((c & 0xE0) == 0xC0) {
+            extra = 1; min_cp = 0x80;
+        } else if ((c & 0xF0) == 0xE0) {
+            extra = 2; min_cp = 0x800;
+        } else if ((c & 0xF8) == 0xF0) {
+            extra = 3; min_cp = 0x10000;
+        } else {
+            return false;
+        }
+        if (i + extra >= len) return false;
+        uint32_t cp = c & (0xFF >> (extra + 1));
+        for (int j = 1; j <= extra; ++j) {
+            if ((p[i + j] & 0xC0) != 0x80) return false;
+            cp = (cp << 6) | (p[i + j] & 0x3F);
+        }
+        if (cp < min_cp) return false; // Overlong encoding
+        if (cp > 0x10FFFF) return false;
+        if (cp >= 0xD800 && cp <= 0xDFFF) return false; // Surrogates are invalid UTF-8
+        i += extra + 1;
+    }
+    return true;
+}
+
+// Helper to convert length-aware string to null-terminated for C model
+static char* bytes_to_cstring(const VaultJcsTestBytes* bytes) {
+    if (!bytes || !bytes->data) return NULL;
+    char* dst = (char*)malloc(bytes->len + 1);
+    if (!dst) return NULL;
+    memcpy(dst, bytes->data, bytes->len);
+    dst[bytes->len] = '\0';
+    return dst;
 }
 
 // Helper to duplicate strings
@@ -92,23 +136,30 @@ static LoaderError test_loader_convert(const VaultJcsTestJsonNode* input, VaultJ
 
     switch (input->type) {
         case TEST_JSON_NULL:
-            vault_jcs_model_init_null(output);
+            if (vault_jcs_model_init_null(output) != VAULT_JCS_MODEL_OK) return LOADER_MEMORY_ERROR;
             return LOADER_OK;
         case TEST_JSON_BOOLEAN:
-            vault_jcs_model_init_boolean(output, input->value.boolean_val);
+            if (vault_jcs_model_init_boolean(output, input->value.boolean_val) != VAULT_JCS_MODEL_OK) return LOADER_MEMORY_ERROR;
             return LOADER_OK;
-        case TEST_JSON_INTEGER:
-            vault_jcs_model_init_integer(output, input->value.integer_val);
-            return LOADER_OK;
-        case TEST_JSON_STRING:
-            // Check for embedded NUL sentinel or invalid strings
-            // In C, a string with embedded NUL would require length.
-            // We'll simulate checking for embedded NUL if string contains a specific sentinel for this mock loader
-            if (input->value.string_val && strstr(input->value.string_val, "HAS_NUL_SENTINEL")) {
-                return LOADER_EMBEDDED_NUL;
+        case TEST_JSON_INTEGER: {
+            if (input->value.integer_val < -9007199254740991LL || input->value.integer_val > 9007199254740991LL) {
+                return LOADER_UNSAFE_INTEGER;
             }
-            vault_jcs_model_init_string(output, input->value.string_val);
+            VaultJcsModelError err = vault_jcs_model_init_integer(output, input->value.integer_val);
+            if (err == VAULT_JCS_MODEL_ERROR_UNSAFE_INTEGER) return LOADER_UNSAFE_INTEGER;
+            if (err != VAULT_JCS_MODEL_OK) return LOADER_MEMORY_ERROR;
             return LOADER_OK;
+        }
+        case TEST_JSON_STRING: {
+            if (has_embedded_nul(&input->value.string_val)) return LOADER_EMBEDDED_NUL;
+            if (!is_valid_utf8_bytes(&input->value.string_val)) return LOADER_INVALID_UTF8;
+            char* c_str = bytes_to_cstring(&input->value.string_val);
+            if (!c_str) return LOADER_MEMORY_ERROR;
+            VaultJcsModelError err = vault_jcs_model_init_string(output, c_str);
+            free(c_str);
+            if (err != VAULT_JCS_MODEL_OK) return LOADER_MEMORY_ERROR;
+            return LOADER_OK;
+        }
         case TEST_JSON_ARRAY: {
             VaultJcsModelValue* elements = NULL;
             if (input->value.array.count > 0) {
@@ -146,7 +197,7 @@ static LoaderError test_loader_convert(const VaultJcsTestJsonNode* input, VaultJ
                 if (!members) return LOADER_MEMORY_ERROR;
 
                 for (size_t i = 0; i < input->value.object.count; ++i) {
-                    if (strstr(input->value.object.members[i].key, "HAS_NUL_SENTINEL")) {
+                    if (has_embedded_nul(&input->value.object.members[i].key)) {
                         for (size_t j = 0; j < i; ++j) {
                             free(members[j].key);
                             vault_jcs_model_free(&members[j].value);
@@ -154,8 +205,16 @@ static LoaderError test_loader_convert(const VaultJcsTestJsonNode* input, VaultJ
                         free(members);
                         return LOADER_EMBEDDED_NUL;
                     }
+                    if (!is_valid_utf8_bytes(&input->value.object.members[i].key)) {
+                        for (size_t j = 0; j < i; ++j) {
+                            free(members[j].key);
+                            vault_jcs_model_free(&members[j].value);
+                        }
+                        free(members);
+                        return LOADER_INVALID_UTF8;
+                    }
 
-                    members[i].key = dup_str(input->value.object.members[i].key);
+                    members[i].key = bytes_to_cstring(&input->value.object.members[i].key);
                     if (!members[i].key) {
                         for (size_t j = 0; j < i; ++j) {
                             free(members[j].key);
@@ -286,7 +345,7 @@ int main(void) {
     failures += run_positive_test("empty array", &empty_arr, "[]", "5b5d");
 
     // 3. String, Boolean, Null
-    VaultJcsTestJsonNode str_node = { .type = TEST_JSON_STRING, .value.string_val = "hello" };
+    VaultJcsTestJsonNode str_node = { .type = TEST_JSON_STRING, .value.string_val = { (const unsigned char*)"hello", 5 } };
     failures += run_positive_test("string", &str_node, "\"hello\"", "2268656c6c6f22");
 
     VaultJcsTestJsonNode bool_node = { .type = TEST_JSON_BOOLEAN, .value.boolean_val = true };
@@ -308,13 +367,28 @@ int main(void) {
     VaultJcsTestJsonNode val1 = { .type = TEST_JSON_INTEGER, .value.integer_val = 1 };
     VaultJcsTestJsonNode val2 = { .type = TEST_JSON_INTEGER, .value.integer_val = 2 };
     VaultJcsTestObjectMember nested_members[] = {
-        { "\xEE\x80\x80", &val2 },
-        { "\xF0\x90\x80\x80", &val1 }
+        { { (const unsigned char*)"\xEE\x80\x80", 3 }, &val2 },
+        { { (const unsigned char*)"\xF0\x90\x80\x80", 4 }, &val1 }
     };
     VaultJcsTestJsonNode nested_obj = { .type = TEST_JSON_OBJECT, .value.object = { .members = nested_members, .count = 2, .has_duplicates = false } };
     failures += run_positive_test("utf-16 surrogate key ordering", &nested_obj,
         "{\"\xF0\x90\x80\x80\":1,\"\xEE\x80\x80\":2}",
         "7b22f0908080223a312c22ee8080223a327d");
+
+    // Object containing array
+    VaultJcsTestJsonNode arr_elem1 = { .type = TEST_JSON_INTEGER, .value.integer_val = 42 };
+    VaultJcsTestJsonNode arr_elems[] = { arr_elem1 };
+    VaultJcsTestJsonNode arr_node = { .type = TEST_JSON_ARRAY, .value.array = { .elements = arr_elems, .count = 1 } };
+    VaultJcsTestObjectMember obj_arr_members[] = { { { (const unsigned char*)"arr", 3 }, &arr_node } };
+    VaultJcsTestJsonNode obj_arr_node = { .type = TEST_JSON_OBJECT, .value.object = { .members = obj_arr_members, .count = 1, .has_duplicates = false } };
+    failures += run_positive_test("object containing array", &obj_arr_node, "{\"arr\":[42]}", "7b22617272223a5b34325d7d");
+
+    // Array containing object
+    VaultJcsTestObjectMember inner_obj_members[] = { { { (const unsigned char*)"k", 1 }, &bool_node } };
+    VaultJcsTestJsonNode inner_obj = { .type = TEST_JSON_OBJECT, .value.object = { .members = inner_obj_members, .count = 1, .has_duplicates = false } };
+    VaultJcsTestJsonNode arr_obj_elems[] = { inner_obj };
+    VaultJcsTestJsonNode arr_obj_node = { .type = TEST_JSON_ARRAY, .value.array = { .elements = arr_obj_elems, .count = 1 } };
+    failures += run_positive_test("array containing object", &arr_obj_node, "[{\"k\":true}]", "5b7b226b223a747275657d5d");
 
     // --- NEGATIVE TESTS ---
 
@@ -324,11 +398,31 @@ int main(void) {
 
     // 2. Unsafe integer
     VaultJcsTestJsonNode neg_unsafe_int = { .type = TEST_JSON_UNSAFE_INTEGER };
-    failures += run_negative_test("unsafe integer", &neg_unsafe_int, LOADER_UNSAFE_INTEGER);
+    failures += run_negative_test("unsafe integer sentinel", &neg_unsafe_int, LOADER_UNSAFE_INTEGER);
+
+    VaultJcsTestJsonNode neg_int_above = { .type = TEST_JSON_INTEGER, .value.integer_val = 9007199254740992LL };
+    failures += run_negative_test("ordinary integer above safe max", &neg_int_above, LOADER_UNSAFE_INTEGER);
+
+    VaultJcsTestJsonNode neg_int_below = { .type = TEST_JSON_INTEGER, .value.integer_val = -9007199254740992LL };
+    failures += run_negative_test("ordinary integer below safe min", &neg_int_below, LOADER_UNSAFE_INTEGER);
 
     // 3. Embedded NUL in string
-    VaultJcsTestJsonNode neg_nul_str = { .type = TEST_JSON_STRING, .value.string_val = "badHAS_NUL_SENTINELstring" };
+    VaultJcsTestJsonNode neg_nul_str = { .type = TEST_JSON_STRING, .value.string_val = { (const unsigned char*)"bad\0string", 10 } };
     failures += run_negative_test("embedded NUL in string", &neg_nul_str, LOADER_EMBEDDED_NUL);
+
+    // Embedded NUL in key
+    VaultJcsTestObjectMember nul_key_member[] = { { { (const unsigned char*)"bad\0key", 7 }, &val1 } };
+    VaultJcsTestJsonNode neg_nul_key = { .type = TEST_JSON_OBJECT, .value.object = { .members = nul_key_member, .count = 1, .has_duplicates = false } };
+    failures += run_negative_test("embedded NUL in key", &neg_nul_key, LOADER_EMBEDDED_NUL);
+
+    // Invalid UTF-8 in string
+    VaultJcsTestJsonNode neg_utf8_str = { .type = TEST_JSON_STRING, .value.string_val = { (const unsigned char*)"\xFF\xFE", 2 } };
+    failures += run_negative_test("invalid UTF-8 in string", &neg_utf8_str, LOADER_INVALID_UTF8);
+
+    // Invalid UTF-8 in key
+    VaultJcsTestObjectMember utf8_key_member[] = { { { (const unsigned char*)"\xC0\x80", 2 }, &val1 } }; // Overlong encoding of NUL
+    VaultJcsTestJsonNode neg_utf8_key = { .type = TEST_JSON_OBJECT, .value.object = { .members = utf8_key_member, .count = 1, .has_duplicates = false } };
+    failures += run_negative_test("invalid UTF-8 in key", &neg_utf8_key, LOADER_INVALID_UTF8);
 
     // 4. Duplicate object key
     VaultJcsTestJsonNode neg_dup_key = { .type = TEST_JSON_OBJECT, .value.object = { .members = nested_members, .count = 2, .has_duplicates = true } };

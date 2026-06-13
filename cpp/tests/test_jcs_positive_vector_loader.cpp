@@ -57,6 +57,7 @@ enum class LoaderError {
     UNSUPPORTED_TYPE,
     UNSAFE_INTEGER,
     EMBEDDED_NUL,
+    INVALID_UTF8,
     DUPLICATE_KEY,
     UNSUPPORTED_VECTOR_FIELD,
     SERIALIZE_ERROR,
@@ -64,6 +65,41 @@ enum class LoaderError {
 };
 
 // --- LOADER IMPLEMENTATION (Test-only) ---
+
+
+static bool is_valid_utf8_string(const std::string& str) {
+    const unsigned char* p = reinterpret_cast<const unsigned char*>(str.data());
+    size_t len = str.size();
+    size_t i = 0;
+    while (i < len) {
+        unsigned char c = p[i];
+        int extra = 0;
+        uint32_t min_cp = 0;
+        if (c < 0x80) {
+            i++;
+            continue;
+        } else if ((c & 0xE0) == 0xC0) {
+            extra = 1; min_cp = 0x80;
+        } else if ((c & 0xF0) == 0xE0) {
+            extra = 2; min_cp = 0x800;
+        } else if ((c & 0xF8) == 0xF0) {
+            extra = 3; min_cp = 0x10000;
+        } else {
+            return false;
+        }
+        if (i + extra >= len) return false;
+        uint32_t cp = c & (0xFF >> (extra + 1));
+        for (int j = 1; j <= extra; ++j) {
+            if ((p[i + j] & 0xC0) != 0x80) return false;
+            cp = (cp << 6) | (p[i + j] & 0x3F);
+        }
+        if (cp < min_cp) return false; // Overlong encoding
+        if (cp > 0x10FFFF) return false;
+        if (cp >= 0xD800 && cp <= 0xDFFF) return false; // Surrogates are invalid UTF-8
+        i += extra + 1;
+    }
+    return true;
+}
 
 static LoaderError convert_test_to_model(const JsonNode* input, ModelValue& output) {
     if (!input) return LoaderError::INVALID_ARGUMENT;
@@ -82,14 +118,21 @@ static LoaderError convert_test_to_model(const JsonNode* input, ModelValue& outp
             return LoaderError::OK;
         }
         case JsonType::INTEGER: {
+            if (input->integer_val < -9007199254740991LL || input->integer_val > 9007199254740991LL) {
+                return LoaderError::UNSAFE_INTEGER;
+            }
             auto res = ModelValue::make_integer(input->integer_val);
+            if (res.error == ModelError::UNSAFE_INTEGER) return LoaderError::UNSAFE_INTEGER;
             if (res.error != ModelError::OK) return LoaderError::MEMORY_ERROR;
             output = std::move(res.value);
             return LoaderError::OK;
         }
         case JsonType::STRING: {
-            if (input->string_val.find("HAS_NUL_SENTINEL") != std::string::npos) {
+            if (input->string_val.find('\0') != std::string::npos) {
                 return LoaderError::EMBEDDED_NUL;
+            }
+            if (!is_valid_utf8_string(input->string_val)) {
+                return LoaderError::INVALID_UTF8;
             }
             auto res = ModelValue::make_string(input->string_val);
             if (res.error != ModelError::OK) return LoaderError::MEMORY_ERROR;
@@ -117,8 +160,11 @@ static LoaderError convert_test_to_model(const JsonNode* input, ModelValue& outp
             ObjectValue members;
             members.reserve(input->object_members.size());
             for (const auto& member : input->object_members) {
-                if (member.key.find("HAS_NUL_SENTINEL") != std::string::npos) {
+                if (member.key.find('\0') != std::string::npos) {
                     return LoaderError::EMBEDDED_NUL;
+                }
+                if (!is_valid_utf8_string(member.key)) {
+                    return LoaderError::INVALID_UTF8;
                 }
                 ModelValue member_val;
                 LoaderError err = convert_test_to_model(member.value, member_val);
@@ -263,6 +309,17 @@ int main() {
         "{\"\xF0\x90\x80\x80\":1,\"\xEE\x80\x80\":2}",
         "7b22f0908080223a312c22ee8080223a327d");
 
+    // Object containing array
+    JsonNode arr_elem1; arr_elem1.type = JsonType::INTEGER; arr_elem1.integer_val = 42;
+    JsonNode arr_node; arr_node.type = JsonType::ARRAY; arr_node.array_elements.push_back(&arr_elem1);
+    JsonNode obj_arr_node; obj_arr_node.type = JsonType::OBJECT; obj_arr_node.object_members.push_back({"arr", &arr_node});
+    failures += run_positive_test("object containing array", &obj_arr_node, "{\"arr\":[42]}", "7b22617272223a5b34325d7d");
+
+    // Array containing object
+    JsonNode inner_obj; inner_obj.type = JsonType::OBJECT; inner_obj.object_members.push_back({"k", &bool_node});
+    JsonNode arr_obj_node; arr_obj_node.type = JsonType::ARRAY; arr_obj_node.array_elements.push_back(&inner_obj);
+    failures += run_positive_test("array containing object", &arr_obj_node, "[{\"k\":true}]", "5b7b226b223a747275657d5d");
+
     // --- NEGATIVE TESTS ---
 
     // 1. Unsupported float
@@ -273,13 +330,34 @@ int main() {
     // 2. Unsafe integer
     JsonNode neg_unsafe_int;
     neg_unsafe_int.type = JsonType::UNSAFE_INTEGER;
-    failures += run_negative_test("unsafe integer", &neg_unsafe_int, LoaderError::UNSAFE_INTEGER);
+    failures += run_negative_test("unsafe integer sentinel", &neg_unsafe_int, LoaderError::UNSAFE_INTEGER);
+
+    JsonNode neg_int_above; neg_int_above.type = JsonType::INTEGER; neg_int_above.integer_val = 9007199254740992LL;
+    failures += run_negative_test("ordinary integer above safe max", &neg_int_above, LoaderError::UNSAFE_INTEGER);
+
+    JsonNode neg_int_below; neg_int_below.type = JsonType::INTEGER; neg_int_below.integer_val = -9007199254740992LL;
+    failures += run_negative_test("ordinary integer below safe min", &neg_int_below, LoaderError::UNSAFE_INTEGER);
 
     // 3. Embedded NUL in string
     JsonNode neg_nul_str;
     neg_nul_str.type = JsonType::STRING;
-    neg_nul_str.string_val = "badHAS_NUL_SENTINELstring";
+    neg_nul_str.string_val = std::string("bad\0string", 10);
     failures += run_negative_test("embedded NUL in string", &neg_nul_str, LoaderError::EMBEDDED_NUL);
+
+    JsonNode neg_nul_key;
+    neg_nul_key.type = JsonType::OBJECT;
+    neg_nul_key.object_members.push_back({std::string("bad\0key", 7), &val1});
+    failures += run_negative_test("embedded NUL in key", &neg_nul_key, LoaderError::EMBEDDED_NUL);
+
+    JsonNode neg_utf8_str;
+    neg_utf8_str.type = JsonType::STRING;
+    neg_utf8_str.string_val = "\xFF\xFE";
+    failures += run_negative_test("invalid UTF-8 in string", &neg_utf8_str, LoaderError::INVALID_UTF8);
+
+    JsonNode neg_utf8_key;
+    neg_utf8_key.type = JsonType::OBJECT;
+    neg_utf8_key.object_members.push_back({"\xC0\x80", &val1}); // Overlong encoding of NUL
+    failures += run_negative_test("invalid UTF-8 in key", &neg_utf8_key, LoaderError::INVALID_UTF8);
 
     // 4. Duplicate object key
     JsonNode neg_dup_key;
