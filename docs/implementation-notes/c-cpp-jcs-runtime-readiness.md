@@ -83,7 +83,7 @@ This established the runtime work in C first, and now C++ implements a fully ind
 
 ### Explicit Non-Goals
 *   Implementation of the full generic JCS serializer completion claim.
-*   Implementation of full RFC 8785 UTF-16 key sorting (the seed uses a simple `strcmp` limitation).
+*   A parser-free UTF-16 key comparator has been implemented and hardened. (A non-active seed vector file has also been created at `test-vectors/jcs/utf16-key-ordering.json`).
 *   Raw JSON parser.
 *   Rejection-vector runtime harness logic.
 *   Public JCS API.
@@ -100,5 +100,5 @@ This established the runtime work in C first, and now C++ implements a fully ind
 
 *   `rfc8785-basic.json` remains the active positive input for the existing generated-AST scaffold. The first internal model scaffold should use small, dedicated internal C tests rather than attempting to consume all JCS vectors immediately.
 *   `future-boundary-plan.json` remains planning-only.
-*   UTF-16 key-ordering vectors remain future conformance vectors.
+*   UTF-16 key-ordering vectors are seeded as a standalone non-active positive vector file but are not wired into generated bridge tests.
 *   Cross-language vector checks remain baseline validation, not proof of C/C++ generic JCS completeness.

@@ -42,7 +42,7 @@ Vectors can be conceptually grouped into the following categories:
 - `integer`: Handling of standard 64-bit signed integers, including zero and negative values.
 - `array`: Correct formatting of lists.
 - `boolean-null`: Handling of `true`, `false`, and `null`.
-- `utf16-key-ordering`: Surrogate-pair sensitive and non-ASCII ordering.
+- `utf16-key-ordering`: Surrogate-pair sensitive and non-ASCII ordering. (A standalone seed file exists at `test-vectors/jcs/utf16-key-ordering.json` but is not yet wired into generated bridge tests).
 - `number-policy`: Floats, decimals, exponent notation, and negative zero.
 - `unsupported-or-future`: Arbitrary precision numbers and specific edge cases.
 - `invalid-json-or-parser-boundary`: Duplicate keys, comments, trailing commas, and malformed inputs.

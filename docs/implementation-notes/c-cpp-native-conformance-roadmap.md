@@ -46,9 +46,10 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **C/C++ UTF-16 key comparator prototype**
 - **C/C++ UTF-16 comparator hardening**
 - **UTF-16 key-ordering vector activation decision**
+- **UTF-16 key-ordering positive vector seed**
 
 ### Near-term
-- **UTF-16 key-ordering positive vector seed**
+- **UTF-16 positive vector baseline integration decision**
 
 ### Future
 - **Generic JCS parser boundary decision**

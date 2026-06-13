@@ -28,7 +28,7 @@ C and C++ parser-free generated-vector bridges now exist. Both are generated-fix
 - C parser-free JCS model serializer vector bridge
 - C parser-free JCS model serializer vector bridge expansion
 - C/C++ parser-free JCS bridge parity cleanup
-- UTF-16 key-ordering implementation planning
+- UTF-16 key-ordering positive vector seed
 
 ## Missing
 
