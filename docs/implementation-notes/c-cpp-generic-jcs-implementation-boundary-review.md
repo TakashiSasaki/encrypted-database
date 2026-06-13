@@ -49,11 +49,11 @@ The following table audits the current C and C++ parser-free model serializers a
 | Safe integer min/max | `covered-by-tests` | `[-9007199254740991, 9007199254740991]` tested via `generic-positive-coverage.json`. |
 | Unsupported floats | `deferred-parser-boundary` | Floating-point validation is deferred to the future JSON parser. |
 | String escaping | `covered-by-tests` | Quotes, backslashes are escaped correctly. |
-| Control character escaping | `implemented-but-needs-more-tests` | Handled properly via serializers but coverage could be deeper in models. |
+| Control character escaping | `covered-by-tests` | Handled properly via serializers with deep semantic coverage. |
 | Solidus handling | `covered-by-tests` | Escaping solidus is explicitly prohibited by JCS; verified by vectors. |
 | UTF-8 handling | `covered-by-tests` | Natively preserved through string buffers. |
 | Embedded NUL rejection boundary | `deferred-parser-boundary` | Deferred until parser strings include explicit lengths. Currently models assume null-terminated strings. |
-| Invalid UTF-8 boundary | `implemented-but-needs-more-tests` | Object-key invalid UTF-8 is covered; string-value invalid UTF-8 needs explicit coverage. |
+| Invalid UTF-8 boundary | `covered-by-tests` | Both object keys and string values strictly reject invalid UTF-8 during serialization. |
 | Object key ordering by UTF-16 code units | `covered-by-tests` | Covered by `utf16-key-ordering.json` logic mapping via surrogate checks. |
 | Array recursion | `covered-by-tests` | Tested with `mixed-type-arrays` and `deep-nesting`. |
 | Object recursion | `covered-by-tests` | Tested with `nested-objects` and `deeply-nested-object`. |
@@ -63,48 +63,20 @@ The following table audits the current C and C++ parser-free model serializers a
 | Raw JSON spelling equivalence | `deferred-parser-boundary` | Extraneous whitespace or exact JSON encoding artifacts depend on the future parser. |
 | Parser-dependent concerns | `deferred-parser-boundary` | Handled in Layer F implementation stride. |
 
+## Follow-up Status
+The **C/C++ parser-free JCS serializer semantic hardening** stride has been completed.
+Control character escaping, empty strings/keys, safe integer boundaries, backslash escaping, and UTF-16 key ordering tests are fully implemented and passing in the C/C++ `test_jcs_model_serialize` suites.
+
 ## Next Implementation Stride
+For the next project-level stride regarding cross-language testing, see the project-wide harness:
+`docs/implementation-notes/project-wide-public-library-quality-harness.md`
+and the cross-language read/write compatibility plan:
+`docs/implementation-notes/cross-language-read-write-compatibility-plan.md`
 
-Based on the audit above, the C and C++ serialization implementations are quite strong, covering almost all of the JCS model semantics.
-
-**Recommended next stride:** `C/C++ parser-free JCS serializer semantic hardening`
-
-### Scope
-Improve semantic validation within the existing parser-free internal model layers (Layer B, Layer C, and Layer D). This can involve hardening control-character escaping within the tests or model representations to verify complete safety without altering architectural design.
-
-### Non-Goals
+### Non-Goals for C/C++ Scaffolds
 - Raw JSON parsing or parser implementation.
 - Runtime JSON text loading from the filesystem.
 - Duplicate-key logic implementation.
 - Handling rejection boundary vectors (`test-vectors/jcs/future-boundary-plan.json`).
 - Public API creation, matrices, writer functionalities, SQLite integration, or cryptographic work.
 - Third-party dependency additions.
-
-### Candidate Files
-- `c/src/vault_jcs_model.c`
-- `cpp/src/vault_jcs_model.cpp`
-- `c/tests/test_jcs_model_serialize.c`
-- `cpp/tests/test_jcs_model_serialize.cpp`
-
-### Test Vectors
-Rely on the existing wired tranches:
-- `test-vectors/jcs/rfc8785-basic.json`
-- `test-vectors/jcs/utf16-key-ordering.json`
-- `test-vectors/jcs/generic-positive-coverage.json`
-
-### Acceptance Criteria
-- C/C++ parser-free logic completes string escaping/control character semantic tests with alignment with RFC 8785 semantics within the existing parser-free safe model domain.
-- Existing tests and vectors pass without regression.
-- C and C++ remain strictly independent implementations.
-- No raw parser or file loading mechanics are introduced.
-
-### Risks
-- Minor bugs discovered in specific control character edge cases could require complex escaping logic refactoring.
-- Enforcing semantic strictness might accidentally trigger behavior that appears parser-dependent.
-
-### Required Test Commands
-```bash
-cd c && cmake -S . -B build && cmake --build build && ctest --test-dir build --output-on-failure
-cd ../cpp && cmake -S . -B build && cmake --build build && ctest --test-dir build --output-on-failure
-python scripts/test_generate_jcs_positive_loader_fixtures.py
-```

@@ -2,6 +2,28 @@
 
 This document contains guidelines and tips for coding agents working in this repository. It must be kept up-to-date with the repository's current state and long-term policies.
 
+
+## Project Mission
+The primary goal of this repository is to provide public-quality libraries that allow the same Storage Format V1 encrypted database to be safely written and read across multiple languages.
+
+## Required Quality Gate
+A change is not project-level progress merely because it improves one language or one scaffold.
+Every task must report how it affects cross-language encrypted database interoperability, public library readiness, and shared conformance coverage.
+
+Every coding task must state:
+- which language implementations are affected;
+- whether the change improves public read support, public write support, both, or neither;
+- whether the change affects Storage Format V1 bytes-on-disk semantics;
+- whether cross-language compatibility is improved, unchanged, or deferred;
+- whether each affected language is baseline-public, preview-library, portability-validation, bootstrap-scaffold, or future;
+- what tests were run;
+- what remains outside public-quality readiness.
+
+## Project-Wide Harness
+The detailed harness lives at:
+- `docs/implementation-notes/project-wide-public-library-quality-harness.md`
+- `docs/implementation-notes/cross-language-read-write-compatibility-plan.md`
+
 ## Repository Structure and Status
 
 The repository uses a monorepo setup for multi-language implementations of an encrypted database library. The `Storage Format V1` is strictly **Stable**. Any incompatible changes to storage-format semantics must be deferred to V2. Do not use terms like 'Draft' or 'Candidate', and the historical 'controlled-v1-amendment' concept is deprecated.

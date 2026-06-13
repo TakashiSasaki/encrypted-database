@@ -267,7 +267,129 @@ void test_serialize_large_array() {
     assert(ser.value.substr(0, 23) == "[\"test_growth_element\",");
 }
 
+
+void test_serialize_control_characters() {
+    auto res_short = ModelValue::make_string("backspace\b formfeed\f newline\n cr\r tab\t quote\" slash/");
+    assert(res_short.error == ModelError::OK);
+    auto ser_short = res_short.value.serialize();
+    assert(ser_short.error == ModelError::OK);
+    assert(ser_short.value == "\"backspace\\b formfeed\\f newline\\n cr\\r tab\\t quote\\\" slash/\"");
+
+    auto res_other = ModelValue::make_string("ctrl\x01\x1F");
+    assert(res_other.error == ModelError::OK);
+    auto ser_other = res_other.value.serialize();
+    assert(ser_other.error == ModelError::OK);
+    assert(ser_other.value == "\"ctrl\\u0001\\u001f\"");
+}
+
+void test_serialize_empty_string_and_key() {
+    auto res_empty_str = ModelValue::make_string("");
+    assert(res_empty_str.error == ModelError::OK);
+    auto ser_empty_str = res_empty_str.value.serialize();
+    assert(ser_empty_str.error == ModelError::OK);
+    assert(ser_empty_str.value == "\"\"");
+
+    ObjectValue members;
+    members.push_back({"", ModelValue::make_integer(1).value});
+    auto res_empty_key = ModelValue::make_object(std::move(members));
+    assert(res_empty_key.error == ModelError::OK);
+    auto ser_empty_key = res_empty_key.value.serialize();
+    assert(ser_empty_key.error == ModelError::OK);
+    assert(ser_empty_key.value == "{\"\":1}");
+}
+
+void test_serialize_non_bmp() {
+    auto res_non_bmp = ModelValue::make_string("😊");
+    assert(res_non_bmp.error == ModelError::OK);
+    auto ser_non_bmp = res_non_bmp.value.serialize();
+    assert(ser_non_bmp.error == ModelError::OK);
+    assert(ser_non_bmp.value == "\"\xF0\x9F\x98\x8A\"");
+
+    auto res_bmp = ModelValue::make_string("äöü");
+    assert(res_bmp.error == ModelError::OK);
+    auto ser_bmp = res_bmp.value.serialize();
+    assert(ser_bmp.error == ModelError::OK);
+    assert(ser_bmp.value == "\"\xC3\xA4\xC3\xB6\xC3\xBC\"");
+}
+
+void test_serialize_deep_nesting() {
+    ObjectValue obj_c;
+    obj_c.push_back({"c", ModelValue::make_integer(1).value});
+
+    ObjectValue obj_b;
+    obj_b.push_back({"b", ModelValue::make_object(std::move(obj_c)).value});
+
+    ObjectValue obj_a;
+    obj_a.push_back({"a", ModelValue::make_object(std::move(obj_b)).value});
+
+    auto res = ModelValue::make_object(std::move(obj_a));
+    assert(res.error == ModelError::OK);
+    auto ser = res.value.serialize();
+    assert(ser.error == ModelError::OK);
+    assert(ser.value == "{\"a\":{\"b\":{\"c\":1}}}");
+}
+
+
+void test_serialize_utf16_ordering() {
+    ObjectValue members;
+    members.push_back({"𐀀", ModelValue::make_integer(1).value});
+    members.push_back({"嶲", ModelValue::make_integer(2).value});
+    members.push_back({"a", ModelValue::make_integer(3).value});
+    members.push_back({"é", ModelValue::make_integer(4).value});
+
+    auto res = ModelValue::make_object(std::move(members));
+    assert(res.error == ModelError::OK);
+    auto ser = res.value.serialize();
+    assert(ser.error == ModelError::OK);
+    assert(ser.value == "{\"a\":3,\"é\":4,\"𐀀\":1,\"嶲\":2}" || ser.value == "{\"a\":3,\"\xC3\xA9\":4,\"\xF0\x90\x80\x80\":1,\"\xF0\xAF\xA7\xB4\":2}");
+}
+
+void test_serialize_safe_integer_boundaries() {
+    auto res_max = ModelValue::make_integer(9007199254740991LL);
+    assert(res_max.error == ModelError::OK);
+    auto ser_max = res_max.value.serialize();
+    assert(ser_max.error == ModelError::OK);
+    assert(ser_max.value == "9007199254740991");
+
+    auto res_min = ModelValue::make_integer(-9007199254740991LL);
+    assert(res_min.error == ModelError::OK);
+    auto ser_min = res_min.value.serialize();
+    assert(ser_min.error == ModelError::OK);
+    assert(ser_min.value == "-9007199254740991");
+}
+
+void test_serialize_backslash_escape() {
+    auto res = ModelValue::make_string("back\\\\slash");
+    assert(res.error == ModelError::OK);
+    auto ser = res.value.serialize();
+    assert(ser.error == ModelError::OK);
+    assert(ser.value == "\"back\\\\\\\\slash\"");
+}
+
+
+void test_serialize_invalid_utf8_object_keys_more() {
+    ObjectValue members;
+    members.push_back({"\xFF", ModelValue::make_integer(1).value});
+    auto res = ModelValue::make_object(std::move(members));
+    assert(res.error == ModelError::OK);
+    auto ser = res.value.serialize();
+    assert(ser.error == ModelError::INVALID_ARG);
+
+    auto res_str = ModelValue::make_string("\xFF");
+    assert(res_str.error == ModelError::OK);
+    auto ser_str = res_str.value.serialize();
+    assert(ser_str.error == ModelError::INVALID_ARG);
+}
+
 int main() {
+    test_serialize_invalid_utf8_object_keys_more();
+    test_serialize_utf16_ordering();
+    test_serialize_safe_integer_boundaries();
+    test_serialize_backslash_escape();
+    test_serialize_control_characters();
+    test_serialize_empty_string_and_key();
+    test_serialize_non_bmp();
+    test_serialize_deep_nesting();
     std::cout << "Running C++ JCS model serializer tests..." << std::endl;
     test_serialize_null();
     test_serialize_boolean();
