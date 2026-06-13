@@ -140,3 +140,13 @@ This design stride explicitly does **not** implement:
 - C/C++ generated bridge integration for `utf16-key-ordering.json`;
 - generic JCS completion;
 - public C/C++ JCS APIs.
+
+## Runtime-Vector Wiring Decision
+
+- Direct runtime JSON file loading in C/C++ is deferred.
+- C/C++ raw JSON parser dependency is deferred.
+- The accepted interim wiring path is build-time Python generation of test-only generic positive loader fixtures from approved positive vector JSON files.
+- `utf16-key-ordering.json` is now wired to generic positive loader tests through this generated fixture path.
+- `rfc8785-basic.json` is fully wired through this generated fixture path. All generic positive testing utilizes safe generic subsets, deterministically discarding items containing unsafe types like floating-point objects or those representing intentional invalid data or rejections.
+- `future-boundary-plan.json` remains planning-only and is not consumed.
+- Existing generated-AST bridge remains intact and is not replaced.

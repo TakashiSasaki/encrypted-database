@@ -9,6 +9,8 @@ The immediate goal is to incrementally establish a native testing boundary and v
 ## Roadmap Stages
 
 ### Completed
+- **Generic positive vector loader runtime-vector wiring decision**
+- **Generic positive vector build-time fixture wiring**
 - **Bootstrap build/test scaffold**
 - **Partial AAD shared-vector conformance**
 - **Internal JSON escaping for AAD construction**
@@ -55,7 +57,7 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **Generic positive vector loader scaffold hardening**
 
 ### Near-term
-- **Generic positive vector loader runtime-vector wiring decision**
+- **Generic positive vector coverage expansion**
 
 ### Future
 - **Generic JCS implementation**

@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
 // --- TEST-HARNESS GENERIC JSON REPRESENTATION ---
 
 typedef struct {
@@ -52,6 +53,8 @@ struct VaultJcsTestJsonNode {
         } object;
     } value;
 };
+
+#include "generated_jcs_positive_loader_fixtures.h"
 
 // --- LOADER ERROR ENUM ---
 
@@ -333,6 +336,7 @@ static int run_negative_test(const char* name, const VaultJcsTestJsonNode* input
 
 int main(void) {
     int failures = 0;
+    generated_jcs_fixtures_init();
 
     // --- POSITIVE TESTS ---
 
@@ -389,6 +393,30 @@ int main(void) {
     VaultJcsTestJsonNode arr_obj_elems[] = { inner_obj };
     VaultJcsTestJsonNode arr_obj_node = { .type = TEST_JSON_ARRAY, .value.array = { .elements = arr_obj_elems, .count = 1 } };
     failures += run_positive_test("array containing object", &arr_obj_node, "[{\"k\":true}]", "5b7b226b223a747275657d5d");
+
+
+    // --- MANUAL HARDENING ADD-ONS ---
+    VaultJcsTestJsonNode empty_str = { .type = TEST_JSON_STRING, .value.string_val = { (const unsigned char*)"", 0 } };
+    failures += run_positive_test("empty string", &empty_str, "\"\"", "2222");
+
+    VaultJcsTestObjectMember empty_key_member = { { (const unsigned char*)"", 0 }, &bool_node };
+    VaultJcsTestJsonNode empty_key_obj = { .type = TEST_JSON_OBJECT, .value.object = { .members = &empty_key_member, .count = 1, .has_duplicates = false } };
+    failures += run_positive_test("empty object key", &empty_key_obj, "{\"\":true}", "7b22223a747275657d");
+
+    VaultJcsTestJsonNode invalid_utf8_trunc = { .type = TEST_JSON_STRING, .value.string_val = { (const unsigned char*)"\xe2\x98", 2 } };
+    failures += run_negative_test("invalid utf8 (truncated)", &invalid_utf8_trunc, LOADER_INVALID_UTF8);
+
+    VaultJcsTestJsonNode invalid_utf8_surrogate = { .type = TEST_JSON_STRING, .value.string_val = { (const unsigned char*)"\xed\xa0\x80", 3 } };
+    failures += run_negative_test("invalid utf8 (surrogate encoded in UTF-8)", &invalid_utf8_surrogate, LOADER_INVALID_UTF8);
+
+    VaultJcsTestJsonNode invalid_utf8_toolarge = { .type = TEST_JSON_STRING, .value.string_val = { (const unsigned char*)"\xf4\x90\x80\x80", 4 } };
+    failures += run_negative_test("invalid utf8 (code point above U+10FFFF)", &invalid_utf8_toolarge, LOADER_INVALID_UTF8);
+
+    // --- GENERATED FIXTURES ---
+    for (size_t i = 0; i < generated_jcs_vectors_count; i++) {
+        const GeneratedJcsVector* vec = generated_jcs_vectors[i];
+        failures += run_positive_test(vec->name, vec->input, vec->expected_string, vec->expected_hex);
+    }
 
     // --- NEGATIVE TESTS ---
 
