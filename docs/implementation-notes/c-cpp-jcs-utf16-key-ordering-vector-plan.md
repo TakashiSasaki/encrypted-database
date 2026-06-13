@@ -18,6 +18,7 @@ The goal of this document is to define the plan for UTF-16 key-ordering vectors,
 - UTF-16 key-ordering vectors are distinct from parser rejection vectors. They require successful parsing and sorting of valid inputs, whereas rejection vectors require rejecting invalid inputs or generic bounds (like unsafe integers).
 - The current C/C++ generated-AST scaffolds **must not be used to claim full RFC 8785 key-ordering coverage**.
 - Active positive vectors in `rfc8785-basic.json` will remain limited to fixture-compatible cases unless a later decision safely expands them.
+- In the future, a generic vector loader will be responsible for parsing JSON vectors like `utf16-key-ordering.json` and programmatically building parser-free models. See [C/C++ Generic JCS Parser Boundary Decision](./c-cpp-generic-jcs-parser-boundary-decision.md) for architecture.
 
 ## Future Vector Categories
 Future UTF-16 key-ordering vectors will be classified into the following categories:

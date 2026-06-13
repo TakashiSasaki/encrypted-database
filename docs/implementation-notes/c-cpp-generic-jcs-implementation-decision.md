@@ -49,7 +49,7 @@ This document proposes a strategy for the future implementation of generic JCS i
 Use the current generated-AST serializer scaffold as the first stage. Add official and repository-specific JCS vectors to flesh out edge cases. Decide on the parser/dependency separately later (see the [C/C++ JCS Parser and Dependency Decision](./c-cpp-jcs-parser-dependency-decision.md)). Introduce generic JCS only after policies for number handling and UTF-16 sorting are rigorously documented.
 
 ## Recommended Direction
-We recommend **Option 3: Hybrid staged approach** as the accepted path. This path now has an accepted parser/dependency sub-decision documented in [c-cpp-jcs-parser-dependency-decision.md](./c-cpp-jcs-parser-dependency-decision.md) and an internal value model boundary defined in [c-cpp-jcs-internal-value-model-decision.md](./c-cpp-jcs-internal-value-model-decision.md).
+We recommend **Option 3: Hybrid staged approach** as the accepted path. This path now has an accepted parser/dependency sub-decision documented in [c-cpp-jcs-parser-dependency-decision.md](./c-cpp-jcs-parser-dependency-decision.md), an internal value model boundary defined in [c-cpp-jcs-internal-value-model-decision.md](./c-cpp-jcs-internal-value-model-decision.md), and a generic JCS parser boundary decision defined in [c-cpp-generic-jcs-parser-boundary-decision.md](./c-cpp-generic-jcs-parser-boundary-decision.md).
 
 Specifically, the implementation plan is to:
 1. Keep the current generated-AST scaffold as the conformance seed.

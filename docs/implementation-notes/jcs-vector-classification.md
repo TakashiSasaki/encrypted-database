@@ -21,6 +21,8 @@ This file currently covers basic JSON canonicalization aspects that are safe for
 - Mixed array types
 - Common string escaped controls
 
+*Note: A future generic JSON vector loader will be responsible for parsing positive generic JSON values for parser-free generic serializer testing. See [C/C++ Generic JCS Parser Boundary Decision](./c-cpp-generic-jcs-parser-boundary-decision.md).*
+
 Each vector in this file MUST include the following fields:
 - `name`: A stable, descriptive identifier.
 - `description`: A short explanation of what the vector tests.

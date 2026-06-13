@@ -28,6 +28,7 @@ The following prerequisites must be resolved before proceeding with generic JCS 
 | :--- | :--- | :--- |
 | Generic JCS strategy decision | `ready` | Option 3 (Hybrid staged approach) accepted. |
 | Parser/dependency decision | `ready` | Parser-free internal model accepted first; dependencies rejected. |
+| Parser boundary decision | `ready` | Boundary and layers clearly defined; raw parser explicitly deferred. |
 | Internal value model decision | `ready` | Defined types and IEEE-754 safe integer bounds. |
 | Fixture contract cleanup | `ready` | Clarified as test-harness seed only. |
 | Active/future vector separation | `ready` | `rfc8785-basic.json` active; `future-boundary-plan.json` planning. |

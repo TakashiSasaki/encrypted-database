@@ -95,7 +95,7 @@ Future unsupported numbers should be handled conceptually as follows:
 - Object values are valid model values.
 - Duplicate keys are not accepted in the internal value model.
 - If the model is constructed programmatically, construction should either reject duplicate keys or make duplicates impossible by construction.
-- The future raw JSON parser phase must separately define duplicate-key behavior.
+- The future raw JSON parser phase must separately define duplicate-key behavior. (See [C/C++ Generic JCS Parser Boundary Decision](./c-cpp-generic-jcs-parser-boundary-decision.md)).
 - The serializer is responsible for ordering keys for canonical output.
 - UTF-16 object member sorting remains a future precise implementation requirement.
 
