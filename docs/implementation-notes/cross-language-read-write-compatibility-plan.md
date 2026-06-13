@@ -1,32 +1,45 @@
 # Cross-Language Read/Write Compatibility Plan
 
 ## Goal
-Establish a safe cross-language compatibility testing foundation across the repository implementations. This test ensures that when one language writes a Storage Format V1 payload, other languages can successfully unlock the database and read the exact same payload.
+Establish a safe cross-language compatibility testing foundation across the repository implementations.
+
+### Target Question
+Can a database written by language A be read by language B with identical Storage Format V1 semantics?
 
 ## Inventory and Current Status
 
-| Language     | Implementation path | Current role | Read support | Write support | Stable API? | Include in this stride? | Notes |
-| ------------ | ------------------- | ------------ | ------------ | ------------- | ----------- | ----------------------- | ----- |
-| Python       | `python/`           | baseline     | Yes          | Yes           | Yes         | No                      | Exposes stable library API, but no automated cross-language runner yet (`EncryptedStorage`). |
-| Node.js      | `nodejs/`           | baseline     | Yes          | Yes           | Yes         | No                      | Exposes stable library API, but no automated cross-language runner yet (`EncryptedStorage`). |
-| Go           | `go/`               | scaffold     | Yes          | Yes           | No          | No                      | Portability validation scaffold, no stable public API. |
-| Rust         | `rust/`             | scaffold     | Yes          | Yes           | No          | No                      | Portability validation scaffold, no stable public API. |
-| Zig          | `zig/`              | scaffold     | Yes          | Yes           | No          | No                      | Scaffold-level CLI, not a stable storage library. |
-| C            | `c/`                | scaffold     | No           | No            | No          | No                      | Parser-free JCS bootstrap scaffold only. |
-| C++          | `cpp/`              | scaffold     | No           | No            | No          | No                      | Parser-free JCS bootstrap scaffold only. |
+| Language | Implementation path | Current role | Public read support | Public write support | Scaffold read/write | Stable API? | Include in this stride? | Notes |
+|---|---|---|---|---|---|---|---|---|
+| Python | `python/` | baseline | known-api-unverified | known-api-unverified | N/A | Yes | No | Exposes stable library API (`EncryptedStorage`), but runner integration is pending in this stride. |
+| Node.js | `nodejs/` | baseline | known-api-unverified | known-api-unverified | N/A | Yes | No | Exposes stable library API (`EncryptedStorage`), but runner integration is pending in this stride. |
+| Go | `go/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
+| Rust | `rust/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
+| Zig | `zig/` | portability-validation | not implemented | not implemented | Yes | No | No | Scaffold-level CLI, not a stable storage library. |
+| C | `c/` | bootstrap-scaffold | not implemented | not implemented | No | No | No | Parser-free generic JCS bootstrap scaffold only. |
+| C++ | `cpp/` | bootstrap-scaffold | not implemented | not implemented | No | No | No | Parser-free generic JCS bootstrap scaffold only. |
 
 ## Compatibility Matrix Dimensions
-- **Supported Writers:** Python, Node.js
-- **Supported Readers:** Python, Node.js
-- **Active Testing Pairs:** None yet.
+- **Writer language**
+- **Reader language**
+- **Payload type** (empty, small string, binary data)
+- **Metadata shape**
+- **Key derivation profile** (Argon2id)
+- **AEAD envelope** (AES-256-GCM)
+- **SQLite profile**
+- **Expected success/failure boundaries**
+- **Test mode**
+
+## Active Testing Pairs
+None yet. Python and Node.js are candidate baseline participants, but actual cross-execution is deferred until shared test fixture contracts and wrapper commands are finalized.
 
 ## Planned Fixture Format
 The compatibility test creates temporary runtime SQLite databases using the standard `initialize_database` / `initializeDatabase` entrypoints. Payloads are written using `store_payload` / `storePayload`, then the same database file is passed to another language for `retrieve_payload` / `retrievePayload`.
 
-Payload structures to be tested:
-- Empty object payload: `{}`
-- Small text payload: `{"message": "hello world"}`
-- Binary / non-ASCII text payload: `{"data": "non-ascii: 😊 äöü"}`
+## Skipped Pair Policy
+- Unsupported language pairs are skipped with explicit reasons.
+- Scaffold-only languages are not silently treated as public libraries.
+- C/C++ remain outside the storage read/write matrix until storage reader/writer scaffolds are explicitly implemented.
+- Skipped pairs do not count as passing compatibility.
 
 ## Non-Goals
 - Inventing new testing APIs for languages that do not currently have them.
