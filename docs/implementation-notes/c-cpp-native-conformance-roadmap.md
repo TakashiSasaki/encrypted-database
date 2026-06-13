@@ -50,9 +50,10 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **UTF-16 positive vector baseline integration decision**
 - **Generic JCS parser boundary decision**
 - **C/C++ parser-free internal model conformance review**
+- **Generic positive vector loader design**
 
 ### Near-term
-- **Generic positive vector loader design**
+- **Generic positive vector loader scaffold**
 
 ### Future
 - **Generic JCS implementation**
