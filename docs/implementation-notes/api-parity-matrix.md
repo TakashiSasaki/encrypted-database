@@ -112,7 +112,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 ## Format-level interoperability vs public API parity
 
-Note: C and C++ parser-free generated-vector bridges now exist. Both are generated-fixture bridges, not raw parsers or runtime JSON loaders. Both validate active generated vector expected_string and expected_hex. Both remain bootstrap scaffolds. Neither implements full generic JCS. C/C++ parser-free serializers now have hardened UTF-16 key comparator behavior, strictly failing closed on invalid UTF-8 in object keys. Neither consumes future/rejection vectors. Neither is a production public API. UTF-16 key-ordering implementation planning is complete, and the prototype is hardened.
+Note: C and C++ parser-free generated-vector bridges now exist. Both are generated-fixture bridges, not raw parsers or runtime JSON loaders. Both validate active generated vector expected_string and expected_hex. Both remain bootstrap scaffolds. Neither implements full generic JCS. C/C++ parser-free serializers now have hardened UTF-16 key comparator behavior, strictly failing closed on invalid UTF-8 in object keys. Neither consumes future/rejection vectors. Neither is a production public API. A parser-free UTF-16 key comparator has been implemented and hardened, and a non-active positive vector seed file exists.
 
 
 - **Interoperability (Storage Format V1 Stable):** Current matrix and roundtrip harnesses show strong practical compatibility for implemented flows (notably Go/Rust writer scaffold outputs readable by Go/Rust/Python/Node.js readers, and Python↔Node.js roundtrip). Storage Format V1 is stable.

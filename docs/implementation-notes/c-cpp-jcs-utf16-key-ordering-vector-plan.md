@@ -97,7 +97,7 @@ The C++ comparator implementation must conceptually match the C behavior but rem
 
 **Decision:** Do not add UTF-16 key-ordering vectors to `rfc8785-basic.json` at this time.
 
-The preferred target for future active UTF-16 vectors is a separate future UTF-16 positive conformance vector file (e.g., `test-vectors/jcs/utf16-key-ordering.json`), or a generic JCS-only suite. The actual creation of this vector file is deferred to a later vector-seed stride.
+The preferred target for future active UTF-16 vectors is a separate future UTF-16 positive conformance vector file (e.g., `test-vectors/jcs/utf16-key-ordering.json`), or a generic JCS-only suite. The vector file `test-vectors/jcs/utf16-key-ordering.json` exists as a separate positive vector seed but is not yet wired into any generated-AST bridge tests.
 
 **Rejected Alternatives:**
 - *Adding to `rfc8785-basic.json`:* Rejected because active generated-AST vectors are fixture-compatible and currently used by existing strictly-typed generated bridges (Go/Rust/Zig). UTF-16 key-ordering coverage has different conformance meanings, and adding them now could break existing strict loaders or violate generated-AST constraints.
@@ -118,7 +118,7 @@ Before UTF-16 vectors can become active conformance vectors, the following preco
 A staged activation order is planned:
 
 1. **Parser-free direct tests only:** (Currently active) Hardcoded ASCII/basic, BMP non-ASCII, surrogate-pair-sensitive, mixed ASCII/non-ASCII ordering, no-normalization behavior, and invalid UTF-8 fail-closed tests.
-2. **Future positive vector seed:** A new standalone file covering BMP non-ASCII ordering, surrogate-pair-sensitive ordering, mixed ASCII/non-ASCII ordering, and no-normalization behavior (which can be represented by a parser-free model).
+2. **Future positive vector seed:** A standalone file (`test-vectors/jcs/utf16-key-ordering.json`) exists covering BMP non-ASCII ordering, surrogate-pair-sensitive ordering, mixed ASCII/non-ASCII ordering, and no-normalization behavior (which can be represented by a parser-free model).
 3. **Future raw/generic parser-dependent vectors:** Escaped versus unescaped equivalent key representation, duplicate-key rejection, and invalid raw JSON rejection (requires full raw/generic parser support).
 4. **Future rejection harness:** Unsafe integer rejection, duplicate keys, embedded NUL policy, and invalid JSON parse errors.
 
@@ -130,5 +130,6 @@ The `future-boundary-plan.json` file strictly remains a marker and planning file
 
 - **Prototype and Hardening Complete:** A parser-free UTF-16 key comparator has been implemented and hardened for both C and C++ internal models (`c/src/vault_jcs_model.c` and `cpp/src/vault_jcs_model.cpp`). The C/C++ parser-free serializers now have hardened UTF-16 key comparator behavior, strictly failing closed on invalid UTF-8 in object keys.
 - **Active Vectors:** The `future-boundary-plan.json` vectors (such as `utf16-surrogate-key-ordering`) remain strictly **planning-only** and have not been activated. The hardened comparator was validated using narrow, parser-free, hardcoded internal model tests to remain independent of future generic JCS constraints. Active generated vectors remain unchanged.
+- **Vector Seed Exists:** `test-vectors/jcs/utf16-key-ordering.json` has been created as a non-active positive seed and baseline verified via standalone helper. It is not part of `rfc8785-basic.json` and is not wired into generated bridge tests.
 - The current generated-AST JCS basic-vector serializer scaffold still does not rely on this prototype. Generated-AST serializers remain unchanged and independent.
 - Raw JSON parser and generic loader are still unimplemented. Full generic JCS remains incomplete.

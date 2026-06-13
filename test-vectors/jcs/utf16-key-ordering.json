@@ -1,0 +1,43 @@
+[
+  {
+    "name": "utf16-bmp-non-ascii-key-ordering",
+    "description": "Tests ordering of BMP keys outside the ASCII range.",
+    "input": {
+      "い": 2,
+      "あ": 1
+    },
+    "expected_string": "{\"あ\":1,\"い\":2}",
+    "expected_hex": "7b22e38182223a312c22e38184223a327d"
+  },
+  {
+    "name": "utf16-surrogate-pair-key-ordering",
+    "description": "Tests ordering of keys containing surrogate pairs.",
+    "input": {
+      "😀": 2,
+      "☃": 1
+    },
+    "expected_string": "{\"☃\":1,\"😀\":2}",
+    "expected_hex": "7b22e29883223a312c22f09f9880223a327d"
+  },
+  {
+    "name": "utf16-mixed-ascii-non-ascii-key-ordering",
+    "description": "Tests ordering of mixed ASCII and non-ASCII keys.",
+    "input": {
+      "☃": 3,
+      "a": 1,
+      "¢": 2
+    },
+    "expected_string": "{\"a\":1,\"¢\":2,\"☃\":3}",
+    "expected_hex": "7b2261223a312c22c2a2223a322c22e29883223a337d"
+  },
+  {
+    "name": "utf16-no-unicode-normalization-key-ordering",
+    "description": "Tests that Unicode normalization is not implicitly performed.",
+    "input": {
+      "é": 2,
+      "é": 1
+    },
+    "expected_string": "{\"é\":1,\"é\":2}",
+    "expected_hex": "7b2265cc81223a312c22c3a9223a327d"
+  }
+]
