@@ -141,6 +141,7 @@ Before proceeding to implement the parser-free generic serializer, the following
 - Decide the duplicate-key behavior intended for the eventual raw JSON parser phase.
 - Decide the parser error taxonomy.
 - Decide whether the generic serializer remains internal-only or will eventually become public.
+- Decide the generic JCS parser boundary and vector harness architecture (See [C/C++ Generic JCS Parser Boundary Decision](./c-cpp-generic-jcs-parser-boundary-decision.md)).
 - Update the C/C++ native conformance roadmap after these decisions are finalized.
 
 ## Explicit Non-Goals

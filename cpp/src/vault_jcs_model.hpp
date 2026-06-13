@@ -102,8 +102,8 @@ public:
 
     // Serialization
     // Serializes the internal model value into a compact JSON string.
-    // Note: Object key sorting currently uses simple std::string byte ordering,
-    // which is a scaffold limitation and not full RFC 8785 UTF-16 key ordering.
+    // Note: Object keys are sorted using UTF-16 code-unit ordering as required
+    // by RFC 8785.
     Result<std::string> serialize() const;
 
 private:

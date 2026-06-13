@@ -129,6 +129,28 @@ void test_object_construction() {
     assert(res4.error == ModelError::EMBEDDED_NUL_UNSUPPORTED);
 }
 
+void test_utf16_surrogate_ordering() {
+    // U+10000 = F0 90 80 80 (UTF-8) -> D800 DC00 (UTF-16)
+    // U+E000  = EE 80 80 (UTF-8)    -> E000 (UTF-16)
+    // UTF-16 Order: D800 DC00 before E000 (U+10000 before U+E000)
+    std::string key1 = "\xf0\x90\x80\x80"; // U+10000
+    std::string key2 = "\xee\x80\x80";     // U+E000
+
+    ObjectValue members;
+    members.push_back({key2, ModelValue::make_integer(2).value});
+    members.push_back({key1, ModelValue::make_integer(1).value});
+
+    auto res = ModelValue::make_object(std::move(members));
+    assert(res.error == ModelError::OK);
+
+    auto ser_res = res.value.serialize();
+    assert(ser_res.error == ModelError::OK);
+
+    // Expected serialization: {"\xf0\x90\x80\x80":1,"\xee\x80\x80":2}
+    std::string expected = "{\"\xf0\x90\x80\x80\":1,\"\xee\x80\x80\":2}";
+    assert(ser_res.value == expected);
+}
+
 void test_nested_composite() {
     // Nested array inside object
     ArrayValue nested_array;
@@ -187,6 +209,7 @@ int main() {
     test_string_construction();
     test_array_construction();
     test_object_construction();
+    test_utf16_surrogate_ordering();
     test_nested_composite();
     test_copy_and_move();
     std::cout << "C++ JCS internal model tests passed." << std::endl;
