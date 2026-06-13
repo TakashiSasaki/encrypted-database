@@ -53,7 +53,7 @@ The following table audits the current C and C++ parser-free model serializers a
 | Solidus handling | `covered-by-tests` | Escaping solidus is explicitly prohibited by JCS; verified by vectors. |
 | UTF-8 handling | `covered-by-tests` | Natively preserved through string buffers. |
 | Embedded NUL rejection boundary | `deferred-parser-boundary` | Deferred until parser strings include explicit lengths. Currently models assume null-terminated strings. |
-| Invalid UTF-8 boundary | `implemented-but-needs-more-tests` | Object-key invalid UTF-8 is covered; string-value invalid UTF-8 needs explicit coverage. |
+| Invalid UTF-8 boundary | `covered-by-tests` | Both object keys and string values strictly reject invalid UTF-8 during serialization. |
 | Object key ordering by UTF-16 code units | `covered-by-tests` | Covered by `utf16-key-ordering.json` logic mapping via surrogate checks. |
 | Array recursion | `covered-by-tests` | Tested with `mixed-type-arrays` and `deep-nesting`. |
 | Object recursion | `covered-by-tests` | Tested with `nested-objects` and `deeply-nested-object`. |

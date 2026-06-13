@@ -439,6 +439,10 @@ static void model_serialize_value(ModelStringBuffer* buf, const VaultJcsModelVal
                 buf->error = VAULT_JCS_MODEL_ERROR_SERIALIZE;
                 return;
             }
+            if (!is_valid_utf8_for_utf16_ordering(val->value.string_value)) {
+                buf->error = VAULT_JCS_MODEL_ERROR_INVALID_ARG;
+                return;
+            }
             model_serialize_string(buf, val->value.string_value);
             break;
         case VAULT_JCS_MODEL_TYPE_ARRAY:

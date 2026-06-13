@@ -636,9 +636,8 @@ void test_serialize_invalid_utf8_object_keys_more() {
     // so let's see if it successfully passes bytes through
     vault_jcs_model_init_string(&v, "\xFF");
     err = vault_jcs_model_serialize(&v, &output);
-    assert(err == VAULT_JCS_MODEL_OK);
-    // the \xFF will be written as is or we can assert that output contains \xFF inside quotes
-    assert(strcmp(output, "\"\xFF\"") == 0);
+    assert(err == VAULT_JCS_MODEL_ERROR_INVALID_ARG);
+    assert(output == NULL);
     free(output);
     vault_jcs_model_free(&v);
 }

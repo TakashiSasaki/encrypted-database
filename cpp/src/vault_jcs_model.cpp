@@ -122,6 +122,9 @@ static ModelError serialize_value(std::string& out, const ModelValue& val) {
             out.append(std::to_string(val.as_integer()));
             break;
         case ModelType::String:
+            if (!is_valid_utf8(val.as_string())) {
+                return ModelError::INVALID_ARG;
+            }
             serialize_string(out, val.as_string());
             break;
         case ModelType::Array: {

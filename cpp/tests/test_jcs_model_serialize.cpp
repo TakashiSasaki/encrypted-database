@@ -378,8 +378,7 @@ void test_serialize_invalid_utf8_object_keys_more() {
     auto res_str = ModelValue::make_string("\xFF");
     assert(res_str.error == ModelError::OK);
     auto ser_str = res_str.value.serialize();
-    assert(ser_str.error == ModelError::OK);
-    assert(ser_str.value == "\"\xFF\"");
+    assert(ser_str.error == ModelError::INVALID_ARG);
 }
 
 int main() {
