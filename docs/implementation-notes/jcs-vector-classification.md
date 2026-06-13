@@ -69,7 +69,7 @@ The following categories should remain documentation-only or deferred to future 
 
 ## C/C++ Applicability
 
-Note: C and C++ parser-free generated-vector bridges now exist. Both are generated-fixture bridges, not raw parsers or runtime JSON loaders. Both validate active generated vector expected_string and expected_hex. Both remain bootstrap scaffolds. Neither implements full generic JCS. Neither implements UTF-16 key ordering. Neither consumes future/rejection vectors. Neither is a production public API.
+Note: C and C++ parser-free generated-vector bridges now exist. Both are generated-fixture bridges, not raw parsers or runtime JSON loaders. Both validate active generated vector expected_string and expected_hex. Both remain bootstrap scaffolds. Neither implements full generic JCS. C/C++ parser-free serializers now have hardened UTF-16 key comparator behavior, strictly failing closed on invalid UTF-8 in object keys. Neither consumes future/rejection vectors. Neither is a production public API.
 
 
 The current C and C++ generated-AST JCS tests and internal bridges should only consume vectors that fit the fixture contract (which currently forbids floats and arbitrary precision).

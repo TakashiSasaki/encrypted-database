@@ -97,9 +97,8 @@ static int compare_utf16(const std::string& a, const std::string& b) {
         uint32_t cub = itb.next();
 
         if (cua == 0xFFFFFFFF || cub == 0xFFFFFFFF) {
-            // Fallback for strict weak ordering in sort, though pre-validated
-            if (a < b) return -1;
-            if (b < a) return 1;
+            // Invalid UTF-8. Pre-validation must prevent this.
+            // If it occurs, return 0 to maintain sort stability without silent fallback to arbitrary byte comparison.
             return 0;
         }
         if (cua != cub) return (cua < cub) ? -1 : 1;

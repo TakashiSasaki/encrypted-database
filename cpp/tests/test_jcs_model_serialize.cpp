@@ -205,6 +205,13 @@ void test_serialize_invalid_utf8() {
     auto res4 = ModelValue::make_object(std::move(members4));
     auto ser4 = res4.value.serialize();
     assert(ser4.error == ModelError::INVALID_ARG);
+
+    // Above U+10FFFF
+    ObjectValue members5;
+    members5.push_back({"\xF4\x90\x80\x80", ModelValue::make_integer(1).value}); // U+110000
+    auto res5 = ModelValue::make_object(std::move(members5));
+    auto ser5 = res5.value.serialize();
+    assert(ser5.error == ModelError::INVALID_ARG);
 }
 
 
