@@ -160,25 +160,55 @@ def generate(c_out_path, cpp_out_path, input_files):
         included = 0
         excluded = 0
 
-        for vec in data:
-            name = vec.get("name", "unnamed")
 
-            # Check rejections
-            if "expected_error" in vec or "input_raw_json" in vec or "future_only" in vec:
-                print(f"  - excluded: {name} (reason: raw json, rejection, or future_only)")
+        for vec in data:
+            if not isinstance(vec, dict):
+                print(f"  - excluded: <unnamed> (source: {file_path}, reason: vector is not a JSON object)")
                 excluded += 1
                 continue
 
-            input_val = vec.get("input")
+            name = vec.get("name", "<unnamed>")
+
+            allowed_keys = {"name", "description", "input", "expected_string", "expected_hex"}
+            actual_keys = set(vec.keys())
+
+            # Reject unknown metadata or rejection keys early
+            if not actual_keys.issubset(allowed_keys):
+                unknown_keys = actual_keys - allowed_keys
+                print(f"  - excluded: {name} (source: {file_path}, reason: unknown or unsupported fields: {', '.join(unknown_keys)})")
+                excluded += 1
+                continue
+
+            # Check required keys
+            missing_keys = allowed_keys - actual_keys
+            if missing_keys:
+                print(f"  - excluded: {name} (source: {file_path}, reason: missing required fields: {', '.join(missing_keys)})")
+                excluded += 1
+                continue
+
+            # Validate field types
+            if not isinstance(vec["name"], str):
+                print(f"  - excluded: {name} (source: {file_path}, reason: 'name' must be a string)")
+                excluded += 1
+                continue
+            if not isinstance(vec["description"], str):
+                print(f"  - excluded: {name} (source: {file_path}, reason: 'description' must be a string)")
+                excluded += 1
+                continue
+            if not isinstance(vec["expected_string"], str):
+                print(f"  - excluded: {name} (source: {file_path}, reason: 'expected_string' must be a string)")
+                excluded += 1
+                continue
+            if not isinstance(vec["expected_hex"], str):
+                print(f"  - excluded: {name} (source: {file_path}, reason: 'expected_hex' must be a string)")
+                excluded += 1
+                continue
+
+            input_val = vec["input"]
 
             ok, reason = validate_input(input_val)
             if not ok:
-                print(f"  - excluded: {name} (reason: {reason})")
-                excluded += 1
-                continue
-
-            if "expected_string" not in vec or "expected_hex" not in vec:
-                print(f"  - excluded: {name} (reason: missing expected_string or expected_hex)")
+                print(f"  - excluded: {name} (source: {file_path}, reason: input is unsupported: {reason})")
                 excluded += 1
                 continue
 
@@ -190,7 +220,6 @@ def generate(c_out_path, cpp_out_path, input_files):
                 "expected_hex": vec["expected_hex"],
             })
             included += 1
-
         print(f"  Summary for {file_path}: included: {included}, excluded: {excluded}\n")
 
     print(f"Total vectors included: {len(all_vectors)}")
