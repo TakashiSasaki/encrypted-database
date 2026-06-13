@@ -9,6 +9,7 @@ The immediate goal is to incrementally establish a native testing boundary and v
 ## Roadmap Stages
 
 ### Completed
+- **C/C++ parser-free JCS serializer semantic hardening**
 - **Generic positive vector loader runtime-vector wiring decision**
 - **Generic positive vector build-time fixture wiring**
 - **Bootstrap build/test scaffold**
@@ -49,7 +50,6 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **C/C++ UTF-16 comparator hardening**
 - **UTF-16 key-ordering vector activation decision**
 - **UTF-16 key-ordering positive vector seed**
-- **UTF-16 positive vector baseline integration decision**
 - **Generic JCS parser boundary decision**
 - **C/C++ parser-free internal model conformance review**
 - **Generic positive vector loader design**
@@ -59,7 +59,7 @@ The immediate goal is to incrementally establish a native testing boundary and v
 - **Generic JCS implementation boundary review**
 
 ### Near-term
-- **C/C++ parser-free JCS serializer semantic hardening**
+- **Cross-language read/write compatibility matrix baseline**
 
 ### Future
 - **Generic JCS implementation**

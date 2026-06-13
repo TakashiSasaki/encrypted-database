@@ -49,7 +49,7 @@ The following table audits the current C and C++ parser-free model serializers a
 | Safe integer min/max | `covered-by-tests` | `[-9007199254740991, 9007199254740991]` tested via `generic-positive-coverage.json`. |
 | Unsupported floats | `deferred-parser-boundary` | Floating-point validation is deferred to the future JSON parser. |
 | String escaping | `covered-by-tests` | Quotes, backslashes are escaped correctly. |
-| Control character escaping | `implemented-but-needs-more-tests` | Handled properly via serializers but coverage could be deeper in models. |
+| Control character escaping | `covered-by-tests` | Handled properly via serializers with deep semantic coverage. |
 | Solidus handling | `covered-by-tests` | Escaping solidus is explicitly prohibited by JCS; verified by vectors. |
 | UTF-8 handling | `covered-by-tests` | Natively preserved through string buffers. |
 | Embedded NUL rejection boundary | `deferred-parser-boundary` | Deferred until parser strings include explicit lengths. Currently models assume null-terminated strings. |
@@ -67,7 +67,7 @@ The following table audits the current C and C++ parser-free model serializers a
 
 Based on the audit above, the C and C++ serialization implementations are quite strong, covering almost all of the JCS model semantics.
 
-**Recommended next stride:** `C/C++ parser-free JCS serializer semantic hardening`
+**Recommended next stride:** `Cross-language read/write compatibility matrix baseline`
 
 ### Scope
 Improve semantic validation within the existing parser-free internal model layers (Layer B, Layer C, and Layer D). This can involve hardening control-character escaping within the tests or model representations to verify complete safety without altering architectural design.
