@@ -112,9 +112,16 @@ The eventual test harness built upon this design will follow this flow:
 7. Free/cleanup all constructed models safely.
 8. Fail fast and clearly with the vector name on any mismatch or construction error.
 
+## Implementation Scaffold Status
+**Update (Current Stride):** The generic positive vector loader scaffold has been implemented as a test-harness-only mechanism.
+
+- **Independent Implementations:** C and C++ have independent scaffold loader logic in their respective test suites (`c/tests/test_jcs_positive_vector_loader.c` and `cpp/tests/test_jcs_positive_vector_loader.cpp`). The C++ scaffold does not call C helpers or use C model headers.
+- **Fail-Closed Behavior:** The loader converts from a test-only generic in-memory representation to the parser-free internal model. Unsupported forms (e.g., floating-point, unsafe integers, embedded NULs, duplicate keys, raw JSON sentinels, rejection metadata) result in deterministic loader errors and test failures, confirming a strict fail-closed boundary.
+- **Deferred Work:** The scaffold remains a pure in-memory test construct. It still **does not** parse JSON text, load vector JSON files at runtime, consume `future-boundary-plan.json`, wire `utf16-key-ordering.json` to generated tests, or modify `rfc8785-basic.json`.
+
 ## Non-Goals
 This design stride explicitly does **not** implement:
-- the generic JSON positive vector loader itself;
+- the full runtime generic JSON positive vector loader itself (only the in-memory scaffold is built);
 - a raw JSON parser;
 - a rejection-vector harness;
 - automatic consumption of `future-boundary-plan.json`;
