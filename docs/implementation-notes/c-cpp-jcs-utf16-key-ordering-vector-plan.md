@@ -93,18 +93,38 @@ The C++ comparator implementation must conceptually match the C behavior but rem
 - **Error handling:** Invalid UTF-8 must fail closed and be handled through the existing `Result<T>` and `ModelError` pattern.
 - This must interact safely with existing `std::string` storage and embedded-NUL rejection policies.
 
-### Test and Vector Activation Strategy
+### Activation Target Decision
 
-UTF-16 key-ordering vectors remain planning-only and are not activated in this stride.
+**Decision:** Do not add UTF-16 key-ordering vectors to `rfc8785-basic.json` at this time.
 
-- `future-boundary-plan.json` remains strictly planning-only and must not be consumed by current C/C++ bridge tests.
-- The existing `utf16-surrogate-key-ordering` case remains classified as `"future_only": true`.
-- Before activation, explicit `expected_string` and `expected_hex` must be defined for each new vector.
+The preferred target for future active UTF-16 vectors is a separate future UTF-16 positive conformance vector file (e.g., `test-vectors/jcs/utf16-key-ordering.json`), or a generic JCS-only suite. The actual creation of this vector file is deferred to a later vector-seed stride.
+
+**Rejected Alternatives:**
+- *Adding to `rfc8785-basic.json`:* Rejected because active generated-AST vectors are fixture-compatible and currently used by existing strictly-typed generated bridges (Go/Rust/Zig). UTF-16 key-ordering coverage has different conformance meanings, and adding them now could break existing strict loaders or violate generated-AST constraints.
+- *Keeping them only in `future-boundary-plan.json`:* Rejected as a long-term solution because `future-boundary-plan.json` is strictly a marker and planning file, not an active conformance source.
+
+### Activation Preconditions
+
+Before UTF-16 vectors can become active conformance vectors, the following preconditions must be explicitly met:
+- Explicit `expected_string` and `expected_hex` must be defined for each vector.
 - Expected outputs must be verified against Python and Node.js baseline implementations.
-- A future decision will determine whether these vectors belong in active `rfc8785-basic.json`, a separate UTF-16 conformance file, or a generic JCS-only suite.
-- Go, Rust, and Zig strict loaders must not be broken by the activation of these vectors.
-- The generated-AST fixture constraints must be compatible or explicitly handled by a future generic harness.
-- No new metadata fields (e.g., `category` or `scope`) should be added to `rfc8785-basic.json` to bypass current constraints.
+- Compatibility with strict Go, Rust, and Zig loaders must be checked before adding active vectors.
+- It must be confirmed that C/C++ generated-AST fixture constraints are respected.
+- A clear decision must be made regarding whether a given vector is parser-free-compatible or raw/generic-parser-dependent.
+- The active vector schema must remain compatible with existing strict loaders; no new ad hoc metadata fields may be added to `rfc8785-basic.json` to bypass constraints.
+
+### Vector Categories and Activation Order
+
+A staged activation order is planned:
+
+1. **Parser-free direct tests only:** (Currently active) Hardcoded ASCII/basic, BMP non-ASCII, surrogate-pair-sensitive, mixed ASCII/non-ASCII ordering, no-normalization behavior, and invalid UTF-8 fail-closed tests.
+2. **Future positive vector seed:** A new standalone file covering BMP non-ASCII ordering, surrogate-pair-sensitive ordering, mixed ASCII/non-ASCII ordering, and no-normalization behavior (which can be represented by a parser-free model).
+3. **Future raw/generic parser-dependent vectors:** Escaped versus unescaped equivalent key representation, duplicate-key rejection, and invalid raw JSON rejection (requires full raw/generic parser support).
+4. **Future rejection harness:** Unsafe integer rejection, duplicate keys, embedded NUL policy, and invalid JSON parse errors.
+
+### `future-boundary-plan.json`
+
+The `future-boundary-plan.json` file strictly remains a marker and planning file. It is **not** an active conformance source and must not be consumed by current C/C++ test runners or bridge tests. The existing `utf16-surrogate-key-ordering` entry remains classified as `"future_only": true` and serves only as a planning marker until a separate positive vector file is established.
 
 ## Status Implementation Updates
 
