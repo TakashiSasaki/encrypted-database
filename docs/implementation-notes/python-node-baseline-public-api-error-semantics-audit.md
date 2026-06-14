@@ -68,7 +68,7 @@ Python uses exception classes in `encrypted_storage.errors`. Node.js uses matchi
 
 | Conformance Area | Python | Node.js | Coverage Status | Notes |
 |---|---|---|---|---|
-| JCS (RFC 8785) canonicalization | Yes (via `jcs` package) | Yes (custom implementation) | partial | Both enforce JCS, but full RFC 8785 shared vector execution across both is tracked in `generic-positive-coverage.json` and currently executed natively. Needs strict validation that Node.js passes all vectors. |
+| JCS (RFC 8785) canonicalization | Yes (via `jcs` package) | Yes (custom implementation) | partial | Both enforce JCS and load `rfc8785-basic.json`. However, expanded coverage (e.g. `generic-positive-coverage.json`) is currently wired to C/C++ natively, not Python/Node.js. Needs strict validation that Node.js and Python consume all conformance vectors before baseline-public. |
 | AAD construction | Yes | Yes | aligned | Both implement the defined AAD concatenation policy. |
 | AES-GCM envelope behavior | Yes | Yes | aligned | Both use 96-bit nonces, 128-bit tags. |
 | Argon2id profile | Yes | Yes | aligned | Both use Time=3, Mem=65536 KiB, Parallelism=1, Salt=16. |
