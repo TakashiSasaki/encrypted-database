@@ -189,6 +189,18 @@ check_phrase "public-entrypoint-test-wrapper evidence is equivalent to baseline-
 check_phrase "test wrappers are no longer used" "Stale claim: test wrappers remain part of the evidence path via public entrypoints"
 check_phrase "Python and Node.js are already baseline-public" "Stale claim: Python and Node.js are baseline candidates, not yet baseline-public"
 
+# 28. Narrow guards against false baseline-public certification claims
+check_phrase "public-entrypoint-test-wrapper is baseline-public" "False certification claim: public-entrypoint test-wrapper is not baseline-public"
+check_phrase "public-entrypoint-test-wrapper means production-ready" "False certification claim: public-entrypoint test-wrapper is not production-ready"
+check_phrase "Python/Node.js baseline-public release is complete" "False certification claim: Python/Node.js baseline-public release is not complete"
+check_phrase "public_quality_certification: true" "Stale public-quality claim: public_quality_certification is still false"
+
+# 29. Guard against stale successful status wording
+check_phrase_file "test-wrapper-passed" "Stale successful status wording: use public-entrypoint-passed instead" "docs/implementation-notes/project-wide-public-library-quality-harness.md"
+check_phrase_file "test-wrapper-passed" "Stale successful status wording: use public-entrypoint-passed instead" "docs/implementation-notes/baseline-public-readiness-gap-analysis.md"
+check_phrase_file "test-wrapper-passed" "Stale successful status wording: use public-entrypoint-passed instead" "docs/implementation-notes/cross-language-read-write-compatibility-plan.md"
+check_phrase_file "test-wrapper-passed" "Stale successful status wording: use public-entrypoint-passed instead" "README.md"
+
 # END OF NEW RULES
 
 if [ "$FOUND_STALE" -eq 1 ]; then

@@ -40,11 +40,11 @@ class TestRunCrossLanguageCompatibility(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0)
         out = result.stdout
-        self.assertIn("4 pairs passed via test-only compatibility wrappers.", out)
-        self.assertIn("python     (write) -> python     (read) : test-wrapper-passed", out)
-        self.assertIn("python     (write) -> nodejs     (read) : test-wrapper-passed", out)
-        self.assertIn("nodejs     (write) -> python     (read) : test-wrapper-passed", out)
-        self.assertIn("nodejs     (write) -> nodejs     (read) : test-wrapper-passed", out)
+        self.assertIn("4 pairs passed via public-entrypoint test-wrapper matrix.", out)
+        self.assertIn("python     (write) -> python     (read) : public-entrypoint-passed", out)
+        self.assertIn("python     (write) -> nodejs     (read) : public-entrypoint-passed", out)
+        self.assertIn("nodejs     (write) -> python     (read) : public-entrypoint-passed", out)
+        self.assertIn("nodejs     (write) -> nodejs     (read) : public-entrypoint-passed", out)
 
     @unittest.skipUnless(os.environ.get("VAULT_RUN_COMPAT_EXECUTION_TESTS") == "1", "Gated behind VAULT_RUN_COMPAT_EXECUTION_TESTS=1")
     def test_execution_mode_json(self):
@@ -55,8 +55,9 @@ class TestRunCrossLanguageCompatibility(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         data = json.loads(result.stdout)
         self.assertEqual(data["mode"], "execute")
+        self.assertIn("public_entrypoint_passed", data["summary"])
 
-        passed_pairs = [p for p in data["pair_matrix"] if p["status"] == "test-wrapper-passed"]
+        passed_pairs = [p for p in data["pair_matrix"] if p["status"] == "public-entrypoint-passed"]
         self.assertEqual(len(passed_pairs), 4)
         for pair in passed_pairs:
             self.assertIsNotNone(pair["evidence"])
