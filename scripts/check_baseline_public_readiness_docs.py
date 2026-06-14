@@ -58,11 +58,13 @@ def main():
         if not check_content(audit_doc,
             require_patterns=[
                 r"API Parity Status",
-                r"Error Semantics Audit"
+                r"Error Semantics Audit",
+                r"json-canonicalize" # Ensure we corrected the custom implementation note
             ],
             forbid_patterns=[
                 r"Python and Node\.js are baseline-public",
-                r"baseline-public certification complete"
+                r"baseline-public certification complete",
+                r"Node\.js uses a custom JCS implementation"
             ]
         ):
             success = False

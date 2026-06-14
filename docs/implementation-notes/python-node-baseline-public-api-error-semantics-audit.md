@@ -68,7 +68,7 @@ Python uses exception classes in `encrypted_storage.errors`. Node.js uses matchi
 
 | Conformance Area | Python | Node.js | Coverage Status | Notes |
 |---|---|---|---|---|
-| JCS (RFC 8785) canonicalization | Yes (via `jcs` package) | Yes (custom implementation) | partial | Both enforce JCS and load `rfc8785-basic.json`. However, expanded coverage (e.g. `generic-positive-coverage.json`) is currently wired to C/C++ natively, not Python/Node.js. Needs strict validation that Node.js and Python consume all conformance vectors before baseline-public. |
+| JCS (RFC 8785) canonicalization | Yes (via `jcs` package) | Yes (via `json-canonicalize` package) | expanded-positive-vectors-wired | Both enforce JCS and now explicitly consume `rfc8785-basic.json` and `generic-positive-coverage.json`. Needs strict validation that Node.js and Python consume all remaining conformance vectors before baseline-public. |
 | AAD construction | Yes | Yes | aligned | Both implement the defined AAD concatenation policy. |
 | AES-GCM envelope behavior | Yes | Yes | aligned | Both use 96-bit nonces, 128-bit tags. |
 | Argon2id profile | Yes | Yes | aligned | Both use Time=3, Mem=65536 KiB, Parallelism=1, Salt=16. |
@@ -81,4 +81,4 @@ Python uses exception classes in `encrypted_storage.errors`. Node.js uses matchi
 ## Conclusion and Next Steps
 The Python and Node.js implementations are semantically well-aligned in their core APIs and error models. Both consistently use the same vocabulary for operations and exceptions.
 
-To safely promote to `baseline-public`, the remaining steps involve finalizing package documentation, public API documentation, security notes, and ensuring that the shared JCS vector suites are fully verified in CI for Node.js's custom canonicalizer.
+To safely promote to `baseline-public`, the remaining steps involve finalizing package documentation, public API documentation, security notes, and ensuring that the shared JCS vector suites are fully verified in CI for Node.js and Python. The recent addition of explicit `generic-positive-coverage.json` coverage in both languages improves shared conformance evidence, but does not certify baseline-public readiness.

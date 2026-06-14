@@ -158,6 +158,12 @@ check_phrase "Python and Node.js are baseline-public" "Stale/false claim: Python
 check_phrase "test-wrapper passed means public-quality" "Stale/false claim: test-wrapper success is evidence, not certification"
 check_phrase "C/C\\+\\+ is a production storage library" "Stale/false claim: C/C++ are bootstrap scaffolds, not storage libraries"
 
+# 23. Python/Node.js JCS Implementation Guardrails
+check_phrase "Node.js uses a custom JCS implementation" "Stale/false claim: Node.js uses json-canonicalize package"
+check_phrase "Python/Node.js have full JCS conformance" "Stale/false claim: Python/Node.js JCS conformance is partial, pending full shared vector coverage"
+check_phrase "JCS conformance is complete" "Stale/false claim: JCS conformance is not yet complete"
+check_phrase "generic-positive-coverage is not used by Python/Node.js" "Stale/false claim: generic-positive-coverage is now explicitly consumed by Python and Node.js"
+
 # END OF NEW RULES
 
 if [ "$FOUND_STALE" -eq 1 ]; then

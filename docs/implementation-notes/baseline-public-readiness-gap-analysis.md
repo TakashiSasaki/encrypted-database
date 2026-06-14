@@ -12,7 +12,7 @@ This analysis builds upon the findings in the [Python and Node.js Baseline-Publi
 | Public read API surface | implemented-public* | implemented-public* | API surface exists and is aligned; final semantic review pending |
 | Public write API surface | implemented-public* | implemented-public* | API surface exists and is aligned; final semantic review pending |
 | Storage Format V1 semantic stability | pending | pending | Verify no hidden assumptions before locking public API |
-| Shared conformance vectors | partial | partial | Core implemented, but full RFC 8785 vector coverage verification required across libraries |
+| Shared conformance vectors | expanded-positive-vectors-wired | expanded-positive-vectors-wired | Core positive vector suites are wired, but full RFC 8785 vector coverage verification required across libraries |
 | Cross-language wrapper evidence | test-wrapper-passed | test-wrapper-passed | Successfully executes via temporary testing wrappers |
 | CI evidence | path-filtered | path-filtered | Ensure robust pipeline execution |
 | Package metadata | partial | partial | Needs comprehensive documentation and correct publish metadata |
