@@ -154,7 +154,7 @@ check_phrase "all language implementations have full public API parity" "Stale/f
 # 22. Specific bounds for Python/Node.js and wrappers
 check_phrase "Python and Node.js are baseline-public" "Stale/false claim: Python and Node.js are baseline-candidates"
 check_phrase "test-wrapper passed means public-quality" "Stale/false claim: test-wrapper success is evidence, not certification"
-check_phrase "C/C\\+\\+ storage library" "Stale/false claim: C/C++ are bootstrap scaffolds, not storage libraries"
+check_phrase "C/C\\+\\+ is a production storage library" "Stale/false claim: C/C++ are bootstrap scaffolds, not storage libraries"
 
 # END OF NEW RULES
 
