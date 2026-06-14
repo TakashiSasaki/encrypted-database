@@ -3,12 +3,11 @@ import json
 import argparse
 import os
 
-from encrypted_storage.storage import EncryptedStorage
-from encrypted_storage import errors
+from encrypted_storage import EncryptedStorage, errors
 
 def main():
     parser = argparse.ArgumentParser(description="Test-only compatibility wrapper")
-    parser.add_argument("operation", choices=["write", "read"])
+    parser.add_argument("operation", choices=["write", "read", "update", "delete"])
     parser.add_argument("--db", required=True)
     parser.add_argument("--schema", required=True)
     parser.add_argument("--content-type", dest="content_type", required=True)
@@ -58,11 +57,43 @@ def main():
                 "payload": payload
             }))
 
-    except errors.Error as e:
+
+        elif args.operation == "update":
+            if not args.object_uuid:
+                print(json.dumps({"ok": False, "operation": "update", "error": "--object-uuid is required for update operation"}))
+                sys.exit(1)
+
+            storage.unlock_database(passphrase)
+            payload_str = sys.stdin.read()
+            payload = json.loads(payload_str)
+            storage.update_payload(args.object_uuid, args.schema, args.content_type, payload)
+            storage.close()
+
+            print(json.dumps({
+                "ok": True,
+                "operation": "update"
+            }))
+
+        elif args.operation == "delete":
+            if not args.object_uuid:
+                print(json.dumps({"ok": False, "operation": "delete", "error": "--object-uuid is required for delete operation"}))
+                sys.exit(1)
+
+            storage.unlock_database(passphrase)
+            storage.delete_payload(args.object_uuid)
+            storage.close()
+
+            print(json.dumps({
+                "ok": True,
+                "operation": "delete"
+            }))
+
+    except errors.StorageError as e:
         print(json.dumps({
             "ok": False,
             "operation": args.operation,
-            "error": str(e)
+            "error": str(e),
+            "error_class": type(e).__name__
         }))
         sys.exit(1)
     except Exception as e:

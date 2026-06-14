@@ -119,7 +119,7 @@ Note: C and C++ parser-free generated-vector bridges now exist. Both are generat
 
 **Status:** Active (Partial)
 **Area:** Deployment
-**Current state:** Python and Node.js packaging metadata, entrypoints, versioning, and public documentation have been improved to support reliable local/monorepo usage and accurate version provenance. Placeholders have been removed, and entrypoints correctly expose public APIs and error classes. However, neither library is yet declared `baseline-public`. Comprehensive publishing automation, npm/PyPI publishing credentials, and formal public release management remain future work.
+**Current state:** Python and Node.js packaging metadata, entrypoints, versioning, and public documentation have been improved to support reliable local/monorepo usage and accurate version provenance. Placeholders have been removed, and entrypoints correctly expose public APIs and error classes. Cross-language compatibility testing now operates through public entrypoints for the full write/read/update/delete matrix. However, neither library is yet declared `baseline-public`. Comprehensive publishing automation, npm/PyPI publishing credentials, and formal public release management remain future work.
 **Expected or intended state:** Production-ready packages that can be seamlessly published to PyPI and npm with correct dependencies, exports, and documentation.
 **Why it matters:** Incomplete packaging hinders adoption and makes it difficult for other projects to cleanly depend on the library.
 **Recommended next action:** Refine remaining automated publishing processes when moving to `baseline-public`.

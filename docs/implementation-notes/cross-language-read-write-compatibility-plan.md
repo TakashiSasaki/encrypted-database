@@ -37,10 +37,10 @@ Note explicitly that wrapper success is evidence toward compatibility, not publi
 
 | Language pair (write -> read) | Status | Reason | Evidence |
 |---|---|---|---|
-| Python -> Python | test-wrapper-passed | Successfully executed test-only wrapper checks | `scripts/run_cross_language_compatibility.py --execute` output |
-| Node.js -> Node.js | test-wrapper-passed | Successfully executed test-only wrapper checks | `scripts/run_cross_language_compatibility.py --execute` output |
-| Python -> Node.js | test-wrapper-passed | Successfully executed test-only wrapper checks | `scripts/run_cross_language_compatibility.py --execute` output |
-| Node.js -> Python | test-wrapper-passed | Successfully executed test-only wrapper checks | `scripts/run_cross_language_compatibility.py --execute` output |
+| Python -> Python | public-entrypoint-test-wrapper | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete) | `scripts/run_cross_language_compatibility.py --execute` output |
+| Node.js -> Node.js | public-entrypoint-test-wrapper | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete) | `scripts/run_cross_language_compatibility.py --execute` output |
+| Python -> Node.js | public-entrypoint-test-wrapper | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete) | `scripts/run_cross_language_compatibility.py --execute` output |
+| Node.js -> Python | public-entrypoint-test-wrapper | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete) | `scripts/run_cross_language_compatibility.py --execute` output |
 
 *(Other combinations involving Go, Rust, Zig, C, and C++ are skipped due to lacking a stable public API and corresponding wrapper commands).*
 

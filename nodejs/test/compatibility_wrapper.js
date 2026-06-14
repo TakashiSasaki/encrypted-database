@@ -1,6 +1,5 @@
 const fs = require('fs');
-const EncryptedStorage = require('../src/storage');
-const errors = require('../src/errors');
+const { EncryptedStorage, errors } = require('..');
 
 async function main() {
     const args = process.argv.slice(2);
@@ -21,7 +20,7 @@ async function main() {
         if (args[i] === '--object-uuid' && i + 1 < args.length) objectUuid = args[++i];
     }
 
-    if (!operation || (operation !== 'write' && operation !== 'read') || !dbPath || !schemaUuid || !contentType) {
+    if (!operation || !['write', 'read', 'update', 'delete'].includes(operation) || !dbPath || !schemaUuid || !contentType) {
         console.log(JSON.stringify({ok: false, operation: operation || "unknown", error: "Missing required arguments"}));
         process.exit(1);
     }
@@ -76,14 +75,57 @@ async function main() {
                 operation: "read",
                 payload: payload
             }));
+        } else if (operation === 'update') {
+            if (!objectUuid) {
+                console.log(JSON.stringify({ok: false, operation, error: "--object-uuid is required for update operation"}));
+                process.exit(1);
+            }
+
+            await storage.unlockDatabase(passphrase);
+
+            const payloadStr = fs.readFileSync(0, 'utf-8');
+            let payload;
+            try {
+                payload = JSON.parse(payloadStr);
+            } catch(e) {
+                console.log(JSON.stringify({ok: false, operation, error: "Invalid JSON payload"}));
+                process.exit(1);
+            }
+
+            storage.updatePayload(objectUuid, schemaUuid, contentType, payload);
+            storage.close();
+
+            console.log(JSON.stringify({
+                ok: true,
+                operation: "update"
+            }));
+
+        } else if (operation === 'delete') {
+            if (!objectUuid) {
+                console.log(JSON.stringify({ok: false, operation, error: "--object-uuid is required for delete operation"}));
+                process.exit(1);
+            }
+
+            await storage.unlockDatabase(passphrase);
+            storage.deletePayload(objectUuid);
+            storage.close();
+
+            console.log(JSON.stringify({
+                ok: true,
+                operation: "delete"
+            }));
         }
 
     } catch (e) {
-        console.log(JSON.stringify({
+        const errorResponse = {
             ok: false,
             operation,
             error: e.message || String(e)
-        }));
+        };
+        if (e.name) {
+            errorResponse.error_class = e.name;
+        }
+        console.log(JSON.stringify(errorResponse));
         process.exit(1);
     }
 }

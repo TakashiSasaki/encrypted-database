@@ -60,7 +60,9 @@ class TestRunCrossLanguageCompatibility(unittest.TestCase):
         self.assertEqual(len(passed_pairs), 4)
         for pair in passed_pairs:
             self.assertIsNotNone(pair["evidence"])
-            self.assertEqual(pair["evidence"]["mode"], "test-wrapper")
+            self.assertEqual(pair["evidence"]["mode"], "public-entrypoint-test-wrapper")
+            self.assertTrue(pair["evidence"]["public_entrypoint"])
+            self.assertEqual(pair["evidence"]["operations"], ["write", "read", "update", "delete", "not_found_after_delete"])
             self.assertFalse(pair["evidence"]["public_quality_certification"])
             self.assertEqual(pair["evidence"]["database"], "temporary-file")
             self.assertEqual(pair["evidence"]["artifact_policy"], "not committed")

@@ -55,17 +55,22 @@ def _run_wrapper(cmd, payload=None):
     except Exception as e:
         return False, str(e), None
 
-    if proc.returncode != 0:
-        return False, f"Process exited with {proc.returncode}. stderr: {proc.stderr}", None
-
     try:
         out = json.loads(proc.stdout)
-        if out.get("ok"):
-            return True, None, out
-        else:
-            return False, out.get("error", "Unknown error"), out
     except json.JSONDecodeError:
-        return False, f"Failed to parse stdout as JSON: {proc.stdout}", None
+        out = None
+
+    if proc.returncode != 0:
+        if out:
+            return False, out.get("error", "Unknown error"), out
+        return False, f"Process exited with {proc.returncode}. stderr: {proc.stderr}", None
+
+    if out and out.get("ok"):
+        return True, None, out
+    elif out:
+        return False, out.get("error", "Unknown error"), out
+    else:
+        return False, "Failed to parse stdout as JSON or missing ok", None
 
 def execute_pair(writer, reader):
     if LANGUAGES[writer]["scaffold_only"]:
@@ -84,7 +89,7 @@ def execute_pair(writer, reader):
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = os.path.join(tmpdir, "test.db")
 
-            # Write
+            # Write P1
             cmd_w = _get_wrapper_cmd(writer, "write", db_path)
             w_ok, w_err, w_out = _run_wrapper(cmd_w, payload)
             if not w_ok:
@@ -94,20 +99,55 @@ def execute_pair(writer, reader):
             if not object_uuid:
                 return "failed", "Write did not return object_uuid", None
 
-            # Read
+            # Read P1
             cmd_r = _get_wrapper_cmd(reader, "read", db_path, object_uuid)
             r_ok, r_err, r_out = _run_wrapper(cmd_r)
             if not r_ok:
-                return "failed", f"Read failed: {r_err}", None
+                return "failed", f"Read P1 failed: {r_err}", None
 
             retrieved = r_out.get("payload")
             if retrieved != payload:
-                return "failed", f"Payload mismatch. Expected {payload}, got {retrieved}", None
+                return "failed", f"Payload P1 mismatch. Expected {payload}, got {retrieved}", None
+
+            # Update P2 (cross-language update: reader updates the same object to payload P2)
+            payload_p2 = {"updated": True, "old": payload}
+            cmd_u = _get_wrapper_cmd(reader, "update", db_path, object_uuid)
+            u_ok, u_err, u_out = _run_wrapper(cmd_u, payload_p2)
+            if not u_ok:
+                return "failed", f"Update failed: {u_err}", None
+
+            # Read P2 (writer reads payload P2)
+            cmd_r2 = _get_wrapper_cmd(writer, "read", db_path, object_uuid)
+            r2_ok, r2_err, r2_out = _run_wrapper(cmd_r2)
+            if not r2_ok:
+                return "failed", f"Read P2 failed: {r2_err}", None
+
+            retrieved_p2 = r2_out.get("payload")
+            if retrieved_p2 != payload_p2:
+                return "failed", f"Payload P2 mismatch. Expected {payload_p2}, got {retrieved_p2}", None
+
+            # Delete (cross-language delete: reader deletes the object)
+            cmd_d = _get_wrapper_cmd(reader, "delete", db_path, object_uuid)
+            d_ok, d_err, d_out = _run_wrapper(cmd_d)
+            if not d_ok:
+                return "failed", f"Delete failed: {d_err}", None
+
+            # Read Deleted (writer attempts to read deleted object)
+            cmd_rd = _get_wrapper_cmd(writer, "read", db_path, object_uuid)
+            rd_ok, rd_err, rd_out = _run_wrapper(cmd_rd)
+            if rd_ok:
+                return "failed", "Read deleted object succeeded when it should have failed", None
+
+            error_class = rd_out.get("error_class")
+            if error_class != "ObjectNotFound":
+                return "failed", f"Expected ObjectNotFound after delete, got {error_class}", None
 
     return "test-wrapper-passed", "Successfully executed test-only compatibility wrapper checks", {
-        "mode": "test-wrapper",
+        "mode": "public-entrypoint-test-wrapper",
+        "public_entrypoint": True,
         "public_quality_certification": False,
         "certification": "none",
+        "operations": ["write", "read", "update", "delete", "not_found_after_delete"],
         "payload_count": len(TEST_PAYLOADS),
         "wrapper_writer": LANGUAGES[writer].get("wrapper"),
         "wrapper_reader": LANGUAGES[reader].get("wrapper"),
