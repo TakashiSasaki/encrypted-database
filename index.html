@@ -40,20 +40,21 @@
     </script>
 </head>
 <body class="markdown-body">
-    <nav style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eaecef;">
-        <a href="#" id="show-index-btn" style="font-weight: bold; margin-right: 15px; color: #0969da; text-decoration: none;">Navigation:</a>
+    <nav aria-label="Main Navigation" style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eaecef;">
+        <a href="#" id="show-index-btn" role="button" aria-controls="index-container content" aria-expanded="false" style="font-weight: bold; margin-right: 15px; color: #0969da; text-decoration: none;">Navigation:</a>
         <a href="?file=README.md" style="margin-right: 15px;">Home (README)</a>
         <a href="?file=docs/database-structure.md" style="margin-right: 15px;">Database Structure</a>
         <a href="demo/index.html" style="margin-right: 15px;">Browser Demo</a>
         <a href="?file=docs/README.md">Key Management Spec</a>
     </nav>
     <div id="file-path-display" style="margin-bottom: 15px; font-size: 0.9em; color: #57606a;"></div>
-    <div id="content" style="background-color: #ffffe0; padding: 20px; border-radius: 6px;">Loading...</div>
-    <div id="index-container" style="display: none; background-color: #f6f8fa; padding: 20px; border-radius: 6px;">
-        <h2>All Documents</h2>
-        <ul id="index-list"></ul>
-    </div>
-
+    <main>
+        <div id="content" aria-live="polite" style="background-color: #ffffe0; padding: 20px; border-radius: 6px;">Loading...</div>
+        <div id="index-container" aria-live="polite" style="display: none; background-color: #f6f8fa; padding: 20px; border-radius: 6px;">
+            <h2>All Documents</h2>
+            <ul id="index-list"></ul>
+        </div>
+    </main>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const contentDiv = document.getElementById('content');
@@ -114,10 +115,15 @@
 
             async function loadMarkdown() {
                 // Ensure index is hidden and content is visible
+                showIndexBtn.setAttribute('aria-expanded', 'false');
                 indexContainer.style.display = 'none';
                 contentDiv.style.display = 'block';
 
                 let file = getQueryParam('file') || 'README.md';
+
+                // Update document title for accessibility and UX
+                const filename = file.split('/').pop();
+                document.title = `${filename} - Encrypted Database Library`;
 
                 // Security check to prevent fetching external resources
                 if (/^[a-zA-Z]+:/.test(file) || file.startsWith('//')) {
@@ -257,12 +263,14 @@
             // Handle clicking the "Navigation" link
             showIndexBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
+                showIndexBtn.setAttribute('aria-expanded', 'true');
 
                 // Hide content, show index
                 contentDiv.style.display = 'none';
                 pathDisplayDiv.innerHTML = 'Index';
                 indexContainer.style.display = 'block';
                 indexList.innerHTML = '<li>Loading document list...</li>';
+                document.title = 'Index - Encrypted Database Library';
 
                 // Update URL to empty file parameter so reloading doesn't show a specific file if they are on index
                 const newUrl = new URL(window.location);
