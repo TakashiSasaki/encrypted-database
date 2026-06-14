@@ -86,6 +86,9 @@ The library provides named exception classes mapped across Python and Node.js im
 ```python
 from encrypted_storage import EncryptedStorage, ObjectNotFound
 
+storage = EncryptedStorage("my_database.sqlite")
+storage.unlock_database("my_super_secret_password")
+
 try:
     retrieved = storage.retrieve_payload("00000000-0000-4000-8000-000000000002")
 except ObjectNotFound:

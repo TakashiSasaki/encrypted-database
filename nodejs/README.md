@@ -96,14 +96,20 @@ The library provides named exception classes mapped across Python and Node.js im
 ```javascript
 const { EncryptedStorage, ObjectNotFound } = require('encrypted-storage');
 
-const storage = new EncryptedStorage('my_database.sqlite');
-try {
-    const retrieved = storage.retrievePayload("00000000-0000-4000-8000-000000000002");
-} catch (e) {
-    if (e instanceof ObjectNotFound) {
-        console.log("Payload not found.");
+async function checkError() {
+    const storage = new EncryptedStorage('my_database.sqlite');
+    await storage.unlockDatabase('my_super_secret_password');
+
+    try {
+        const retrieved = storage.retrievePayload("00000000-0000-4000-8000-000000000002");
+    } catch (e) {
+        if (e instanceof ObjectNotFound) {
+            console.log("Payload not found.");
+        }
     }
 }
+
+checkError();
 ```
 
 ## Metadata Notes
