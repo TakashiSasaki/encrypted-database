@@ -2,6 +2,8 @@
 
 This library provides the Node.js implementation of the Encrypted Database, an application-layer encryption and key management solution.
 
+**Status:** `baseline-candidate` / `preview-library`. Storage Format V1 is stable, but package and public readiness certification is pending.
+
 ## Features
 - Manages encryption key hierarchies (`unlock_kek` -> `database_kek` -> `record_dek`).
 - Encrypts payloads using AES-256-GCM.
@@ -11,7 +13,6 @@ This library provides the Node.js implementation of the Encrypted Database, an a
 ## Installation
 Ensure you are in the `nodejs` directory and install dependencies:
 ```bash
-cd nodejs
 npm install
 ```
 
@@ -22,52 +23,92 @@ cd nodejs
 npm test
 ```
 
-## Basic Usage
+## Package Entrypoint
+The package root cleanly exports the public API classes and errors.
 
 ```javascript
-const EncryptedStorage = require('./src/storage');
-const errors = require('./src/errors');
+const { EncryptedStorage, ObjectNotFound, StorageLocked } = require('encrypted-storage');
+// Or using relative path if working locally:
+// const { EncryptedStorage, ObjectNotFound } = require('.');
+```
+
+## Basic Usage
+
+### Lifecycle: Initialize, Unlock, Lock, Close
+
+```javascript
+const { EncryptedStorage } = require('encrypted-storage');
 
 async function run() {
     // Initialize database
     const storage = new EncryptedStorage('my_database.sqlite');
     await storage.initializeDatabase('my_super_secret_password', 'linux');
 
-    console.log(storage.getStatus()); // 'open_unlocked'
+    // Or open and unlock an existing database
+    const storageExisting = new EncryptedStorage('my_database.sqlite');
+    await storageExisting.unlockDatabase('my_super_secret_password');
 
-    // Store payload
-    const schemaUuid = '00000000-0000-4000-8000-000000000001';
-    const payload = { secret: 'data', value: 42 };
-    const objectUuid = storage.storePayload(schemaUuid, 'application/json', payload);
-
-    // Update payload
-    const newPayload = { secret: 'data-updated', value: 99 };
-    storage.updatePayload(objectUuid, schemaUuid, 'application/json', newPayload);
-
-    // Retrieve payload
-    const retrieved = storage.retrievePayload(objectUuid);
-    console.log(retrieved);
-
-    // Delete payload
-    storage.deletePayload(objectUuid);
-
-    // Lock and Close lifecycle
+    // Lock the database (purges KEKs from memory)
     storage.lock();
-    console.log(storage.isUnlocked()); // false
 
-    try {
-        storage.retrievePayload(objectUuid);
-    } catch (e) {
-        if (e instanceof errors.StorageLocked) {
-            console.log("Storage is correctly locked.");
-        }
-    }
-
+    // Close connection
     storage.close();
 }
 
 run();
 ```
+
+### Payload Operations: Store, Retrieve, Update, Delete
+
+```javascript
+const { EncryptedStorage } = require('encrypted-storage');
+
+async function runOps() {
+    const storage = new EncryptedStorage('my_database.sqlite');
+    await storage.unlockDatabase('my_super_secret_password');
+
+    const schemaUuid = '00000000-0000-4000-8000-000000000001';
+
+    // Store payload
+    const payload = { secret: 'data', value: 42 };
+    const objectUuid = storage.storePayload(schemaUuid, 'application/json', payload);
+
+    // Retrieve payload
+    const retrieved = storage.retrievePayload(objectUuid);
+    console.log(retrieved);
+
+    // Update payload
+    const newPayload = { secret: 'data-updated', value: 99 };
+    storage.updatePayload(objectUuid, schemaUuid, 'application/json', newPayload);
+
+    // Delete payload
+    storage.deletePayload(objectUuid);
+
+    storage.close();
+}
+
+runOps();
+```
+
+## Error Model
+The library provides named exception classes mapped across Python and Node.js implementations.
+
+```javascript
+const { EncryptedStorage, ObjectNotFound } = require('encrypted-storage');
+
+const storage = new EncryptedStorage('my_database.sqlite');
+try {
+    const retrieved = storage.retrievePayload("00000000-0000-4000-8000-000000000002");
+} catch (e) {
+    if (e instanceof ObjectNotFound) {
+        console.log("Payload not found.");
+    }
+}
+```
+
+## Metadata Notes
+The `created_by_version` field in database metadata is diagnostic provenance metadata and is not a compatibility gate across readers/writers.
+
 
 
 See also: [`docs/implementation-notes/api-parity-matrix.md`](../docs/implementation-notes/api-parity-matrix.md)

@@ -61,12 +61,10 @@ The immediate goal is to incrementally establish a native testing boundary and v
 
 ### Near-term
 
-#### Phase 1: Scaffold Maturation and Conformance-Boundary Planning
-- **Generic positive JCS vector loader scaffold hardening**: Follow-through on the generic positive JCS vector loader design to harden the scaffold implementation, specifically targeting safety boundaries and testing integration rather than raw JSON parsing.
-- **Active vs non-active JCS vector consumption strategy**: Formally document the strategy for consuming JCS test vectors. This includes ensuring active positive vectors are consumed by tests, while explicitly maintaining `future-boundary-plan.json` as planning-only (not consumed by test runners without a later explicit decision).
-- **Explicit classification of JCS vectors**: Clearly document the classification of active positive vectors (including `utf16-key-ordering.json` for the positive-loader scaffold), non-active seed vectors, and planning-only vectors, strictly controlling which are wired into the C/C++ scaffolds.
-- **C/C++ shared-vector conformance expansion**: Expand shared-vector conformance testing strictly where it remains a scaffold-level, test-vector-oriented validation.
-- **Documentation consistency**: Ensure all READMEs, gap documents, and roadmap documents accurately reflect that C and C++ are independent bootstrap scaffolds, avoiding overclaims regarding generic JCS completeness or production readiness.
+#### Phase 2 Planning Boundary
+- Phase 1 scaffold maturation and conformance boundary documentation are complete.
+- C and C++ remain independent bootstrap scaffolds.
+- The next near-term goal is boundary evaluation before advancing to any generic JCS, cryptography, SQLite read/write operations, matrix integration, or public APIs.
 
 ### Future
 - **Generic JCS implementation**

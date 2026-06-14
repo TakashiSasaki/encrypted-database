@@ -179,6 +179,10 @@ check_phrase "C/C\+\+ have full generic JCS conformance" "Stale/false claim: C/C
 check_phrase "C/C\+\+ has full generic JCS conformance" "Stale/false claim: C/C++ generic JCS is future"
 check_phrase "C/C\+\+ have full public API parity" "Stale/false claim: C/C++ public API is future"
 
+# 26. Package Metadata Guardrails
+check_phrase "Homepage = \"https://github.com/example/encrypted-storage\"" "Stale claim: Homepage placeholder should be the actual repository URL"
+check_phrase "\"url\": \"TBD\"" "Stale claim: Node.js repository URL placeholder should be the actual repository URL"
+
 # END OF NEW RULES
 
 if [ "$FOUND_STALE" -eq 1 ]; then
