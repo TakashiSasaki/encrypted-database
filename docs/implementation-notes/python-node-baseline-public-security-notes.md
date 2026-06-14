@@ -13,7 +13,7 @@ This document provides the security and readiness notes for the Python and Node.
 
 ## Payloads and Content Types
 - **Payload Boundaries:** The library enforces JSON Canonicalization Scheme (JCS) semantics on object serialization. The caller is responsible for providing valid UTF-8 strings or structural payload data.
-- **Safe Integer / JSON Number Caveat:** Float values and unsafe large integers are inherently problematic across platforms. The libraries enforce strict boundaries rejecting out-of-bounds numbers and floating-point ambiguity where identifiable.
+- **Safe Integer / JSON Number Caveat:** Float values and unsafe large integers are inherently problematic across platforms. Currently, Python and Node.js implementations accept finite floats and large integers without strict safe-integer boundary enforcement. This remains a known caveat and is not yet strictly validated at the payload boundary.
 
 ## Storage Backend
 - **SQLite Profile Expectations:** The schema heavily relies on foreign keys (`PRAGMA foreign_keys = ON`), strict typing, and specific table layouts. Modifying the generated tables outside the library is unsupported and may trigger integrity failures.

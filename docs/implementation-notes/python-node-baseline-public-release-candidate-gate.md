@@ -17,11 +17,11 @@ Storage Format V1 is Stable. No bytes-on-disk semantic changes, cryptographic ad
 |---|---|---|
 | Package-root public entrypoints | **Achieved** | `from encrypted_storage import EncryptedStorage` (Python), `const { EncryptedStorage } = require('encrypted-storage')` (Node.js). |
 | Cross-language read/write matrix | **Achieved** | Write/read/update/delete/not-found-after-delete matrix passes between Python and Node.js via public-entrypoint test wrappers. |
-| Shared vector evidence | **Achieved** | JCS, AAD, AES-GCM, Argon2id, and UUID shared positive vectors are wired and pass. |
+| Shared vector evidence | **Partial** | JCS, AAD, AES-GCM, and Argon2id shared positive vectors are wired and pass. Full shared UUID vector integration is pending. |
 | Metadata/version provenance | **Achieved** | `created_by_version` populates accurately. Placeholders removed. |
 | README / Package metadata | **Achieved** | Docs are clean, accurate, and do not overclaim status. |
 | CI/path-filtered status | **Achieved** | Pipeline executes accurately. |
-| Remaining release blockers | **Pending** | Final API freeze review, security sign-off, and removal of public-entrypoint test-wrapper gate. |
+| Remaining release blockers | **Pending** | Full shared UUID vector integration, final API freeze review, security sign-off, and removal of public-entrypoint test-wrapper gate. |
 
 ## Explicit Non-Goals
 - Promoting C/C++, Go, Rust, or Zig to production status.
