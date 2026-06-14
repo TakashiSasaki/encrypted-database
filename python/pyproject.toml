@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
 authors = [
-    { name = "Author", email = "author@example.com" }
+    { name = "vault.moukaeritai.work Contributors" }
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -29,4 +29,5 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/example/encrypted-storage"
+Homepage = "https://github.com/TakashiSasaki/vault.moukaeritai.work"
+Repository = "https://github.com/TakashiSasaki/vault.moukaeritai.work"

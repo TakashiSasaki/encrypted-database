@@ -197,6 +197,8 @@ class EncryptedStorage:
         cur.execute("BEGIN TRANSACTION")
         try:
             db_uuid = str(uuid.uuid4())
+            from . import __version__ as package_version
+
             metadata = {
                 "storage_format_id": "vault.moukaeritai.work.storage",
                 "format_major": "1",
@@ -205,7 +207,7 @@ class EncryptedStorage:
                 "database_uuid": db_uuid,
                 "created_at_ms": str(self._current_ms()),
                 "created_by_library": "python",
-                "created_by_version": "0.0.0-dev",
+                "created_by_version": package_version,
                 "sqlite_application_id": "1447906135",
                 "sqlite_user_version": "1",
                 "required_features": crypto.canonicalize_json([]).decode("utf-8"),

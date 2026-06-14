@@ -15,8 +15,8 @@ This analysis builds upon the findings in the [Python and Node.js Baseline-Publi
 | Shared conformance vectors | expanded-positive-vectors-wired | expanded-positive-vectors-wired | Core positive vector suites are wired, but full RFC 8785 vector coverage verification required across libraries |
 | Cross-language wrapper evidence | test-wrapper-passed | test-wrapper-passed | Successfully executes via temporary testing wrappers |
 | CI evidence | path-filtered | path-filtered | Ensure robust pipeline execution |
-| Package metadata | partial | partial | Needs comprehensive documentation and correct publish metadata |
-| Public docs | partial | partial | End-user API docs required before baseline-public promotion |
+| Package metadata | improved | improved | Author placeholders removed and version provenance improved. Publishing automation pending. |
+| Public docs | improved | improved | End-user API docs present without overclaiming `baseline-public` readiness. |
 | API/error semantics | implemented-public* | implemented-public* | Vocabulary aligned; pending final cross-language error code mapping consistency review |
 | Security notes | pending | pending | Review payload boundaries, key management, and JCS constraints |
 | Release-readiness review | pending | pending | Final architectural and security sign-off |
@@ -28,8 +28,8 @@ Before declaring any language `baseline-public`, the following must be completed
 - [ ] Stabilize the public API interface.
 - [ ] Integrate full shared conformance vectors (JCS, AAD, AES-GCM, UUID).
 - [ ] Formalize API/error semantics across languages.
-- [ ] Publish clear end-user documentation.
-- [ ] Prepare comprehensive package metadata.
+- [ ] Publish clear end-user documentation. (Improved in this stride, but final review pending)
+- [ ] Prepare comprehensive package metadata. (Improved in this stride, but publishing automation pending)
 - [ ] Complete security and release-readiness review.
 - [ ] Demonstrate cross-language compatibility through stable public APIs (not just test wrappers).
 

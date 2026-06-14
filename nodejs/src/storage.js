@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const aadPolicy = require('./aadPolicy');
 const cryptoUtils = require('./crypto');
 const errors = require('./errors');
+const packageJson = require('../package.json');
 
 class EncryptedStorage {
     static _UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -324,7 +325,7 @@ class EncryptedStorage {
                 "database_uuid": dbUuid,
                 "created_at_ms": String(this._currentMs()),
                 "created_by_library": "nodejs",
-                "created_by_version": "0.0.0-dev",
+                "created_by_version": packageJson.version || "0.0.0-dev",
                 "sqlite_application_id": "1447906135",
                 "sqlite_user_version": "1",
                 "required_features": cryptoUtils.canonicalizeJson([]).toString("utf-8"),

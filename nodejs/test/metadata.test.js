@@ -44,7 +44,8 @@ describe('Metadata V1 Validation', () => {
         expect(meta.format_minor).toBe("0");
         expect(meta.schema_version).toBe("1");
         expect(meta.created_by_library).toBe("nodejs");
-        expect(meta.created_by_version).toBe("0.0.0-dev");
+        const packageJson = require('../package.json');
+        expect(meta.created_by_version).toBe(packageJson.version);
         expect(meta.sqlite_application_id).toBe("1447906135");
         expect(meta.sqlite_user_version).toBe("1");
         expect(meta.database_uuid).toBeDefined();
@@ -239,6 +240,20 @@ describe('Metadata V1 Validation', () => {
             conn.close();
             const storage2 = reopenStorage();
             await expect(storage2.unlockDatabase("password")).rejects.toThrow(errors.InvalidStorageFormat);
+            storage2.close();
+        });
+    });
+
+    test('legacy version provenance compatibility', async () => {
+        await withFreshInitializedDb(async ({ closeStorage, openRawDb, reopenStorage }) => {
+            closeStorage();
+            const conn = openRawDb();
+            conn.prepare("UPDATE storage_metadata_tbl SET value = '0.0.0-dev' WHERE property = 'created_by_version'").run();
+            conn.close();
+
+            const storage2 = reopenStorage();
+            await storage2.unlockDatabase("password");
+            expect(storage2.activeDbKek).toBeDefined();
             storage2.close();
         });
     });

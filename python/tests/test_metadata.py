@@ -21,7 +21,8 @@ def test_metadata_properties(tmp_path):
         assert meta["format_minor"] == "0"
         assert meta["schema_version"] == "1"
         assert meta["created_by_library"] == "python"
-        assert meta["created_by_version"] == "0.0.0-dev"
+        from encrypted_storage import __version__ as package_version
+        assert meta["created_by_version"] == package_version
         assert meta["sqlite_application_id"] == "1447906135"
         assert meta["sqlite_user_version"] == "1"
         assert "database_uuid" in meta
@@ -156,6 +157,24 @@ def test_provenance_not_gate(tmp_path):
         cur = conn.cursor()
         cur.execute("UPDATE storage_metadata_tbl SET value = 'some-other-implementation' WHERE property = 'created_by_library'")
         cur.execute("UPDATE storage_metadata_tbl SET value = '9.9.9-test' WHERE property = 'created_by_version'")
+        conn.commit()
+
+    storage2 = EncryptedStorage(db_path)
+    try:
+        storage2.unlock_database("password")
+        assert storage2.is_unlocked()
+    finally:
+        storage2.close()
+
+def test_legacy_version_diagnostic_metadata(tmp_path):
+    db_path = str(tmp_path / "test.sqlite")
+    storage = EncryptedStorage(db_path)
+    storage.initialize_database("password", "linux")
+    storage.close()
+
+    with sqlite3.connect(db_path) as conn:
+        cur = conn.cursor()
+        cur.execute("UPDATE storage_metadata_tbl SET value = '0.0.0-dev' WHERE property = 'created_by_version'")
         conn.commit()
 
     storage2 = EncryptedStorage(db_path)
