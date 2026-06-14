@@ -48,7 +48,7 @@ storage = EncryptedStorage("my_database.sqlite")
 storage.unlock_database("my_super_secret_password")
 
 # Lock the database (purges KEKs from memory)
-storage.lock_database()
+storage.lock()
 
 # Close connection
 storage.close()
