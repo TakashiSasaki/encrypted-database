@@ -104,7 +104,16 @@ def execute_pair(writer, reader):
             if retrieved != payload:
                 return "failed", f"Payload mismatch. Expected {payload}, got {retrieved}", None
 
-    return "passed", "Successfully executed cross-language tests", None
+    return "test-wrapper-passed", "Successfully executed test-only compatibility wrapper checks", {
+        "mode": "test-wrapper",
+        "public_quality_certification": False,
+        "certification": "none",
+        "payload_count": len(TEST_PAYLOADS),
+        "wrapper_writer": LANGUAGES[writer].get("wrapper"),
+        "wrapper_reader": LANGUAGES[reader].get("wrapper"),
+        "database": "temporary-file",
+        "artifact_policy": "not committed"
+    }
 
 def main():
     parser = argparse.ArgumentParser(description="Cross-Language Read/Write Compatibility Matrix")
@@ -138,6 +147,7 @@ def main():
             if status == "failed":
                 all_passed = False
         else:
+            evidence = None
             if LANGUAGES[w]["scaffold_only"]:
                 status = "skipped"
                 reason = "writer is scaffold-only; lacks stable public API"
@@ -157,14 +167,21 @@ def main():
             "reader": r,
             "status": status,
             "reason": reason,
-            "evidence": None
+            "evidence": evidence
         })
 
     if args.json:
+        summary = {
+            "test_wrapper_passed": len([r for r in results if r["status"] == "test-wrapper-passed"]),
+            "failed": len([r for r in results if r["status"] == "failed"]),
+            "skipped": len([r for r in results if r["status"] == "skipped"]),
+            "candidate": len([r for r in results if r["status"] == "candidate"])
+        }
         output = {
             "mode": "execute" if args.execute else "discovery",
             "language_inventory": LANGUAGES,
-            "pair_matrix": results
+            "pair_matrix": results,
+            "summary": summary
         }
         print(json.dumps(output, indent=2))
         sys.exit(0 if all_passed else 1)
@@ -177,9 +194,10 @@ def main():
 
     print("\nSummary:")
     if args.execute:
-        passed = [r for r in results if r['status'] == 'passed']
+        passed = [r for r in results if r['status'] == 'test-wrapper-passed']
         if passed:
-            print(f"Matrix execution integrated. {len(passed)} pairs passed.")
+            print(f"{len(passed)} pairs passed via test-only compatibility wrappers.")
+            print("No public-quality certification is implied.")
         else:
             print("No active pairs are currently runnable or passed.")
     else:

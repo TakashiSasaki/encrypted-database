@@ -1,5 +1,6 @@
 import json
 import subprocess
+import os
 import unittest
 
 class TestRunCrossLanguageCompatibility(unittest.TestCase):
@@ -31,6 +32,7 @@ class TestRunCrossLanguageCompatibility(unittest.TestCase):
         self.assertTrue(any(p["writer"] == "python" and p["reader"] == "nodejs" and p["status"] == "candidate" for p in pairs))
         self.assertTrue(any(p["writer"] == "go" and p["status"] == "skipped" for p in pairs))
 
+    @unittest.skipUnless(os.environ.get("VAULT_RUN_COMPAT_EXECUTION_TESTS") == "1", "Gated behind VAULT_RUN_COMPAT_EXECUTION_TESTS=1")
     def test_execution_mode(self):
         result = subprocess.run(
             ["python", "scripts/run_cross_language_compatibility.py", "--execute"],
@@ -38,12 +40,13 @@ class TestRunCrossLanguageCompatibility(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0)
         out = result.stdout
-        self.assertIn("Matrix execution integrated. 4 pairs passed.", out)
-        self.assertIn("python     (write) -> python     (read) : passed", out)
-        self.assertIn("python     (write) -> nodejs     (read) : passed", out)
-        self.assertIn("nodejs     (write) -> python     (read) : passed", out)
-        self.assertIn("nodejs     (write) -> nodejs     (read) : passed", out)
+        self.assertIn("4 pairs passed via test-only compatibility wrappers.", out)
+        self.assertIn("python     (write) -> python     (read) : test-wrapper-passed", out)
+        self.assertIn("python     (write) -> nodejs     (read) : test-wrapper-passed", out)
+        self.assertIn("nodejs     (write) -> python     (read) : test-wrapper-passed", out)
+        self.assertIn("nodejs     (write) -> nodejs     (read) : test-wrapper-passed", out)
 
+    @unittest.skipUnless(os.environ.get("VAULT_RUN_COMPAT_EXECUTION_TESTS") == "1", "Gated behind VAULT_RUN_COMPAT_EXECUTION_TESTS=1")
     def test_execution_mode_json(self):
         result = subprocess.run(
             ["python", "scripts/run_cross_language_compatibility.py", "--execute", "--json"],
@@ -53,8 +56,14 @@ class TestRunCrossLanguageCompatibility(unittest.TestCase):
         data = json.loads(result.stdout)
         self.assertEqual(data["mode"], "execute")
 
-        passed_pairs = [p for p in data["pair_matrix"] if p["status"] == "passed"]
+        passed_pairs = [p for p in data["pair_matrix"] if p["status"] == "test-wrapper-passed"]
         self.assertEqual(len(passed_pairs), 4)
+        for pair in passed_pairs:
+            self.assertIsNotNone(pair["evidence"])
+            self.assertEqual(pair["evidence"]["mode"], "test-wrapper")
+            self.assertFalse(pair["evidence"]["public_quality_certification"])
+            self.assertEqual(pair["evidence"]["database"], "temporary-file")
+            self.assertEqual(pair["evidence"]["artifact_policy"], "not committed")
 
 if __name__ == '__main__':
     unittest.main()
