@@ -21,3 +21,19 @@ def test_version_fallback_mechanism(monkeypatch):
 
     # We expect it to successfully read 0.1.0 from pyproject.toml in the repo
     assert encrypted_storage.__version__ == "0.1.0"
+
+def test_version_fallback_exception(monkeypatch):
+    if 'encrypted_storage' in sys.modules:
+        del sys.modules['encrypted_storage']
+
+    def mock_version(package_name):
+        raise importlib.metadata.PackageNotFoundError(package_name)
+
+    def mock_exists(path):
+        raise OSError("Simulated permission denied")
+
+    monkeypatch.setattr(importlib.metadata, 'version', mock_version)
+    monkeypatch.setattr(os.path, 'exists', mock_exists)
+
+    import encrypted_storage
+    assert encrypted_storage.__version__ == "0.0.0-dev"
