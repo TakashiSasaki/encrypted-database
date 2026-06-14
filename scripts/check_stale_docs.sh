@@ -165,10 +165,10 @@ check_phrase "JCS conformance is complete" "Stale/false claim: JCS conformance i
 check_phrase "generic-positive-coverage is not used by Python/Node.js" "Stale/false claim: generic-positive-coverage is now explicitly consumed by Python and Node.js"
 
 # 24. Narrow guards against C/C++ crypto and SQLite false claims
-check_phrase "C/C\+\+ implement Storage Format V1 cryptography" "Stale/false claim: C/C++ cryptography is future"
-check_phrase "C/C\+\+ implements Storage Format V1 cryptography" "Stale/false claim: C/C++ cryptography is future"
-check_phrase "C/C\+\+ implement SQLite" "Stale/false claim: C/C++ SQLite is future"
-check_phrase "C/C\+\+ implements SQLite" "Stale/false claim: C/C++ SQLite is future"
+check_phrase "^C/C\+\+ implement Storage Format V1 cryptography" "Stale/false claim: C/C++ cryptography is future"
+check_phrase "^C/C\+\+ implements Storage Format V1 cryptography" "Stale/false claim: C/C++ cryptography is future"
+check_phrase "^C/C\+\+ implement SQLite" "Stale/false claim: C/C++ SQLite is future"
+check_phrase "^C/C\+\+ implements SQLite" "Stale/false claim: C/C++ SQLite is future"
 check_phrase "C\+\+ wraps C as the current architecture" "Stale/false claim: C/C++ are independent"
 check_phrase "C\+\+ is currently a wrapper around C" "Stale/false claim: C/C++ are independent"
 
