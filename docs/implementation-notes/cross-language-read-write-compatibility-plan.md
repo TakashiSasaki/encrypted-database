@@ -10,8 +10,8 @@ Can a database written by language A be read by language B with identical Storag
 
 | Language | Implementation path | Current role | Public read support | Public write support | Scaffold read/write | Stable API? | Include in this stride? | Notes |
 |---|---|---|---|---|---|---|---|---|
-| Python | `python/` | baseline | known-api-unverified | known-api-unverified | N/A | Yes | Yes | Exposes stable library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
-| Node.js | `nodejs/` | baseline | known-api-unverified | known-api-unverified | N/A | Yes | Yes | Exposes stable library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
+| Python | `python/` | baseline-candidate | known-api-unverified | known-api-unverified | N/A | existing library API used by test wrappers; public-quality certification pending | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
+| Node.js | `nodejs/` | baseline-candidate | known-api-unverified | known-api-unverified | N/A | existing library API used by test wrappers; public-quality certification pending | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
 | Go | `go/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
 | Rust | `rust/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
 | Zig | `zig/` | portability-validation | not implemented | not implemented | Yes | No | No | Scaffold-level CLI, not a stable storage library. |
@@ -31,15 +31,16 @@ Can a database written by language A be read by language B with identical Storag
 
 ## Active Testing Pairs
 Python and Node.js are actively integrated and passing the cross-language baseline test pairs through their execution test wrappers.
+Note explicitly that wrapper success is evidence toward compatibility, not public-quality certification. See the [Baseline-Public Readiness Gap Analysis](baseline-public-readiness-gap-analysis.md) for remaining certification steps.
 
 ## Current Matrix Status
 
 | Language pair (write -> read) | Status | Reason | Evidence |
 |---|---|---|---|
-| Python -> Python | passed | Successfully executed cross-language tests | `scripts/run_cross_language_compatibility.py --execute` output |
-| Node.js -> Node.js | passed | Successfully executed cross-language tests | `scripts/run_cross_language_compatibility.py --execute` output |
-| Python -> Node.js | passed | Successfully executed cross-language tests | `scripts/run_cross_language_compatibility.py --execute` output |
-| Node.js -> Python | passed | Successfully executed cross-language tests | `scripts/run_cross_language_compatibility.py --execute` output |
+| Python -> Python | test-wrapper-passed | Successfully executed test-only wrapper checks | `scripts/run_cross_language_compatibility.py --execute` output |
+| Node.js -> Node.js | test-wrapper-passed | Successfully executed test-only wrapper checks | `scripts/run_cross_language_compatibility.py --execute` output |
+| Python -> Node.js | test-wrapper-passed | Successfully executed test-only wrapper checks | `scripts/run_cross_language_compatibility.py --execute` output |
+| Node.js -> Python | test-wrapper-passed | Successfully executed test-only wrapper checks | `scripts/run_cross_language_compatibility.py --execute` output |
 
 *(Other combinations involving Go, Rust, Zig, C, and C++ are skipped due to lacking a stable public API and corresponding wrapper commands).*
 
