@@ -1,7 +1,7 @@
 # Baseline-Public Readiness Gap Analysis
 
 ## Purpose
-This document defines the remaining gaps before the `Python` and `Node.js` test-wrapper baseline candidates can be safely promoted to `baseline-public`. Test-wrapper compatibility success is explicitly **not release certification**.
+This document defines the remaining gaps before the `Python` and `Node.js` public-entrypoint test-wrapper baseline candidates can be safely promoted to `baseline-public`. Public-entrypoint test-wrapper compatibility success is explicitly **not release certification**.
 
 This analysis builds upon the findings in the [Python and Node.js Baseline-Public API and Error Semantics Audit](python-node-baseline-public-api-error-semantics-audit.md).
 
@@ -31,7 +31,7 @@ Before declaring any language `baseline-public`, the following must be completed
 - [ ] Publish clear end-user documentation. (Improved in this stride, but final review pending)
 - [ ] Prepare comprehensive package metadata. (Improved in this stride, but publishing automation pending)
 - [ ] Complete security and release-readiness review.
-- [ ] Demonstrate cross-language compatibility through stable public APIs (not just test wrappers).
+- [ ] Demonstrate cross-language compatibility through stable public APIs (not just public-entrypoint test wrappers).
 
 ## Non-Goals
 This stride does not promote any language to `baseline-public`. It solely establishes the gap analysis and tracking mechanism for future completion.

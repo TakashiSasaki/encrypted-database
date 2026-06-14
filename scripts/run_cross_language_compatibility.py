@@ -142,7 +142,7 @@ def execute_pair(writer, reader):
             if error_class != "ObjectNotFound":
                 return "failed", f"Expected ObjectNotFound after delete, got {error_class}", None
 
-    return "test-wrapper-passed", "Successfully executed test-only compatibility wrapper checks", {
+    return "public-entrypoint-passed", "Successfully executed public-entrypoint test-wrapper matrix checks", {
         "mode": "public-entrypoint-test-wrapper",
         "public_entrypoint": True,
         "public_quality_certification": False,
@@ -212,7 +212,7 @@ def main():
 
     if args.json:
         summary = {
-            "test_wrapper_passed": len([r for r in results if r["status"] == "test-wrapper-passed"]),
+            "public_entrypoint_passed": len([r for r in results if r["status"] == "public-entrypoint-passed"]),
             "failed": len([r for r in results if r["status"] == "failed"]),
             "skipped": len([r for r in results if r["status"] == "skipped"]),
             "candidate": len([r for r in results if r["status"] == "candidate"])
@@ -234,9 +234,9 @@ def main():
 
     print("\nSummary:")
     if args.execute:
-        passed = [r for r in results if r['status'] == 'test-wrapper-passed']
+        passed = [r for r in results if r['status'] == 'public-entrypoint-passed']
         if passed:
-            print(f"{len(passed)} pairs passed via test-only compatibility wrappers.")
+            print(f"{len(passed)} pairs passed via public-entrypoint test-wrapper matrix.")
             print("No public-quality certification is implied.")
         else:
             print("No active pairs are currently runnable or passed.")
