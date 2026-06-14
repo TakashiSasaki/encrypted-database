@@ -164,6 +164,21 @@ check_phrase "Python/Node.js have full JCS conformance" "Stale/false claim: Pyth
 check_phrase "JCS conformance is complete" "Stale/false claim: JCS conformance is not yet complete"
 check_phrase "generic-positive-coverage is not used by Python/Node.js" "Stale/false claim: generic-positive-coverage is now explicitly consumed by Python and Node.js"
 
+# 24. Narrow guards against C/C++ crypto and SQLite false claims
+check_phrase "^C/C\+\+ implement Storage Format V1 cryptography" "Stale/false claim: C/C++ cryptography is future"
+check_phrase "^C/C\+\+ implements Storage Format V1 cryptography" "Stale/false claim: C/C++ cryptography is future"
+check_phrase "^C/C\+\+ implement SQLite" "Stale/false claim: C/C++ SQLite is future"
+check_phrase "^C/C\+\+ implements SQLite" "Stale/false claim: C/C++ SQLite is future"
+check_phrase "C\+\+ wraps C as the current architecture" "Stale/false claim: C/C++ are independent"
+check_phrase "C\+\+ is currently a wrapper around C" "Stale/false claim: C/C++ are independent"
+
+# 25. Requested additional missing guardrails
+check_phrase "C/C\+\+ are full production storage libraries" "Stale/false claim: C/C++ are bootstrap scaffolds"
+check_phrase "C/C\+\+ is a full production storage library" "Stale/false claim: C/C++ are bootstrap scaffolds"
+check_phrase "C/C\+\+ have full generic JCS conformance" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ has full generic JCS conformance" "Stale/false claim: C/C++ generic JCS is future"
+check_phrase "C/C\+\+ have full public API parity" "Stale/false claim: C/C++ public API is future"
+
 # END OF NEW RULES
 
 if [ "$FOUND_STALE" -eq 1 ]; then
