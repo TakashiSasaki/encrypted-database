@@ -9,7 +9,7 @@ A library is of "public quality" when it safely provides reliable read and write
 ## Language Readiness Levels
 Implementations are classified into one of the following levels:
 - **baseline-public**: Fully stable, production-ready public API for read and write. Passes all matrix and conformance tests. (No languages currently meet this level).
-- **baseline-candidate**: A candidate for baseline-public. Passes cross-language matrix via test wrappers, but public-quality certification is pending.
+- **baseline-candidate**: A candidate for baseline-public. Passes cross-language matrix via public-entrypoint test wrappers, but public-quality certification is pending.
 - **preview-library**: Public API exists but is not yet fully stable or missing some advanced parity features.
 - **portability-validation**: Scaffold implementation meant solely to validate the storage format across language boundaries. No stable public API.
 - **bootstrap-scaffold**: Minimal internal implementation (like C/C++ parser-free models). Used for testing primitives or bootstrap environments. Not a storage library.
