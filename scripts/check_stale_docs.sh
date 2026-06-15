@@ -190,6 +190,7 @@ check_phrase "test wrappers are no longer used" "Stale claim: test wrappers rema
 check_phrase "Python and Node.js are already baseline-public" "Stale claim: Python and Node.js are baseline candidates, not yet baseline-public"
 
 # 28. Narrow guards against false baseline-public certification claims
+check_phrase "Python and Node.js are baseline-public" "False certification claim: Python and Node.js are baseline candidates, not yet baseline-public"
 check_phrase "public-entrypoint-test-wrapper is baseline-public" "False certification claim: public-entrypoint test-wrapper is not baseline-public"
 check_phrase "public-entrypoint-test-wrapper means production-ready" "False certification claim: public-entrypoint test-wrapper is not production-ready"
 check_phrase "Python/Node.js baseline-public release is complete" "False certification claim: Python/Node.js baseline-public release is not complete"
@@ -200,6 +201,11 @@ check_phrase_file "test-wrapper-passed" "Stale successful status wording: use pu
 check_phrase_file "test-wrapper-passed" "Stale successful status wording: use public-entrypoint-passed instead" "docs/implementation-notes/baseline-public-readiness-gap-analysis.md"
 check_phrase_file "test-wrapper-passed" "Stale successful status wording: use public-entrypoint-passed instead" "docs/implementation-notes/cross-language-read-write-compatibility-plan.md"
 check_phrase_file "test-wrapper-passed" "Stale successful status wording: use public-entrypoint-passed instead" "README.md"
+
+# 30. Guard against duplicate terminology
+check_phrase_file "public-entrypoint public-entrypoint" "Stale duplicate wording: use public-entrypoint instead" "docs/implementation-notes/project-wide-public-library-quality-harness.md"
+check_phrase_file "public-entrypoint public-entrypoint" "Stale duplicate wording: use public-entrypoint instead" "docs/implementation-notes/baseline-public-readiness-gap-analysis.md"
+check_phrase_file "public-entrypoint public-entrypoint" "Stale duplicate wording: use public-entrypoint instead" "docs/implementation-notes/cross-language-read-write-compatibility-plan.md"
 
 # END OF NEW RULES
 

@@ -76,7 +76,7 @@ Python uses exception classes in `encrypted_storage.errors`. Node.js uses matchi
 | Metadata validation | Yes | Yes | aligned | Both validate V1 schema versions and `storage_metadata_tbl`. |
 | Content-type validation | Yes | Yes | aligned | |
 | SQLite schema/profile | Yes | Yes | aligned | Both apply `PRAGMA foreign_keys = ON`. |
-| Cross-language read/write wrappers | public-entrypoint-test-wrapper | public-entrypoint-test-wrapper | aligned | Wrapper contracts executed via runner (write/read/update/delete operations). |
+| Cross-language read/write wrappers | public-entrypoint-passed | public-entrypoint-passed | aligned | Wrapper contracts executed via runner (write/read/update/delete/not-found-after-delete operations) via public-entrypoint-test-wrapper mode. |
 
 ## Conclusion and Next Steps
 The Python and Node.js implementations are semantically well-aligned in their core APIs and error models. Both consistently use the same vocabulary for operations and exceptions.

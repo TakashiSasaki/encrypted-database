@@ -9,7 +9,7 @@ A library is of "public quality" when it safely provides reliable read and write
 ## Language Readiness Levels
 Implementations are classified into one of the following levels:
 - **baseline-public**: Fully stable, production-ready public API for read and write. Passes all matrix and conformance tests. (No languages currently meet this level).
-- **baseline-candidate**: A candidate for baseline-public. Passes cross-language matrix via public-entrypoint public-entrypoint test wrappers, but public-quality certification is pending.
+- **baseline-candidate**: A candidate for baseline-public. Passes cross-language matrix via public-entrypoint test wrappers, but public-quality certification is pending.
 - **preview-library**: Public API exists but is not yet fully stable or missing some advanced parity features.
 - **portability-validation**: Scaffold implementation meant solely to validate the storage format across language boundaries. No stable public API.
 - **bootstrap-scaffold**: Minimal internal implementation (like C/C++ parser-free models). Used for testing primitives or bootstrap environments. Not a storage library.
@@ -19,8 +19,8 @@ Implementations are classified into one of the following levels:
 
 | Language | Implementation path | Current role | Public read support | Public write support | Scaffold read/write | Cross-read | Cross-write | Shared vectors | CI | Public package/docs | Status | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Python | `python/` | baseline-candidate | implemented-public* | implemented-public* | not applicable | public-entrypoint-passed | public-entrypoint-passed | implemented-public* | path-filtered | partial | preview-library | Baseline candidate. API exists and passes execution matrix via public-entrypoint test wrappers; public-quality certification pending. |
-| Node.js | `nodejs/` | baseline-candidate | implemented-public* | implemented-public* | not applicable | public-entrypoint-passed | public-entrypoint-passed | implemented-public* | path-filtered | partial | preview-library | Baseline candidate. API exists and passes execution matrix via public-entrypoint test wrappers; public-quality certification pending. |
+| Python | `python/` | baseline-candidate | implemented-public* | implemented-public* | not applicable | public-entrypoint-passed | public-entrypoint-passed | implemented-public* | path-filtered | release-candidate | preview-library | Baseline candidate. API exists and passes execution matrix via public-entrypoint test wrappers. Still not baseline-public; public-quality certification pending. |
+| Node.js | `nodejs/` | baseline-candidate | implemented-public* | implemented-public* | not applicable | public-entrypoint-passed | public-entrypoint-passed | implemented-public* | path-filtered | release-candidate | preview-library | Baseline candidate. API exists and passes execution matrix via public-entrypoint test wrappers. Still not baseline-public; public-quality certification pending. |
 | browser-test | `browser-test/` | portability-validation | not implemented | not implemented | implemented-test-harness | deferred | deferred | implemented-test-harness | path-filtered | out-of-scope | scaffold-only | WebCrypto harness, not a full browser library. |
 | Go | `go/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Strict portability scaffold. stable public API missing; cross-language matrix not runnable; package/docs incomplete; scaffold-only or portability-only status. |
 | Rust | `rust/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Strict portability scaffold. stable public API missing; cross-language matrix not runnable; package/docs incomplete; scaffold-only or portability-only status. |
@@ -78,4 +78,4 @@ A language implementation achieves public-quality release readiness when it has 
 For a detailed breakdown of remaining gaps, see the [Baseline-Public Readiness Gap Analysis](baseline-public-readiness-gap-analysis.md).
 
 ## Future Automation Path
-Expand the currently discovery-only cross-language compatibility runner (`scripts/run_cross_language_compatibility.py`) into a fully automated test execution matrix covering all baseline implementations using actual library API bindings via temporary files.
+The cross-language compatibility runner (`scripts/run_cross_language_compatibility.py`) is no longer discovery-only; it now actively executes the public-entrypoint test-wrapper matrix for Python and Node.js. Future work will expand it to directly bind library APIs rather than test-wrappers for final certification.
