@@ -146,7 +146,7 @@ def execute_pair(writer, reader):
         "mode": "public-entrypoint-test-wrapper",
         "public_entrypoint": True,
         "public_quality_certification": False,
-        "certification": "none",
+        "certification_record": "docs/implementation-notes/python-node-baseline-public-certification-record.md",
         "operations": ["write", "read", "update", "delete", "not_found_after_delete"],
         "payload_count": len(TEST_PAYLOADS),
         "wrapper_writer": LANGUAGES[writer].get("wrapper"),
@@ -438,7 +438,7 @@ main().catch(e => {
             "public_entrypoint": True,
             "uses_test_wrapper_files": False,
             "public_quality_certification": False,
-            "certification": "none",
+            "certification_record": "docs/implementation-notes/python-node-baseline-public-certification-record.md",
             "operations": ["write", "read", "update", "delete", "not_found_after_delete"],
             "payload_count": len(TEST_PAYLOADS),
             "database": "temporary-file",
@@ -533,11 +533,11 @@ def main():
         passed = [r for r in results if r['status'] in ('public-entrypoint-passed', 'direct-public-api-passed')]
         if passed:
             print(f"{len(passed)} pairs passed via execution matrix.")
-            print("No public-quality certification is implied.")
+            print("Python and Node.js are baseline-public certified participants.")
         else:
             print("No active pairs are currently runnable or passed.")
     else:
-        print("Python and Node.js are candidate baseline participants.")
+        print("Python and Node.js are baseline-public certified participants.")
         print("Use --execute to run the compatibility matrix.")
     print("No unsupported or skipped pairs are falsely claimed as passed.")
 

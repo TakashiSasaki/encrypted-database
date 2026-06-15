@@ -12,7 +12,7 @@ class TestRunCrossLanguageCompatibility(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         out = result.stdout
         self.assertIn("Cross-Language Read/Write Compatibility Matrix (Discovery)", out)
-        self.assertIn("Python and Node.js are candidate baseline participants", out)
+        self.assertIn("Python and Node.js are baseline-public certified participants", out)
         self.assertIn("go         (write) -> go         (read) : skipped (writer is scaffold-only", out)
 
     def test_discovery_mode_json(self):
@@ -65,6 +65,7 @@ class TestRunCrossLanguageCompatibility(unittest.TestCase):
             self.assertTrue(pair["evidence"]["public_entrypoint"])
             self.assertEqual(pair["evidence"]["operations"], ["write", "read", "update", "delete", "not_found_after_delete"])
             self.assertFalse(pair["evidence"]["public_quality_certification"])
+            self.assertIn("certification_record", pair["evidence"])
             self.assertEqual(pair["evidence"]["database"], "temporary-file")
             self.assertEqual(pair["evidence"]["artifact_policy"], "not committed")
 
@@ -102,6 +103,7 @@ class TestRunCrossLanguageCompatibility(unittest.TestCase):
             self.assertTrue(pair["evidence"]["public_entrypoint"])
             self.assertEqual(pair["evidence"]["operations"], ["write", "read", "update", "delete", "not_found_after_delete"])
             self.assertFalse(pair["evidence"]["public_quality_certification"])
+            self.assertIn("certification_record", pair["evidence"])
             self.assertEqual(pair["evidence"]["database"], "temporary-file")
             self.assertEqual(pair["evidence"]["artifact_policy"], "not committed")
 

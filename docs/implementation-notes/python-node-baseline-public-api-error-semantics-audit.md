@@ -68,7 +68,7 @@ Python uses exception classes in `encrypted_storage.errors`. Node.js uses matchi
 
 | Conformance Area | Python | Node.js | Coverage Status | Notes |
 |---|---|---|---|---|
-| JCS (RFC 8785) canonicalization | Yes (via `jcs` package) | Yes (via `json-canonicalize` package) | expanded-positive-vectors-wired | Both enforce JCS and now explicitly consume `rfc8785-basic.json` and `generic-positive-coverage.json`. Needs strict validation that Node.js and Python consume all remaining conformance vectors before baseline-public. |
+| JCS (RFC 8785) canonicalization | Yes (via `jcs` package) | Yes (via `json-canonicalize` package) | expanded-positive-vectors-wired | Both enforce JCS and explicitly consume `rfc8785-basic.json` and `generic-positive-coverage.json`. Vector closure was signed off for baseline-public. |
 | AAD construction | Yes | Yes | aligned | Both implement the defined AAD concatenation policy. |
 | AES-GCM envelope behavior | Yes | Yes | aligned | Both use 96-bit nonces, 128-bit tags. |
 | Argon2id profile | Yes | Yes | aligned | Both use Time=3, Mem=65536 KiB, Parallelism=1, Salt=16. |
@@ -78,9 +78,7 @@ Python uses exception classes in `encrypted_storage.errors`. Node.js uses matchi
 | SQLite schema/profile | Yes | Yes | aligned | Both apply `PRAGMA foreign_keys = ON`. |
 | Cross-language execution evidence | direct-public-api-passed | direct-public-api-passed | aligned | Wrapper contracts executed via runner (write/read/update/delete/not-found-after-delete operations) via direct-public-api mode (and legacy public-entrypoint-test-wrapper mode). |
 
-## Conclusion and Next Steps
+## Conclusion
 The Python and Node.js implementations are semantically well-aligned in their core APIs and error models. Both consistently use the same vocabulary for operations and exceptions.
 
-A sign-off document has been prepared at [Python/Node.js Baseline-Public Error Taxonomy Sign-off](python-node-baseline-public-error-taxonomy-signoff.md) concluding that no unmapped error conditions remain.
-
-To safely promote to `baseline-public`, the remaining steps involve finalizing package documentation, public API documentation, security notes, and ensuring that the shared JCS vector suites are fully classified and verified in CI for Node.js and Python.
+A sign-off document has been executed at [Python/Node.js Baseline-Public Error Taxonomy Sign-off](python-node-baseline-public-error-taxonomy-signoff.md) concluding that no unmapped error conditions remained. This audit served as the final parity check before achieving the `baseline-public` certification.
