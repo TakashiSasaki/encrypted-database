@@ -29,11 +29,21 @@ source "$TEMP_DIR/pyvenv/bin/activate"
 python -m pip install "$WHEEL_FILE"
 echo "Running Python smoke test script..."
 python -c "
+import os
 import encrypted_storage
 print('SUCCESS: Python package root import works.')
 print(f'EncryptedStorage: {encrypted_storage.EncryptedStorage}')
 print(f'StorageError: {encrypted_storage.StorageError}')
 print(f'Version: {getattr(encrypted_storage, \"__version__\", \"<no version>\")}')
+
+db_path = 'test_smoke_py.sqlite'
+try:
+    storage = encrypted_storage.EncryptedStorage(db_path)
+    storage.initialize_database('test-password', 'linux')
+    print('SUCCESS: Python database initialization works (schema.sql bundled correctly).')
+finally:
+    if os.path.exists(db_path):
+        os.remove(db_path)
 "
 deactivate
 
@@ -51,10 +61,23 @@ npm init -y > /dev/null
 npm install "$TARBALL_FILE" > /dev/null
 
 node -e "
+const fs = require('fs');
 const pkg = require('encrypted-storage');
 console.log('SUCCESS: Node.js package root require works.');
 console.log('EncryptedStorage:', typeof pkg.EncryptedStorage);
 console.log('StorageError:', typeof pkg.StorageError);
+
+async function runTest() {
+    const dbPath = 'test_smoke_node.sqlite';
+    try {
+        const storage = new pkg.EncryptedStorage(dbPath);
+        await storage.initializeDatabase('test-password', 'linux');
+        console.log('SUCCESS: Node.js database initialization works (schema.sql bundled correctly).');
+    } finally {
+        if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
+    }
+}
+runTest().catch(e => { console.error(e); process.exit(1); });
 "
 
 echo "=========================================="

@@ -36,7 +36,7 @@ class EncryptedStorage {
     }
 
     _bootstrapSchema() {
-        const schemaPath = path.join(__dirname, '..', '..', 'docs', 'backend', 'sqlite', 'schema.sql');
+        const schemaPath = path.join(__dirname, 'schema.sql');
         const schemaSql = fs.readFileSync(schemaPath, 'utf8');
         this.conn.exec("PRAGMA application_id = 1447906135; PRAGMA user_version = 1; " + schemaSql);
     }
