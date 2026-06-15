@@ -10,8 +10,8 @@ Can a database written by language A be read by language B with identical Storag
 
 | Language | Implementation path | Current role | Public read support | Public write support | Scaffold read/write | Stable API? | Include in this stride? | Notes |
 |---|---|---|---|---|---|---|---|---|
-| Python | `python/` | baseline-candidate | known-api-unverified | known-api-unverified | N/A | existing library API used by public-entrypoint public-entrypoint test wrappers; public-quality certification pending | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
-| Node.js | `nodejs/` | baseline-candidate | known-api-unverified | known-api-unverified | N/A | existing library API used by public-entrypoint public-entrypoint test wrappers; public-quality certification pending | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
+| Python | `python/` | baseline-candidate | known-api-unverified | known-api-unverified | N/A | existing library API used by public-entrypoint test wrappers; public-quality certification pending | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
+| Node.js | `nodejs/` | baseline-candidate | known-api-unverified | known-api-unverified | N/A | existing library API used by public-entrypoint test wrappers; public-quality certification pending | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
 | Go | `go/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
 | Rust | `rust/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
 | Zig | `zig/` | portability-validation | not implemented | not implemented | Yes | No | No | Scaffold-level CLI, not a stable storage library. |
@@ -30,22 +30,29 @@ Can a database written by language A be read by language B with identical Storag
 - **Test mode**
 
 ## Active Testing Pairs
-Python and Node.js are actively integrated and passing the cross-language baseline test pairs through their execution public-entrypoint public-entrypoint test wrappers.
+Python and Node.js are actively integrated and passing the cross-language baseline test pairs through their execution public-entrypoint test wrappers.
 Note explicitly that wrapper success is evidence toward compatibility, not public-quality certification. See the [Baseline-Public Readiness Gap Analysis](baseline-public-readiness-gap-analysis.md) for remaining certification steps.
 
 ## Current Matrix Status
 
 | Language pair (write -> read) | Status | Reason | Evidence |
 |---|---|---|---|
-| Python -> Python | public-entrypoint-test-wrapper | Successfully executed public-entrypoint public-entrypoint test wrapper checks (write/read/update/delete) | `scripts/run_cross_language_compatibility.py --execute` output |
-| Node.js -> Node.js | public-entrypoint-test-wrapper | Successfully executed public-entrypoint public-entrypoint test wrapper checks (write/read/update/delete) | `scripts/run_cross_language_compatibility.py --execute` output |
-| Python -> Node.js | public-entrypoint-test-wrapper | Successfully executed public-entrypoint public-entrypoint test wrapper checks (write/read/update/delete) | `scripts/run_cross_language_compatibility.py --execute` output |
-| Node.js -> Python | public-entrypoint-test-wrapper | Successfully executed public-entrypoint public-entrypoint test wrapper checks (write/read/update/delete) | `scripts/run_cross_language_compatibility.py --execute` output |
+| Python -> Python | public-entrypoint-passed | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: public-entrypoint-test-wrapper) |
+| Node.js -> Node.js | public-entrypoint-passed | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: public-entrypoint-test-wrapper) |
+| Python -> Node.js | public-entrypoint-passed | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: public-entrypoint-test-wrapper) |
+| Node.js -> Python | public-entrypoint-passed | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: public-entrypoint-test-wrapper) |
 
 *(Other combinations involving Go, Rust, Zig, C, and C++ are skipped due to lacking a stable public API and corresponding wrapper commands).*
 
 ## Planned Fixture Format
-The compatibility test creates temporary runtime SQLite databases using the standard `initialize_database` / `initializeDatabase` entrypoints. Payloads are written using `store_payload` / `storePayload`, then the same database file is passed to another language for `retrieve_payload` / `retrievePayload`.
+The compatibility test creates temporary runtime SQLite databases using the standard `initialize_database` / `initializeDatabase` entrypoints. Payloads are managed using `store_payload` / `storePayload` and `retrieve_payload` / `retrievePayload`.
+Specifically, the operations follow this flow:
+- Writer writes payload P1;
+- Reader reads payload P1;
+- Reader updates payload to P2;
+- Writer reads payload P2;
+- Reader deletes payload;
+- Writer attempts to read and expects an `ObjectNotFound` error.
 
 ## Skipped Pair Policy
 - Unsupported language pairs are skipped with explicit reasons.
@@ -66,4 +73,4 @@ The compatibility test creates temporary runtime SQLite databases using the stan
 - The test operates entirely on temporary files.
 
 ## Next Safe Stride
-Cross-language read/write compatibility matrix expansion.
+Python and Node.js Baseline-Public Release-Candidate Closure and Final Certification Review.

@@ -13,7 +13,7 @@ This analysis builds upon the findings in the [Python and Node.js Baseline-Publi
 | Public write API surface | implemented-public* | implemented-public* | API surface exists and is aligned; final semantic review pending |
 | Storage Format V1 semantic stability | pending | pending | Verify no hidden assumptions before locking public API |
 | Shared conformance vectors | expanded-positive-vectors-wired | expanded-positive-vectors-wired | Core positive vector suites are wired, but full RFC 8785 vector coverage verification required across libraries |
-| Cross-language wrapper evidence | public-entrypoint-test-wrapper | public-entrypoint-test-wrapper | Successfully executes via public-entrypoint testing wrappers (write/read/update/delete) |
+| Cross-language wrapper evidence | public-entrypoint-passed | public-entrypoint-passed | Successfully executes via public-entrypoint testing wrappers (write/read/update/delete). Evidence mode is public-entrypoint-test-wrapper. |
 | CI evidence | path-filtered | path-filtered | Ensure robust pipeline execution |
 | Package metadata | improved | improved | Author placeholders removed and version provenance improved. Publishing automation pending. |
 | Public docs | improved | improved | End-user API docs present without overclaiming `baseline-public` readiness. |
