@@ -216,7 +216,7 @@ check_phrase "only wrapper evidence exists" "Stale claim: direct-public-api evid
 check_phrase "Full shared UUID vector integration (completed)" "Stale claim: Completed items should not be listed under remaining blockers"
 
 # 32. Guard against stale runner default claims
-check_phrase_file "\-\-execute defaults to \-\-mode public\-entrypoint\-wrapper" "Stale claim: --execute now defaults to direct-public-api" "docs/implementation-notes/"
+check_phrase "\-\-execute defaults to \-\-mode public\-entrypoint\-wrapper" "Stale claim: --execute now defaults to direct-public-api"
 
 # END OF NEW RULES
 
