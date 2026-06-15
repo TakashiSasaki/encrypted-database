@@ -213,6 +213,10 @@ check_phrase "direct-public-api evidence means baseline-public" "Stale/false cla
 check_phrase "direct-public-api-passed means public-quality certification" "Stale/false claim: direct-public-api-passed does not automatically mean public-quality certification"
 check_phrase "Python and Node.js are baseline-public" "Stale/false claim: Python and Node.js are baseline candidates, not yet baseline-public"
 check_phrase "only wrapper evidence exists" "Stale claim: direct-public-api evidence now exists"
+check_phrase "Full shared UUID vector integration (completed)" "Stale claim: Completed items should not be listed under remaining blockers"
+
+# 32. Guard against stale runner default claims
+check_phrase "\-\-execute defaults to \-\-mode public\-entrypoint\-wrapper" "Stale claim: --execute now defaults to direct-public-api"
 
 # END OF NEW RULES
 

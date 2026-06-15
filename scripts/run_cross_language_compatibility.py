@@ -242,7 +242,7 @@ if __name__ == "__main__":
     main()
 """,
         "nodejs": """
-const { EncryptedStorage, errors } = require(process.cwd() + '/src/index.js');
+const { EncryptedStorage, errors } = require(process.cwd());
 const fs = require('fs');
 
 async function main() {
@@ -451,7 +451,7 @@ def main():
     parser.add_argument("--list", action="store_true", help="List matrix discovery")
     parser.add_argument("--json", action="store_true", help="Output in JSON format")
     parser.add_argument("--execute", action="store_true", help="Execute runnable pairs")
-    parser.add_argument("--mode", choices=["public-entrypoint-wrapper", "direct-public-api"], default="public-entrypoint-wrapper", help="Execution mode")
+    parser.add_argument("--mode", choices=["public-entrypoint-wrapper", "direct-public-api"], default="direct-public-api", help="Execution mode")
     parser.add_argument("--pair", help="Execute a specific pair like 'python:nodejs'")
 
     args = parser.parse_args()

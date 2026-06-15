@@ -32,10 +32,10 @@ Implementations are classified into one of the following levels:
 
 | Language pair | Status | Reason | Evidence |
 |---|---|---|---|
-| Python -> Python | public-entrypoint-passed | Successfully executed direct-public-api and public-entrypoint test-wrapper matrix checks | Matrix runner (direct-public-api) |
-| Node.js -> Node.js | public-entrypoint-passed | Successfully executed direct-public-api and public-entrypoint test-wrapper matrix checks | Matrix runner (direct-public-api) |
-| Python -> Node.js | public-entrypoint-passed | Successfully executed direct-public-api and public-entrypoint test-wrapper matrix checks | Matrix runner (direct-public-api) |
-| Node.js -> Python | public-entrypoint-passed | Successfully executed direct-public-api and public-entrypoint test-wrapper matrix checks | Matrix runner (direct-public-api) |
+| Python -> Python | direct-public-api-passed | Successfully executed direct-public-api checks | Matrix runner (direct-public-api) |
+| Node.js -> Node.js | direct-public-api-passed | Successfully executed direct-public-api checks | Matrix runner (direct-public-api) |
+| Python -> Node.js | direct-public-api-passed | Successfully executed direct-public-api checks | Matrix runner (direct-public-api) |
+| Node.js -> Python | direct-public-api-passed | Successfully executed direct-public-api checks | Matrix runner (direct-public-api) |
 
 ## Read/Write Compatibility Matrix Policy
 The cross-language compatibility matrix verifies that a database created in Language A can be read with identical payload semantics by Language B.
@@ -78,4 +78,4 @@ A language implementation achieves public-quality release readiness when it has 
 For a detailed breakdown of remaining gaps, see the [Baseline-Public Readiness Gap Analysis](baseline-public-readiness-gap-analysis.md).
 
 ## Future Automation Path
-The cross-language compatibility runner (`scripts/run_cross_language_compatibility.py`) is no longer discovery-only; it now actively executes the public-entrypoint test-wrapper matrix for Python and Node.js. Future work will expand it to directly bind library APIs rather than test-wrappers for final certification.
+The cross-language compatibility runner (`scripts/run_cross_language_compatibility.py`) defaults to `direct-public-api` execution mode to verify library API interoperability. The `public-entrypoint-wrapper` remains available as secondary/legacy supporting evidence. Direct API success is stronger evidence toward compatibility, but is not public-quality certification.
