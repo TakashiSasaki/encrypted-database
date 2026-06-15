@@ -42,11 +42,11 @@ SQLite などのローカル永続化層に秘匿対象データを保存する�
 仕様書や設計ドキュメントを配置しています。
 
 ### Python
-Python 向けの baseline implementation です。
+Python 向けの baseline-public implementation です。
 詳細は [Python用 README](python/README.md) を参照してください。
 
 ### Node.js
-Node.js 向けの baseline implementation です。
+Node.js 向けの baseline-public implementation です。
 詳細は [Node.js用 README](nodejs/README.md) を参照してください。
 
 ### browser-test/

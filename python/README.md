@@ -2,7 +2,7 @@
 
 This library provides the Python implementation of the Encrypted Database, an application-layer encryption and key management solution.
 
-**Status:** `baseline-candidate` / `preview-library`. Storage Format V1 is stable, but package and public readiness certification is pending.
+**Status:** `baseline-public`. Storage Format V1 is stable.
 
 ## Features
 - Manages encryption key hierarchies (`unlock_kek` -> `database_kek` -> `record_dek`).

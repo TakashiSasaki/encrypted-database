@@ -22,4 +22,4 @@ Adding future vectors or rejection vectors at this stage would require unsupport
 
 As a result, no vague unclassified JCS conformance coverage blockers remain for Python and Node.js.
 
-**Status: Ready for reviewer sign-off.**
+**Status: Signed off for Python/Node.js baseline-public certification.**
