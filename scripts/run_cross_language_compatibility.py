@@ -491,8 +491,8 @@ def main():
                 reason = "reader is scaffold-only; lacks stable public API"
             else:
                 if _get_wrapper_cmd(w, "write", "dummy") and _get_wrapper_cmd(r, "read", "dummy", "dummy"):
-                    status = "candidate"
-                    reason = "Wrapper commands exist, runnable with --execute"
+                    status = "certified-participant"
+                    reason = "Baseline-public certified participant, runnable with --execute"
                 else:
                     status = "skipped"
                     reason = "matrix_status: not-yet-runnable, missing wrapper command/test fixture contract"
@@ -511,7 +511,7 @@ def main():
             "direct_public_api_passed": len([r for r in results if r["status"] == "direct-public-api-passed"]),
             "failed": len([r for r in results if r["status"] == "failed"]),
             "skipped": len([r for r in results if r["status"] == "skipped"]),
-            "candidate": len([r for r in results if r["status"] == "candidate"])
+            "certified_participant": len([r for r in results if r["status"] == "certified-participant"])
         }
         output = {
             "mode": "execute" if args.execute else "discovery",

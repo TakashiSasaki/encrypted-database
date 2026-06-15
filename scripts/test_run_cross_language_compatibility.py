@@ -29,7 +29,7 @@ class TestRunCrossLanguageCompatibility(unittest.TestCase):
         self.assertTrue(data["language_inventory"]["go"]["scaffold_only"])
 
         pairs = data["pair_matrix"]
-        self.assertTrue(any(p["writer"] == "python" and p["reader"] == "nodejs" and p["status"] == "candidate" for p in pairs))
+        self.assertTrue(any(p["writer"] == "python" and p["reader"] == "nodejs" and p["status"] == "certified-participant" for p in pairs))
         self.assertTrue(any(p["writer"] == "go" and p["status"] == "skipped" for p in pairs))
 
     @unittest.skipUnless(os.environ.get("VAULT_RUN_COMPAT_EXECUTION_TESTS") == "1", "Gated behind VAULT_RUN_COMPAT_EXECUTION_TESTS=1")
