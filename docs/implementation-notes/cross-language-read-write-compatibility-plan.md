@@ -30,17 +30,17 @@ Can a database written by language A be read by language B with identical Storag
 - **Test mode**
 
 ## Active Testing Pairs
-Python and Node.js are actively integrated and passing the cross-language baseline test pairs through their execution public-entrypoint test wrappers.
-Note explicitly that wrapper success is evidence toward compatibility, not public-quality certification. See the [Baseline-Public Readiness Gap Analysis](baseline-public-readiness-gap-analysis.md) for remaining certification steps.
+Python and Node.js are actively integrated and passing the cross-language baseline test pairs through direct library API execution.
+Note explicitly that direct API success is stronger evidence toward compatibility, but still, not public-quality certification. See the [Baseline-Public Readiness Gap Analysis](baseline-public-readiness-gap-analysis.md) for remaining certification steps.
 
 ## Current Matrix Status
 
 | Language pair (write -> read) | Status | Reason | Evidence |
 |---|---|---|---|
-| Python -> Python | public-entrypoint-passed | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: public-entrypoint-test-wrapper) |
-| Node.js -> Node.js | public-entrypoint-passed | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: public-entrypoint-test-wrapper) |
-| Python -> Node.js | public-entrypoint-passed | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: public-entrypoint-test-wrapper) |
-| Node.js -> Python | public-entrypoint-passed | Successfully executed public-entrypoint test wrapper checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: public-entrypoint-test-wrapper) |
+| Python -> Python | direct-public-api-passed | Successfully executed direct public API checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: direct-public-api) |
+| Node.js -> Node.js | direct-public-api-passed | Successfully executed direct public API checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: direct-public-api) |
+| Python -> Node.js | direct-public-api-passed | Successfully executed direct public API checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: direct-public-api) |
+| Node.js -> Python | direct-public-api-passed | Successfully executed direct public API checks (write/read/update/delete/not-found-after-delete) | `scripts/run_cross_language_compatibility.py --execute` output (mode: direct-public-api) |
 
 *(Other combinations involving Go, Rust, Zig, C, and C++ are skipped due to lacking a stable public API and corresponding wrapper commands).*
 

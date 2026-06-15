@@ -207,6 +207,13 @@ check_phrase_file "public-entrypoint public-entrypoint" "Stale duplicate wording
 check_phrase_file "public-entrypoint public-entrypoint" "Stale duplicate wording: use public-entrypoint instead" "docs/implementation-notes/baseline-public-readiness-gap-analysis.md"
 check_phrase_file "public-entrypoint public-entrypoint" "Stale duplicate wording: use public-entrypoint instead" "docs/implementation-notes/cross-language-read-write-compatibility-plan.md"
 
+
+# 31. Guard against direct-public-api false claims
+check_phrase "direct-public-api evidence means baseline-public" "Stale/false claim: direct-public-api evidence does not automatically mean baseline-public certification"
+check_phrase "direct-public-api-passed means public-quality certification" "Stale/false claim: direct-public-api-passed does not automatically mean public-quality certification"
+check_phrase "Python and Node.js are baseline-public" "Stale/false claim: Python and Node.js are baseline candidates, not yet baseline-public"
+check_phrase "only wrapper evidence exists" "Stale claim: direct-public-api evidence now exists"
+
 # END OF NEW RULES
 
 if [ "$FOUND_STALE" -eq 1 ]; then

@@ -15,15 +15,15 @@ Storage Format V1 is Stable. No bytes-on-disk semantic changes, cryptographic ad
 | Evidence Category | Status | Details |
 |---|---|---|
 | Package-root public entrypoints | **Achieved** | `from encrypted_storage import EncryptedStorage` (Python), `const { EncryptedStorage } = require('encrypted-storage')` (Node.js). |
-| Cross-language read/write matrix | **Achieved** | Write/read/update/delete/not-found-after-delete matrix passes between Python and Node.js via public-entrypoint test wrappers (`public-entrypoint-passed`). |
-| Wrapper status vs Certification | **Clear** | Runner mode is `public-entrypoint-test-wrapper`, certification status remains `public_quality_certification: false`. |
-| Shared vector evidence | **Partial** | JCS, AAD, AES-GCM, and Argon2id shared positive vectors are wired and pass. Full shared UUID vector integration is pending. |
+| Cross-language read/write matrix | **Achieved** | Write/read/update/delete/not-found-after-delete matrix passes between Python and Node.js via direct public API (`direct-public-api-passed`) and public-entrypoint test wrappers (`public-entrypoint-passed`). |
+| Wrapper status vs Certification | **Clear** | Runner modes are `direct-public-api` and `public-entrypoint-test-wrapper`, certification status remains `public_quality_certification: false`. |
+| Shared vector evidence | **Partial** | JCS, AAD, AES-GCM, Argon2id, and UUID shared positive/negative vectors are wired and pass. Full shared UUID vector integration is complete. |
 | Metadata/version provenance | **Achieved** | `created_by_version` populates accurately. Placeholders removed. |
 | README / Package metadata | **Achieved** | Docs are clean, accurate, and do not overclaim status. |
 | CI/path-filtered status | **Achieved** | Pipeline executes accurately. |
 | API freeze candidate | **Proposed** | Candidate methods/errors exist. Final freeze confirmation pending. |
 | Security notes | **Reviewed** | Explicit lack of hard memory zeroization documented. |
-| Remaining release blockers | **Pending** | Full shared UUID vector integration, final API freeze review, security sign-off, and removal of public-entrypoint test-wrapper gate. |
+| Remaining release blockers | **Pending** | Full shared UUID vector integration (completed), final API freeze review, security sign-off, and removal of public-entrypoint test-wrapper gate. |
 
 ## Release-Candidate Checklist
 The following items must be verified before proceeding to a final certification PR. This checklist does not imply certification is complete.
@@ -33,7 +33,7 @@ The following items must be verified before proceeding to a final certification 
 - [ ] Confirm public-entrypoint matrix passes for Python -> Python, Python -> Node.js, Node.js -> Python, Node.js -> Node.js.
 - [ ] Confirm evidence includes write/read/update/delete/not-found-after-delete.
 - [ ] Confirm `public_quality_certification` remains false until final certification.
-- [ ] Confirm shared vector coverage status and list any remaining vector gaps.
+- [x] Confirm shared vector coverage status and list any remaining vector gaps.
 - [ ] Confirm security notes have been reviewed and sign-off status is explicit.
 - [ ] Confirm README/package metadata are release-candidate ready.
 - [ ] Confirm no baseline-public wording remains outside a future certification PR.
@@ -81,10 +81,10 @@ VAULT_RUN_COMPAT_EXECUTION_TESTS=1 python -m unittest scripts/test_run_cross_lan
 - Automating PyPI/npm publishing in this stride.
 
 ## Remaining Blockers Before Baseline-Public
-- Full shared UUID vector integration.
+- Full shared UUID vector integration (completed).
 - Final API freeze sign-off.
 - Final security notes sign-off.
-- Execution matrix transitioned from public-entrypoint test wrappers to direct library integration, proving final public API compatibility.
+- Execution matrix transitioned from public-entrypoint test wrappers to direct library integration, proving final public API compatibility (completed).
 
 ## API Freeze Candidate Notes
 This section documents the current Python and Node.js public API freeze candidate. It is an **API freeze candidate**, not a final API freeze, pending final validation.
