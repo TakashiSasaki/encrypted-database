@@ -115,12 +115,12 @@ Note: C and C++ parser-free generated-vector bridges now exist. Both are generat
 **Why it matters:** Relying solely on database constraints can lead to unhandled database errors bubbling up instead of providing clear, early validation errors to the caller.
 **Recommended next action:** Implement stricter MIME type parsing, and evaluate whether JSON Schema and UUID registry validations are within scope or out of scope.
 
-### Packaging and distribution maturity is incomplete
+### Packaging and distribution maturity is incomplete (actual publication pending)
 
 **Status:** Active (Partial)
 **Area:** Deployment
-**Current state:** Python and Node.js packaging metadata, entrypoints, versioning, and public documentation have been improved to support reliable local/monorepo usage and accurate version provenance. Placeholders have been removed, and entrypoints correctly expose public APIs and error classes. Cross-language compatibility testing now operates through public entrypoints for the full write/read/update/delete matrix. However, neither library is yet declared `baseline-public`. Comprehensive publishing automation, npm/PyPI publishing credentials, and formal public release management remain future work.
-**Expected or intended state:** Production-ready packages that can be seamlessly published to PyPI and npm with correct dependencies, exports, and documentation.
+**Current state:** Python and Node.js are `baseline-public` certified. Packaging metadata, entrypoints, versioning, and public documentation support reliable local/monorepo usage and accurate version provenance. A distribution dry-run has been completed and documented, verifying that `sdist`/`wheel` (Python) and `pack` (Node.js) build and install successfully in clean environments without exposing actual credentials. However, actual PyPI and npm package publication has not yet been done, and release automation requiring secrets does not exist.
+**Expected or intended state:** Packages that are actually published to PyPI and npm with automated release workflows.
 **Why it matters:** Incomplete packaging hinders adoption and makes it difficult for other projects to cleanly depend on the library.
 **Recommended next action:** Refine remaining automated publishing processes when moving to `baseline-public`.
 
