@@ -31,7 +31,7 @@ The certification scope strictly excludes the following, which remain outside `b
 *   **Python Tests:** Passed. `pytest` completed successfully (173 tests passed).
 *   **Node.js Tests:** Passed. `npm test` via Jest completed successfully (132 tests passed).
 *   **Aggregate Tests:** Passed. `./scripts/test_all.sh` executed successfully including integration roundtrip tests.
-*   **Shared Vector Coverage:** Passed. All wired vectors (including `rfc8785-basic.json`, `generic-positive-coverage.json`, `utf16-key-ordering.json`, `uuid-v1.json`) loaded and executed cleanly.
+*   **Shared Vector Coverage:** Passed. All wired active vectors (including `rfc8785-basic.json`, `generic-positive-coverage.json`, and `uuid-v1.json`) loaded and executed cleanly. (Note: `utf16-key-ordering.json` and future/boundary vectors remain deferred/unconsumed per JCS closure notes).
 *   **Stale-doc Guardrails:** Passed. `scripts/check_stale_docs.sh` ran successfully.
 *   **API Freeze Sign-off:** Completed for the current documented Python/Node.js public API surface.
 *   **Error Taxonomy Sign-off:** Completed.

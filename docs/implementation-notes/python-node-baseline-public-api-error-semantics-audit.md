@@ -1,7 +1,7 @@
 # Python and Node.js Baseline-Public API and Error Semantics Audit
 
 ## Purpose
-This document provides a side-by-side audit of the Python and Node.js public-facing storage APIs and their error semantics. It evaluates the current parity status to identify gaps before either implementation can be promoted from `baseline-candidate` / `preview-library` to `baseline-public`.
+This document provides a side-by-side audit of the Python and Node.js public-facing storage APIs and their error semantics. It evaluates the parity status that was required before the implementations were promoted to `baseline-public`.
 
 ## API Parity Status
 

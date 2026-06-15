@@ -10,8 +10,8 @@ Can a database written by language A be read by language B with identical Storag
 
 | Language | Implementation path | Current role | Public read support | Public write support | Scaffold read/write | Stable API? | Include in this stride? | Notes |
 |---|---|---|---|---|---|---|---|---|
-| Python | `python/` | baseline-candidate | known-api-unverified | known-api-unverified | N/A | existing library API used by public-entrypoint test wrappers; public-quality certification pending | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
-| Node.js | `nodejs/` | baseline-candidate | known-api-unverified | known-api-unverified | N/A | existing library API used by public-entrypoint test wrappers; public-quality certification pending | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
+| Python | `python/` | baseline-public | certified | certified | N/A | public-quality certification complete | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix. |
+| Node.js | `nodejs/` | baseline-public | certified | certified | N/A | public-quality certification complete | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix. |
 | Go | `go/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
 | Rust | `rust/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
 | Zig | `zig/` | portability-validation | not implemented | not implemented | Yes | No | No | Scaffold-level CLI, not a stable storage library. |

@@ -152,7 +152,8 @@ check_phrase "cross-language matrix passes for all languages" "Stale/false claim
 check_phrase "all language implementations have full public API parity" "Stale/false claim: API parity only applies to baseline implementations"
 
 # 22. Specific bounds for Python/Node.js and wrappers
-check_phrase "Python and Node.js are baseline-candidate" "Stale/false underclaim: Python and Node.js are now baseline-public certified"
+check_phrase "Python.*baseline-candidate" "Stale/false underclaim: Python is now baseline-public certified"
+check_phrase "Node.js.*baseline-candidate" "Stale/false underclaim: Node.js is now baseline-public certified"
 check_phrase "C/C\\+\\+ storage library" "Stale/false claim: C/C++ are bootstrap scaffolds, not storage libraries"
 check_phrase "test-wrapper passed means public-quality" "Stale/false claim: test-wrapper success is evidence, not certification"
 check_phrase "C/C\\+\\+ is a production storage library" "Stale/false claim: C/C++ are bootstrap scaffolds, not storage libraries"
@@ -190,6 +191,7 @@ check_phrase "Python and Node.js are already baseline-public" "Stale claim: Pyth
 
 # 28. Narrow guards against false baseline-public certification claims
 check_phrase "Python and Node.js are baseline candidates" "Stale underclaim: Python and Node.js are baseline-public"
+check_phrase "Python and Node.js.*certification pending" "Stale underclaim: Python and Node.js certification is complete"
 check_phrase "public-entrypoint-test-wrapper is baseline-public" "False certification claim: public-entrypoint test-wrapper is not baseline-public"
 check_phrase "public-entrypoint-test-wrapper means production-ready" "False certification claim: public-entrypoint test-wrapper is not production-ready"
 check_phrase "public_quality_certification: true" "Stale public-quality claim: public_quality_certification is still false"
