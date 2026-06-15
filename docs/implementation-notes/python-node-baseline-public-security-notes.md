@@ -29,11 +29,11 @@ The following capabilities are explicitly unsupported in this implementation pha
 - Browser real-runtime coverage
 - C/C++ storage APIs
 
-## Security Sign-Off Still Pending
-Formal security sign-off remains pending.
-
-## Current Evidence vs. Remaining Release Blockers
-The Python and Node.js libraries currently satisfy cross-language testing requirements via public-entrypoint test-wrappers and shared vector tests. However, formal security sign-off, API freeze confirmation, and removal of test-wrapper specific compatibility gates remain as blockers prior to full baseline-public certification.
-
 ## Direct Public API Matrix Testing
 The `direct-public-api` runner mode exercises the library public entries without using the intermediary test-wrappers. It still uses temporary file-based SQLite databases and does not alter the storage engine's security boundaries. It explicitly does not constitute a completed security audit.
+
+## Sign-off Readiness
+These security notes clearly document the boundaries, limitations (including memory zeroization), and out-of-scope features (e.g. key rotation, rewrap, C/C++ storage APIs, etc.). There are no known unresolved documentation issues remaining.
+
+**Status: Security notes ready for reviewer sign-off.**
+*(Note: This means the document is ready to be signed off, not that a formal security audit has been completed or signed off.)*

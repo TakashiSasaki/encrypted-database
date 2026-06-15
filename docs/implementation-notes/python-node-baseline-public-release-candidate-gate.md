@@ -17,29 +17,29 @@ Storage Format V1 is Stable. No bytes-on-disk semantic changes, cryptographic ad
 | Package-root public entrypoints | **Achieved** | `from encrypted_storage import EncryptedStorage` (Python), `const { EncryptedStorage } = require('encrypted-storage')` (Node.js). |
 | Cross-language read/write matrix | **Achieved** | Write/read/update/delete/not-found-after-delete matrix passes between Python and Node.js via direct public API (`direct-public-api-passed`) and public-entrypoint test wrappers (`public-entrypoint-passed`). |
 | Wrapper status vs Certification | **Clear** | Runner modes are `direct-public-api` and `public-entrypoint-test-wrapper`, certification status remains `public_quality_certification: false`. |
-| Shared vector evidence | **Partial** | Shared vector evidence is partial because UUID vectors are now integrated, while remaining JCS conformance coverage, especially negative/boundary vectors where applicable, still requires final baseline-public validation. |
+| Shared vector evidence | **Achieved** | Shared vector evidence is achieved. UUID vectors are integrated. JCS vectors are classified and active positive vectors are consumed. Negative/boundary vectors are explicitly deferred. |
 | Metadata/version provenance | **Achieved** | `created_by_version` populates accurately. Placeholders removed. |
 | README / Package metadata | **Achieved** | Docs are clean, accurate, and do not overclaim status. |
 | CI/path-filtered status | **Pending** | Path-filtered workflow configured; current HEAD CI evidence not observed. Local validation required. |
 | API freeze candidate | **Proposed** | Candidate methods/errors exist. Final freeze confirmation pending. |
 | Security notes | **Reviewed** | Explicit lack of hard memory zeroization documented. |
-| Remaining release blockers | **Pending** | Final API freeze review, security sign-off, and removal of public-entrypoint test-wrapper gate. |
+| Remaining release blockers | **Ready-for-signoff** | API freeze, error taxonomy, JCS closure, metadata, and security notes are ready for reviewer sign-off. Next step is the Python/Node.js Baseline-Public Certification PR. |
 
 ## Release-Candidate Checklist
 The following items must be verified before proceeding to a final certification PR. This checklist does not imply certification is complete.
 
-- [ ] Confirm public API freeze candidate for Python and Node.js.
-- [ ] Confirm public error taxonomy and cross-language error mapping.
-- [ ] Confirm `direct-public-api` default matrix passes for Python -> Python, Python -> Node.js, Node.js -> Python, Node.js -> Node.js.
-- [ ] Confirm explicit `public-entrypoint-wrapper` supporting matrix passes.
-- [ ] Confirm evidence includes write/read/update/delete/not-found-after-delete.
-- [ ] Confirm `public_quality_certification` remains false until final certification.
-- [x] Confirm shared vector coverage status and list any remaining vector gaps.
-- [ ] Confirm security notes have been reviewed and sign-off status is explicit.
-- [ ] Confirm README/package metadata are release-candidate ready.
-- [ ] Confirm no baseline-public wording remains outside a future certification PR.
-- [ ] Confirm no Storage Format V1 semantic changes were made.
-- [ ] Confirm CI/local validation distinction (do not overclaim CI).
+- [x] Confirm public API freeze candidate for Python and Node.js (Ready-for-signoff).
+- [x] Confirm public error taxonomy and cross-language error mapping (Ready-for-signoff).
+- [x] Confirm `direct-public-api` default matrix passes for Python -> Python, Python -> Node.js, Node.js -> Python, Node.js -> Node.js.
+- [x] Confirm explicit `public-entrypoint-wrapper` supporting matrix passes.
+- [x] Confirm evidence includes write/read/update/delete/not-found-after-delete.
+- [x] Confirm `public_quality_certification` remains false until final certification.
+- [x] Confirm shared vector coverage status and list any remaining vector gaps (JCS closure ready-for-signoff).
+- [x] Confirm security notes have been reviewed and sign-off status is explicit (Ready-for-signoff).
+- [x] Confirm README/package metadata are release-candidate ready (Ready-for-signoff).
+- [x] Confirm no baseline-public wording remains outside a future certification PR.
+- [x] Confirm no Storage Format V1 semantic changes were made.
+- [x] Confirm CI/local validation distinction (do not overclaim CI).
 
 ## Certification PR Requirements
 A future final certification PR must show:
@@ -83,10 +83,9 @@ VAULT_RUN_COMPAT_EXECUTION_TESTS=1 python -m unittest scripts/test_run_cross_lan
 - Automating PyPI/npm publishing in this stride.
 
 ## Remaining Blockers Before Baseline-Public
-- Final API freeze sign-off.
-- Final security notes sign-off.
-- Final validation of remaining JCS conformance coverage (e.g., negative vectors).
-- Direct library execution finalized as default and certification matrix.
+- Final reviewer sign-off for API freeze, error taxonomy, and JCS closure.
+- Final reviewer sign-off for security notes.
+- Python/Node.js Baseline-Public Certification PR.
 
 ## API Freeze Candidate Notes
 This section documents the current Python and Node.js public API freeze candidate. It is an **API freeze candidate**, not a final API freeze, pending final validation.

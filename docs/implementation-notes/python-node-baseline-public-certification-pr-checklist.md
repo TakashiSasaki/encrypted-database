@@ -37,10 +37,11 @@ A valid certification PR must provide execution evidence (either locally or via 
   ```
 
 ## Required Review Sign-Offs
-The certification PR must have documented reviewer sign-off on the following items:
+The certification PR must have documented reviewer sign-off on the following items. These items are currently marked as "ready-for-signoff" in the release candidate gate:
 
 - [ ] **API Freeze**: The public entrypoints, instantiation, lifecycle methods, and core read/write methods are frozen and aligned.
 - [ ] **Error Taxonomy**: The public error model and cross-language mappings are consistent and aligned.
+- [ ] **JCS Conformance Closure**: Active positive vectors are consumed and boundaries defined.
 - [ ] **Security Notes**: The limitations regarding memory zeroization and out-of-scope cryptographic claims are reviewed and accurate.
 - [ ] **README/Package Metadata**: Public documentation is clear, accurate, uses the correct package metadata, and disclaimers are removed.
 - [ ] **Storage Format V1 Non-Change**: Confirmation that absolutely no semantic changes to Storage Format V1 bytes-on-disk were made.
