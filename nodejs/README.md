@@ -11,7 +11,9 @@ This library provides the Node.js implementation of the Encrypted Database, an a
 - Stores metadata using `better-sqlite3` and the standard schema (`docs/backend/sqlite/schema.sql`).
 
 ## Installation
-Ensure you are in the `nodejs` directory and install dependencies:
+**Note:** Python and Node.js are baseline-public certified. Distribution/publication may still be manual or pending; actual npm publication is not yet done, and release automation does not yet exist.
+
+To install the module locally from the repository, ensure you are in the `nodejs` directory and install dependencies:
 ```bash
 npm install
 ```

@@ -224,6 +224,18 @@ check_phrase "public_quality_certification: true" "False certification claim: pu
 check_phrase "remaining JCS conformance coverage" "Vague blocker phrase: Use explicit vector names or document deferrals"
 check_phrase "CI evidence: Achieved" "Stale claim: CI evidence must remain accurately classified as historical or separated from local evidence"
 
+# 34. Guard against Distribution false claims and overclaims
+check_phrase "PyPI publication complete" "False claim: PyPI publication is not complete"
+check_phrase "npm publication complete" "False claim: npm publication is not complete"
+check_phrase "PyPI and npm package publication is complete" "False claim: PyPI and npm package publication is not complete"
+check_phrase "release automation exists" "False claim: Release automation requiring secrets does not exist"
+check_phrase "Python.*baseline-candidate" "Stale/false underclaim: Python is now baseline-public certified"
+check_phrase "Node.js.*baseline-candidate" "Stale/false underclaim: Node.js is now baseline-public certified"
+check_phrase "all languages are baseline-public" "False claim: Only Python and Node.js are baseline-public"
+check_phrase "C/C\+\+ are production storage libraries" "False claim: C/C++ are bootstrap scaffolds, not production storage libraries"
+check_phrase "external security audit completion" "False claim: Security notes are internal sign-offs, not an external audit"
+check_phrase "external security audit is complete" "False claim: Security notes are internal sign-offs, not an external audit"
+
 # END OF NEW RULES
 
 if [ "$FOUND_STALE" -eq 1 ]; then

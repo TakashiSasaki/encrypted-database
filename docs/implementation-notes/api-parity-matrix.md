@@ -105,7 +105,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 
 | Capability | Python | Node.js | browser-test | Go | Rust | Zig | C | C++ | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| public package readiness | partial | partial | out-of-scope | missing | missing | missing | missing | missing | Python/Node packaging needs polish. |
+| public package readiness | partial | partial | out-of-scope | missing | missing | missing | missing | missing | Python/Node are ready for distribution dry-run. Actual PyPI/npm publication not yet done. |
 | CLI or library entrypoint | implemented-public | implemented-public | out-of-scope | missing | missing | missing | implemented-scaffold | implemented-scaffold | |
 | documentation completeness | partial | partial | partial | partial | partial | partial | partial | partial | |
 | production readiness status | partial | partial | out-of-scope | missing | missing | missing | missing | missing | Python/Node.js are baseline-public; Go/Rust/Zig/C/C++ are scaffolds. |
@@ -130,7 +130,7 @@ Note: C and C++ parser-free generated-vector bridges now exist. Both are generat
 
 1. Go/Rust status as scaffolds means API stability/compatibility promises are intentionally limited. Go/Wasm remains an explicit target but incomplete.
 2. Python および Node.js によって生成されたデータベースは、現在 write-matrix の検証カバレッジに含まれています。
-3. Key lifecycle APIs, rewrap, additional unlock providers, blind index, packaging/distribution maturity, safe integer policy, schema fingerprint/hash, optional feature read-only fallback, and dynamic `created_by_version` remain future/general gaps.
+3. Key lifecycle APIs, rewrap, additional unlock providers, blind index, safe integer policy, schema fingerprint/hash, optional feature read-only fallback, and dynamic `created_by_version` remain future/general gaps. Packaging distribution dry-run is complete, but actual PyPI/npm publication is pending.
 
 ## Recommended API convergence follow-ups
 
