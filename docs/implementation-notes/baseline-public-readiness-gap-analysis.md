@@ -14,7 +14,7 @@ This analysis builds upon the findings in the [Python and Node.js Baseline-Publi
 | Storage Format V1 semantic stability | stable | stable | Verified no hidden assumptions before locking public API |
 | Shared conformance vectors | expanded-positive-vectors-wired | expanded-positive-vectors-wired | Core positive and UUID vector suites are wired and pass |
 | Cross-language execution evidence | direct-public-api-passed / public-entrypoint-passed | direct-public-api-passed / public-entrypoint-passed | Successfully executes via direct-public-api mode and secondary public-entrypoint testing wrappers |
-| CI evidence | verified | verified | Verified path-filtered CI tests execute |
+| CI evidence | path-filtered | path-filtered | CI testing passes via path-filtered workflow. Certification based on matching local validation runner evidence. |
 | Package metadata | approved | approved | Author placeholders removed and version provenance improved. Publishing automation out of scope for baseline-public. |
 | Public docs | approved | approved | End-user API docs present without overclaiming `baseline-public` readiness. |
 | API/error semantics | certified | certified | Vocabulary aligned; error code mapping consistency signed off |

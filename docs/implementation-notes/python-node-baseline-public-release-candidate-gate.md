@@ -26,29 +26,21 @@ Storage Format V1 is Stable. No bytes-on-disk semantic changes, cryptographic ad
 | Remaining release blockers | **Signed-off** | API freeze, error taxonomy, JCS closure, metadata, and security notes are signed-off for Python/Node.js baseline-public certification. |
 
 ## Release-Candidate Checklist
-The following items were verified during the final certification PR.
+The following items were successfully verified to achieve baseline-public certification:
 
-- [x] Confirm public API freeze candidate for Python and Node.js (Ready-for-signoff).
-- [x] Confirm public error taxonomy and cross-language error mapping (Ready-for-signoff).
+- [x] Confirm public API freeze candidate for Python and Node.js (Signed-off).
+- [x] Confirm public error taxonomy and cross-language error mapping (Signed-off).
 - [x] Confirm `direct-public-api` default matrix passes for Python -> Python, Python -> Node.js, Node.js -> Python, Node.js -> Node.js.
 - [x] Confirm explicit `public-entrypoint-wrapper` supporting matrix passes.
 - [x] Confirm evidence includes write/read/update/delete/not-found-after-delete.
-- [x] Confirm `public_quality_certification` remains false until final certification.
-- [x] Confirm shared vector coverage status and list any remaining vector gaps (JCS closure ready-for-signoff).
-- [x] Confirm security notes have been reviewed and sign-off status is explicit (Ready-for-signoff).
-- [x] Confirm README/package metadata are release-candidate ready (Ready-for-signoff).
-- [x] Confirm no baseline-public wording remains outside a future certification PR.
+- [x] Confirm shared vector coverage status and list any remaining vector gaps (Signed-off).
+- [x] Confirm security notes have been reviewed and sign-off status is explicit (Signed-off).
+- [x] Confirm README/package metadata are baseline-public ready (Signed-off).
 - [x] Confirm no Storage Format V1 semantic changes were made.
 - [x] Confirm CI/local validation distinction (do not overclaim CI).
 
-## Certification PR Requirements
-A future final certification PR must show:
-- All checklist items above are checked and independently verified.
-- The cross-language compatibility runner passing across stable, non-test-wrapper library APIs.
-- The removal of `baseline-candidate` / `preview-library` disclaimers from the public READMEs.
-
-## Required Validation Commands
-Run the following commands to gather local evidence during the RC phase:
+## Validation Commands
+The following commands were run to gather local evidence for certification:
 
 ```bash
 # Verify stale documentation guardrails
