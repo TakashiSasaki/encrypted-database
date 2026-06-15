@@ -19,8 +19,8 @@ Implementations are classified into one of the following levels:
 
 | Language | Implementation path | Current role | Public read support | Public write support | Scaffold read/write | Cross-read | Cross-write | Shared vectors | CI | Public package/docs | Status | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Python | `python/` | baseline-candidate | implemented-public* | implemented-public* | not applicable | public-entrypoint-passed | public-entrypoint-passed | implemented-public* | path-filtered | release-candidate | preview-library | Baseline candidate. API exists and passes execution matrix via public-entrypoint test wrappers. Still not baseline-public; public-quality certification pending. |
-| Node.js | `nodejs/` | baseline-candidate | implemented-public* | implemented-public* | not applicable | public-entrypoint-passed | public-entrypoint-passed | implemented-public* | path-filtered | release-candidate | preview-library | Baseline candidate. API exists and passes execution matrix via public-entrypoint test wrappers. Still not baseline-public; public-quality certification pending. |
+| Python | `python/` | baseline-candidate | implemented-public* | implemented-public* | not applicable | direct-public-api-passed | direct-public-api-passed | implemented-public* | path-filtered | release-candidate | preview-library | Baseline candidate. API exists and passes execution matrix via public-entrypoint test wrappers. Still not baseline-public; public-quality certification pending. |
+| Node.js | `nodejs/` | baseline-candidate | implemented-public* | implemented-public* | not applicable | direct-public-api-passed | direct-public-api-passed | implemented-public* | path-filtered | release-candidate | preview-library | Baseline candidate. API exists and passes execution matrix via public-entrypoint test wrappers. Still not baseline-public; public-quality certification pending. |
 | browser-test | `browser-test/` | portability-validation | not implemented | not implemented | implemented-test-harness | deferred | deferred | implemented-test-harness | path-filtered | out-of-scope | scaffold-only | WebCrypto harness, not a full browser library. |
 | Go | `go/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Strict portability scaffold. stable public API missing; cross-language matrix not runnable; package/docs incomplete; scaffold-only or portability-only status. |
 | Rust | `rust/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Strict portability scaffold. stable public API missing; cross-language matrix not runnable; package/docs incomplete; scaffold-only or portability-only status. |
@@ -32,10 +32,10 @@ Implementations are classified into one of the following levels:
 
 | Language pair | Status | Reason | Evidence |
 |---|---|---|---|
-| Python -> Python | public-entrypoint-passed | Successfully executed public-entrypoint test-wrapper matrix checks | Matrix runner |
-| Node.js -> Node.js | public-entrypoint-passed | Successfully executed public-entrypoint test-wrapper matrix checks | Matrix runner |
-| Python -> Node.js | public-entrypoint-passed | Successfully executed public-entrypoint test-wrapper matrix checks | Matrix runner |
-| Node.js -> Python | public-entrypoint-passed | Successfully executed public-entrypoint test-wrapper matrix checks | Matrix runner |
+| Python -> Python | public-entrypoint-passed | Successfully executed direct-public-api and public-entrypoint test-wrapper matrix checks | Matrix runner (direct-public-api) |
+| Node.js -> Node.js | public-entrypoint-passed | Successfully executed direct-public-api and public-entrypoint test-wrapper matrix checks | Matrix runner (direct-public-api) |
+| Python -> Node.js | public-entrypoint-passed | Successfully executed direct-public-api and public-entrypoint test-wrapper matrix checks | Matrix runner (direct-public-api) |
+| Node.js -> Python | public-entrypoint-passed | Successfully executed direct-public-api and public-entrypoint test-wrapper matrix checks | Matrix runner (direct-public-api) |
 
 ## Read/Write Compatibility Matrix Policy
 The cross-language compatibility matrix verifies that a database created in Language A can be read with identical payload semantics by Language B.

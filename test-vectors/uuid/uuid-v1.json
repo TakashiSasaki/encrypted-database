@@ -1,0 +1,66 @@
+{
+  "name": "uuid-v1",
+  "description": "UUID validation boundaries for Storage Format V1",
+  "vectors": [
+    {
+      "description": "Valid UUIDv4",
+      "uuid": "12345678-1234-4234-8234-123456789012",
+      "valid": true
+    },
+    {
+      "description": "Valid UUID with max hex values",
+      "uuid": "ffffffff-ffff-4fff-bfff-ffffffffffff",
+      "valid": true
+    },
+    {
+      "description": "Valid UUID with min hex values",
+      "uuid": "00000000-0000-4000-8000-000000000000",
+      "valid": true
+    },
+    {
+      "description": "Invalid UUID (uppercase)",
+      "uuid": "A2345678-1234-4234-8234-123456789012",
+      "valid": false
+    },
+    {
+      "description": "Invalid UUID (missing hyphens)",
+      "uuid": "12345678123442348234123456789012",
+      "valid": false
+    },
+    {
+      "description": "Invalid UUID (wrong version - e.g., v9)",
+      "uuid": "12345678-1234-9234-8234-123456789012",
+      "valid": false
+    },
+    {
+      "description": "Invalid UUID (wrong variant - e.g., c)",
+      "uuid": "12345678-1234-4234-c234-123456789012",
+      "valid": false
+    },
+    {
+      "description": "Invalid UUID (wrong variant - e.g., 7)",
+      "uuid": "12345678-1234-4234-7234-123456789012",
+      "valid": false
+    },
+    {
+      "description": "Invalid UUID (too short)",
+      "uuid": "12345678-1234-4234-8234-12345678901",
+      "valid": false
+    },
+    {
+      "description": "Invalid UUID (too long)",
+      "uuid": "12345678-1234-4234-8234-1234567890123",
+      "valid": false
+    },
+    {
+      "description": "Invalid UUID (trailing hyphen)",
+      "uuid": "12345678-1234-4234-8234-12345678901-",
+      "valid": false
+    },
+    {
+      "description": "Invalid UUID (invalid hex characters)",
+      "uuid": "g2345678-1234-4234-8234-123456789012",
+      "valid": false
+    }
+  ]
+}
