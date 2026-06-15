@@ -218,6 +218,11 @@ check_phrase "Full shared UUID vector integration (completed)" "Stale claim: Com
 # 32. Guard against stale runner default claims
 check_phrase "\-\-execute defaults to \-\-mode public\-entrypoint\-wrapper" "Stale claim: --execute now defaults to direct-public-api"
 
+# 33. Guard against Phase 6 staleness and false certifications
+check_phrase "public_quality_certification: true" "False certification claim: public_quality_certification remains false until final PR"
+check_phrase "remaining JCS conformance coverage" "Vague blocker phrase: Use explicit vector names or document deferrals"
+check_phrase "CI evidence: Achieved" "Stale claim: CI evidence must remain accurately classified as historical or separated from local evidence"
+
 # END OF NEW RULES
 
 if [ "$FOUND_STALE" -eq 1 ]; then

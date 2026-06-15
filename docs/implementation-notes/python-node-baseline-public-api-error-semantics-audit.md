@@ -76,9 +76,11 @@ Python uses exception classes in `encrypted_storage.errors`. Node.js uses matchi
 | Metadata validation | Yes | Yes | aligned | Both validate V1 schema versions and `storage_metadata_tbl`. |
 | Content-type validation | Yes | Yes | aligned | |
 | SQLite schema/profile | Yes | Yes | aligned | Both apply `PRAGMA foreign_keys = ON`. |
-| Cross-language read/write wrappers | public-entrypoint-passed | public-entrypoint-passed | aligned | Wrapper contracts executed via runner (write/read/update/delete/not-found-after-delete operations) via public-entrypoint-test-wrapper mode. |
+| Cross-language execution evidence | direct-public-api-passed | direct-public-api-passed | aligned | Wrapper contracts executed via runner (write/read/update/delete/not-found-after-delete operations) via direct-public-api mode (and legacy public-entrypoint-test-wrapper mode). |
 
 ## Conclusion and Next Steps
 The Python and Node.js implementations are semantically well-aligned in their core APIs and error models. Both consistently use the same vocabulary for operations and exceptions.
 
-To safely promote to `baseline-public`, the remaining steps involve finalizing package documentation, public API documentation, security notes, and ensuring that the shared JCS vector suites are fully verified in CI for Node.js and Python. The recent addition of explicit `generic-positive-coverage.json` coverage in both languages improves shared conformance evidence, but does not certify baseline-public readiness.
+A sign-off document has been prepared at [Python/Node.js Baseline-Public Error Taxonomy Sign-off](python-node-baseline-public-error-taxonomy-signoff.md) concluding that no unmapped error conditions remain.
+
+To safely promote to `baseline-public`, the remaining steps involve finalizing package documentation, public API documentation, security notes, and ensuring that the shared JCS vector suites are fully classified and verified in CI for Node.js and Python.
