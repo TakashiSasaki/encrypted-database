@@ -67,4 +67,4 @@ The following features are explicitly omitted from this initial `baseline-public
 
 ## Certification Date and HEAD Commit
 *   **Date:** 2026-06-15 (UTC)
-*   **HEAD Commit:** 9fd1ba09512a6ba7952ecfa675548118c35518d4
+*   **Pre-certification Code Evidence HEAD Commit:** 9fd1ba09512a6ba7952ecfa675548118c35518d4 (This commit contains the code state that passed all certification validation checks. The certification documents themselves are added in the subsequent certification commit.)

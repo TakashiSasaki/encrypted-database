@@ -108,7 +108,7 @@ The following controlled vocabulary is strictly used to classify API implementat
 | public package readiness | partial | partial | out-of-scope | missing | missing | missing | missing | missing | Python/Node packaging needs polish. |
 | CLI or library entrypoint | implemented-public | implemented-public | out-of-scope | missing | missing | missing | implemented-scaffold | implemented-scaffold | |
 | documentation completeness | partial | partial | partial | partial | partial | partial | partial | partial | |
-| production readiness status | baseline-public | baseline-public | out-of-scope | missing | missing | missing | missing | missing | Python/Node.js are baseline-public; Go/Rust/Zig/C/C++ are scaffolds. |
+| production readiness status | partial | partial | out-of-scope | missing | missing | missing | missing | missing | Python/Node.js are baseline-public; Go/Rust/Zig/C/C++ are scaffolds. |
 
 ## Format-level interoperability vs public API parity
 
