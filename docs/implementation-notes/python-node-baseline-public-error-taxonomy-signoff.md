@@ -11,6 +11,7 @@ The following error classes map 1-to-1 between the Python and Node.js implementa
 | Invalid Passphrase | `InvalidPassphrase` | Passphrase is not a string or fails validation. |
 | Database Not Found/Uninitialized | `StorageNotInitialized` | Attempted to unlock a non-existent or uninitialized DB. |
 | DB Locked | `StorageLocked` | Attempted read/write operation without unlocking first. |
+| DB Closed | `StorageClosed` | Attempted an operation after the database was closed. |
 | DB Already Initialized | `StorageAlreadyInitialized` | Attempted to initialize an existing, valid database. |
 | Bad Passphrase on Unlock | `UnlockFailed` | Authentication tag mismatch during unlock KEK validation. |
 | Invalid UUID | `InvalidUuid` | The UUID is not a canonical, lowercase, hyphenated string. |
@@ -20,6 +21,7 @@ The following error classes map 1-to-1 between the Python and Node.js implementa
 | Unsupported Platform | `UnsupportedPlatform` | The platform flag is not supported (e.g. `cross_platform` given). |
 | Storage Format Error | `InvalidStorageFormat` | Metadata missing, V1 check failed, or feature flags active. |
 | Integrity Check Failed | `IntegrityCheckFailed` | The AEAD tag on a row payload is invalid or corrupted. |
+| AAD Policy Error | `AadPolicyError` | The provided metadata fields did not match the expected AAD layout. |
 | Crypto Error | `CryptoOperationFailed` | A failure inside the lower-level cryptographic routines. |
 | Database Backend | `DatabaseBackendError` | A generic error emitted by the SQLite driver. |
 

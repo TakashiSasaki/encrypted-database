@@ -71,6 +71,8 @@ python scripts/run_cross_language_compatibility.py --list
 python scripts/run_cross_language_compatibility.py --list --json
 python scripts/run_cross_language_compatibility.py --execute
 python scripts/run_cross_language_compatibility.py --execute --json
+python scripts/run_cross_language_compatibility.py --execute --mode public-entrypoint-wrapper
+python scripts/run_cross_language_compatibility.py --execute --mode public-entrypoint-wrapper --json
 
 # Gated runner unit tests
 VAULT_RUN_COMPAT_EXECUTION_TESTS=1 python -m unittest scripts/test_run_cross_language_compatibility.py
