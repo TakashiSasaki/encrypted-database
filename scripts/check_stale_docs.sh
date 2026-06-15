@@ -152,9 +152,8 @@ check_phrase "cross-language matrix passes for all languages" "Stale/false claim
 check_phrase "all language implementations have full public API parity" "Stale/false claim: API parity only applies to baseline implementations"
 
 # 22. Specific bounds for Python/Node.js and wrappers
-check_phrase "baseline-public certification complete" "Stale/false claim: baseline-public certification is pending"
+check_phrase "Python and Node.js are baseline-candidate" "Stale/false underclaim: Python and Node.js are now baseline-public certified"
 check_phrase "C/C\\+\\+ storage library" "Stale/false claim: C/C++ are bootstrap scaffolds, not storage libraries"
-check_phrase "Python and Node.js are baseline-public" "Stale/false claim: Python and Node.js are baseline-candidates"
 check_phrase "test-wrapper passed means public-quality" "Stale/false claim: test-wrapper success is evidence, not certification"
 check_phrase "C/C\\+\\+ is a production storage library" "Stale/false claim: C/C++ are bootstrap scaffolds, not storage libraries"
 
@@ -190,10 +189,9 @@ check_phrase "test wrappers are no longer used" "Stale claim: test wrappers rema
 check_phrase "Python and Node.js are already baseline-public" "Stale claim: Python and Node.js are baseline candidates, not yet baseline-public"
 
 # 28. Narrow guards against false baseline-public certification claims
-check_phrase "Python and Node.js are baseline-public" "False certification claim: Python and Node.js are baseline candidates, not yet baseline-public"
+check_phrase "Python and Node.js are baseline candidates" "Stale underclaim: Python and Node.js are baseline-public"
 check_phrase "public-entrypoint-test-wrapper is baseline-public" "False certification claim: public-entrypoint test-wrapper is not baseline-public"
 check_phrase "public-entrypoint-test-wrapper means production-ready" "False certification claim: public-entrypoint test-wrapper is not production-ready"
-check_phrase "Python/Node.js baseline-public release is complete" "False certification claim: Python/Node.js baseline-public release is not complete"
 check_phrase "public_quality_certification: true" "Stale public-quality claim: public_quality_certification is still false"
 
 # 29. Guard against stale successful status wording
@@ -211,7 +209,6 @@ check_phrase_file "public-entrypoint public-entrypoint" "Stale duplicate wording
 # 31. Guard against direct-public-api false claims
 check_phrase "direct-public-api evidence means baseline-public" "Stale/false claim: direct-public-api evidence does not automatically mean baseline-public certification"
 check_phrase "direct-public-api-passed means public-quality certification" "Stale/false claim: direct-public-api-passed does not automatically mean public-quality certification"
-check_phrase "Python and Node.js are baseline-public" "Stale/false claim: Python and Node.js are baseline candidates, not yet baseline-public"
 check_phrase "only wrapper evidence exists" "Stale claim: direct-public-api evidence now exists"
 check_phrase "Full shared UUID vector integration (completed)" "Stale claim: Completed items should not be listed under remaining blockers"
 

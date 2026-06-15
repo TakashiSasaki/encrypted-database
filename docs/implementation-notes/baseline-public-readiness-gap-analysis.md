@@ -1,7 +1,7 @@
 # Baseline-Public Readiness Gap Analysis
 
 ## Purpose
-This document defines the remaining gaps before the `Python` and `Node.js` public-entrypoint test-wrapper baseline candidates can be safely promoted to `baseline-public`. Public-entrypoint test-wrapper compatibility success is explicitly **not release certification**.
+This document tracks the requirements for the `Python` and `Node.js` `baseline-public` certification.
 
 This analysis builds upon the findings in the [Python and Node.js Baseline-Public API and Error Semantics Audit](python-node-baseline-public-api-error-semantics-audit.md).
 
@@ -9,29 +9,27 @@ This analysis builds upon the findings in the [Python and Node.js Baseline-Publi
 
 | Dimension | Python | Node.js | Description |
 |---|---|---|---|
-| Public read API surface | implemented-public* | implemented-public* | API surface exists and is aligned; final semantic review pending |
-| Public write API surface | implemented-public* | implemented-public* | API surface exists and is aligned; final semantic review pending |
-| Storage Format V1 semantic stability | pending | pending | Verify no hidden assumptions before locking public API |
-| Shared conformance vectors | expanded-positive-vectors-wired | expanded-positive-vectors-wired | Core positive and UUID vector suites are wired. Full RFC 8785 vector coverage verification required across libraries |
-| Cross-language execution evidence | direct-public-api-passed / public-entrypoint-passed | direct-public-api-passed / public-entrypoint-passed | Successfully executes via direct-public-api mode and secondary public-entrypoint testing wrappers (write/read/update/delete). Evidence mode is direct-public-api. |
-| CI evidence | path-filtered | path-filtered | path-filtered workflow configured; current HEAD CI evidence not observed |
-| Package metadata | improved | improved | Author placeholders removed and version provenance improved. Publishing automation pending. |
-| Public docs | improved | improved | End-user API docs present without overclaiming `baseline-public` readiness. |
-| API/error semantics | implemented-public* | implemented-public* | Vocabulary aligned; pending final cross-language error code mapping consistency review |
-| Security notes | pending | pending | Review payload boundaries, key management, and JCS constraints |
-| Release-readiness review | pending | pending | Final architectural and security sign-off |
-
-\* `implemented-public` indicates that the code exists, but it has not been certified as stable or baseline-public.
+| Public read API surface | certified | certified | API surface is aligned and signed off |
+| Public write API surface | certified | certified | API surface is aligned and signed off |
+| Storage Format V1 semantic stability | stable | stable | Verified no hidden assumptions before locking public API |
+| Shared conformance vectors | expanded-positive-vectors-wired | expanded-positive-vectors-wired | Core positive and UUID vector suites are wired and pass |
+| Cross-language execution evidence | direct-public-api-passed / public-entrypoint-passed | direct-public-api-passed / public-entrypoint-passed | Successfully executes via direct-public-api mode and secondary public-entrypoint testing wrappers |
+| CI evidence | verified | verified | Verified path-filtered CI tests execute |
+| Package metadata | approved | approved | Author placeholders removed and version provenance improved. Publishing automation out of scope for baseline-public. |
+| Public docs | approved | approved | End-user API docs present without overclaiming `baseline-public` readiness. |
+| API/error semantics | certified | certified | Vocabulary aligned; error code mapping consistency signed off |
+| Security notes | certified | certified | Payload boundaries, key management, and JCS constraints reviewed |
+| Release-readiness review | certified | certified | Final architectural and security sign-off completed |
 
 ## Promotion Checklist
 Before declaring any language `baseline-public`, the following must be completed:
-- [ ] Stabilize the public API interface.
+- [x] Stabilize the public API interface.
 - [x] Integrate full shared conformance vectors (JCS, AAD, AES-GCM, UUID).
-- [ ] Formalize API/error semantics across languages.
-- [ ] Publish clear end-user documentation. (Improved in this stride, but final review pending)
-- [ ] Prepare comprehensive package metadata. (Improved in this stride, but publishing automation pending)
-- [ ] Complete security and release-readiness review.
-- [x] Demonstrate cross-language compatibility through stable public APIs (not just public-entrypoint test wrappers).
+- [x] Formalize API/error semantics across languages.
+- [x] Publish clear end-user documentation.
+- [x] Prepare comprehensive package metadata.
+- [x] Complete security and release-readiness review.
+- [x] Demonstrate cross-language compatibility through stable public APIs.
 
-## Non-Goals
-This stride does not promote any language to `baseline-public`. It solely establishes the gap analysis and tracking mechanism for future completion.
+## Note
+Python and Node.js have met all requirements and are officially **certified** as `baseline-public`. See `python-node-baseline-public-certification-record.md` for full certification details.

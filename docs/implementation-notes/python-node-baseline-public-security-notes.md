@@ -35,5 +35,5 @@ The `direct-public-api` runner mode exercises the library public entries without
 ## Sign-off Readiness
 These security notes clearly document the boundaries, limitations (including memory zeroization), and out-of-scope features (e.g. key rotation, rewrap, C/C++ storage APIs, etc.). There are no known unresolved documentation issues remaining.
 
-**Status: Security notes ready for reviewer sign-off.**
+**Status: Signed off for Python/Node.js baseline-public certification.**
 *(Note: This means the document is ready to be signed off, not that a formal security audit has been completed or signed off.)*

@@ -37,4 +37,4 @@ We confirm that absolutely no Storage Format V1 semantics were changed during th
 
 ## Sign-off Readiness
 No API surface blockers found. The API is frozen and semantically complete.
-**Status: Ready for reviewer sign-off.**
+**Status: Signed off for Python/Node.js baseline-public certification.**
