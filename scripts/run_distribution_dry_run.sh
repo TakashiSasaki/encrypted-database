@@ -20,27 +20,48 @@ if ! python -c "import build" &> /dev/null; then
 fi
 python -m build --outdir "$TEMP_DIR/python_dist"
 
-# Find the wheel
+# Find the artifacts
 WHEEL_FILE=$(ls "$TEMP_DIR/python_dist"/*.whl | head -n 1)
+SDIST_FILE=$(ls "$TEMP_DIR/python_dist"/*.tar.gz | head -n 1)
 
-echo "[2/4] Python Smoke Test (Clean Install)"
-python -m venv "$TEMP_DIR/pyvenv"
-source "$TEMP_DIR/pyvenv/bin/activate"
+echo "[2/4] Python Smoke Test (Clean Install - Wheel)"
+python -m venv "$TEMP_DIR/pyvenv_wheel"
+source "$TEMP_DIR/pyvenv_wheel/bin/activate"
 python -m pip install "$WHEEL_FILE"
-echo "Running Python smoke test script..."
+echo "Running Python smoke test script (Wheel)..."
 python -c "
 import os
 import encrypted_storage
-print('SUCCESS: Python package root import works.')
-print(f'EncryptedStorage: {encrypted_storage.EncryptedStorage}')
-print(f'StorageError: {encrypted_storage.StorageError}')
+print('SUCCESS: Python wheel package root import works.')
 print(f'Version: {getattr(encrypted_storage, \"__version__\", \"<no version>\")}')
 
-db_path = 'test_smoke_py.sqlite'
+db_path = 'test_smoke_py_wheel.sqlite'
 try:
     storage = encrypted_storage.EncryptedStorage(db_path)
     storage.initialize_database('test-password', 'linux')
-    print('SUCCESS: Python database initialization works (schema.sql bundled correctly).')
+    print('SUCCESS: Python wheel database initialization works (schema.sql bundled correctly).')
+finally:
+    if os.path.exists(db_path):
+        os.remove(db_path)
+"
+deactivate
+
+echo "[2.5/4] Python Smoke Test (Clean Install - sdist)"
+python -m venv "$TEMP_DIR/pyvenv_sdist"
+source "$TEMP_DIR/pyvenv_sdist/bin/activate"
+python -m pip install "$SDIST_FILE"
+echo "Running Python smoke test script (sdist)..."
+python -c "
+import os
+import encrypted_storage
+print('SUCCESS: Python sdist package root import works.')
+print(f'Version: {getattr(encrypted_storage, \"__version__\", \"<no version>\")}')
+
+db_path = 'test_smoke_py_sdist.sqlite'
+try:
+    storage = encrypted_storage.EncryptedStorage(db_path)
+    storage.initialize_database('test-password', 'linux')
+    print('SUCCESS: Python sdist database initialization works (schema.sql bundled correctly).')
 finally:
     if os.path.exists(db_path):
         os.remove(db_path)

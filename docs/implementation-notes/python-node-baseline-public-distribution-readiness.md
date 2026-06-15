@@ -22,13 +22,15 @@ Python and Node.js have been formally certified as `baseline-public`. Distributi
 ## Python Clean Install Smoke Test Procedure
 1.  Create a temporary virtual environment: `python -m venv venv-test`.
 2.  Activate it: `source venv-test/bin/activate`.
-3.  Install the built wheel: `pip install /path/to/encrypted_storage-*.whl`.
-4.  Run a simple Python script to import and check attributes:
+3.  Install the built artifact (wheel or sdist): `pip install /path/to/encrypted_storage-*.whl` or `pip install /path/to/encrypted_storage-*.tar.gz`.
+4.  Run a simple Python script to verify database initialization using the bundled schema:
     ```python
     import encrypted_storage
-    print(encrypted_storage.EncryptedStorage)
+    storage = encrypted_storage.EncryptedStorage('test_smoke.sqlite')
+    storage.initialize_database('test-password', 'linux')
+    print("SUCCESS: Database initialized correctly.")
     ```
-5.  Deactivate and discard the virtual environment.
+5.  Deactivate and discard the virtual environment and `test_smoke.sqlite`.
 
 ## Node.js Pack Dry-run Procedure
 1.  Navigate to the `nodejs/` directory.
@@ -38,12 +40,17 @@ Python and Node.js have been formally certified as `baseline-public`. Distributi
 ## Node.js Clean Install Smoke Test Procedure
 1.  Create a temporary test directory and run `npm init -y`.
 2.  Install the packed tarball: `npm install /path/to/encrypted-storage-*.tgz`.
-3.  Run a simple Node.js script to require the package:
+3.  Run a simple Node.js script to verify database initialization using the bundled schema:
     ```javascript
-    const pkg = require('encrypted-storage');
-    console.log(pkg.EncryptedStorage);
+    const { EncryptedStorage } = require('encrypted-storage');
+    async function runTest() {
+        const storage = new EncryptedStorage('test_smoke.sqlite');
+        await storage.initializeDatabase('test-password', 'linux');
+        console.log("SUCCESS: Database initialized correctly.");
+    }
+    runTest();
     ```
-4.  Discard the temporary test directory.
+4.  Discard the temporary test directory and `test_smoke.sqlite`.
 
 ## Cross-language Matrix Validation
 If testing the matrix *after* a package install, replace the local editable or source-based installs with the compiled distribution artifacts inside a clean environment, then invoke the wrapper tests over those environments.
