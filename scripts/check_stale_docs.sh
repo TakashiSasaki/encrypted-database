@@ -195,6 +195,8 @@ check_phrase "Python and Node.js.*certification pending" "Stale underclaim: Pyth
 check_phrase "public-entrypoint-test-wrapper is baseline-public" "False certification claim: public-entrypoint test-wrapper is not baseline-public"
 check_phrase "public-entrypoint-test-wrapper means production-ready" "False certification claim: public-entrypoint test-wrapper is not production-ready"
 check_phrase "public_quality_certification: true" "Stale public-quality claim: public_quality_certification is still false"
+check_phrase "Future Wording Details \(Not Active Until Certification\)" "Stale underclaim: Wording details are now active and certification is complete"
+check_phrase "These statements remain false during the release-candidate/preflight stride" "Stale underclaim: Certification is complete, statements are true"
 
 # 29. Guard against stale successful status wording
 check_phrase_file "test-wrapper-passed" "Stale successful status wording: use public-entrypoint-passed instead" "docs/implementation-notes/project-wide-public-library-quality-harness.md"

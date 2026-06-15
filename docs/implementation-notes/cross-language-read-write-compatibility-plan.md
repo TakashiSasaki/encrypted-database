@@ -31,7 +31,6 @@ Can a database written by language A be read by language B with identical Storag
 
 ## Active Testing Pairs
 Python and Node.js are actively integrated and passing the cross-language baseline test pairs through direct library API execution.
-Note explicitly that direct API success is stronger evidence toward compatibility, but still, not public-quality certification. See the [Baseline-Public Readiness Gap Analysis](baseline-public-readiness-gap-analysis.md) for remaining certification steps.
 
 ## Current Matrix Status
 
@@ -73,4 +72,4 @@ Specifically, the operations follow this flow:
 - The test operates entirely on temporary files.
 
 ## Next Safe Stride
-Python and Node.js Baseline-Public Release-Candidate Closure and Final Certification Review.
+Monitor the implemented matrices. Future strides may involve promoting additional languages or advancing browser interoperability matrix coverage.
