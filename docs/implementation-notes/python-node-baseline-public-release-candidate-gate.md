@@ -17,20 +17,21 @@ Storage Format V1 is Stable. No bytes-on-disk semantic changes, cryptographic ad
 | Package-root public entrypoints | **Achieved** | `from encrypted_storage import EncryptedStorage` (Python), `const { EncryptedStorage } = require('encrypted-storage')` (Node.js). |
 | Cross-language read/write matrix | **Achieved** | Write/read/update/delete/not-found-after-delete matrix passes between Python and Node.js via direct public API (`direct-public-api-passed`) and public-entrypoint test wrappers (`public-entrypoint-passed`). |
 | Wrapper status vs Certification | **Clear** | Runner modes are `direct-public-api` and `public-entrypoint-test-wrapper`, certification status remains `public_quality_certification: false`. |
-| Shared vector evidence | **Partial** | JCS, AAD, AES-GCM, Argon2id, and UUID shared positive/negative vectors are wired and pass. Full shared UUID vector integration is complete. |
+| Shared vector evidence | **Partial** | Shared vector evidence is partial because UUID vectors are now integrated, while remaining JCS conformance coverage, especially negative/boundary vectors where applicable, still requires final baseline-public validation. |
 | Metadata/version provenance | **Achieved** | `created_by_version` populates accurately. Placeholders removed. |
 | README / Package metadata | **Achieved** | Docs are clean, accurate, and do not overclaim status. |
-| CI/path-filtered status | **Achieved** | Pipeline executes accurately. |
+| CI/path-filtered status | **Pending** | Path-filtered workflow configured; current HEAD CI evidence not observed. Local validation required. |
 | API freeze candidate | **Proposed** | Candidate methods/errors exist. Final freeze confirmation pending. |
 | Security notes | **Reviewed** | Explicit lack of hard memory zeroization documented. |
-| Remaining release blockers | **Pending** | Full shared UUID vector integration (completed), final API freeze review, security sign-off, and removal of public-entrypoint test-wrapper gate. |
+| Remaining release blockers | **Pending** | Final API freeze review, security sign-off, and removal of public-entrypoint test-wrapper gate. |
 
 ## Release-Candidate Checklist
 The following items must be verified before proceeding to a final certification PR. This checklist does not imply certification is complete.
 
 - [ ] Confirm public API freeze candidate for Python and Node.js.
 - [ ] Confirm public error taxonomy and cross-language error mapping.
-- [ ] Confirm public-entrypoint matrix passes for Python -> Python, Python -> Node.js, Node.js -> Python, Node.js -> Node.js.
+- [ ] Confirm `direct-public-api` default matrix passes for Python -> Python, Python -> Node.js, Node.js -> Python, Node.js -> Node.js.
+- [ ] Confirm explicit `public-entrypoint-wrapper` supporting matrix passes.
 - [ ] Confirm evidence includes write/read/update/delete/not-found-after-delete.
 - [ ] Confirm `public_quality_certification` remains false until final certification.
 - [x] Confirm shared vector coverage status and list any remaining vector gaps.
@@ -38,6 +39,7 @@ The following items must be verified before proceeding to a final certification 
 - [ ] Confirm README/package metadata are release-candidate ready.
 - [ ] Confirm no baseline-public wording remains outside a future certification PR.
 - [ ] Confirm no Storage Format V1 semantic changes were made.
+- [ ] Confirm CI/local validation distinction (do not overclaim CI).
 
 ## Certification PR Requirements
 A future final certification PR must show:
@@ -81,10 +83,10 @@ VAULT_RUN_COMPAT_EXECUTION_TESTS=1 python -m unittest scripts/test_run_cross_lan
 - Automating PyPI/npm publishing in this stride.
 
 ## Remaining Blockers Before Baseline-Public
-- Full shared UUID vector integration (completed).
 - Final API freeze sign-off.
 - Final security notes sign-off.
-- Execution matrix transitioned from public-entrypoint test wrappers to direct library integration, proving final public API compatibility (completed).
+- Final validation of remaining JCS conformance coverage (e.g., negative vectors).
+- Direct library execution finalized as default and certification matrix.
 
 ## API Freeze Candidate Notes
 This section documents the current Python and Node.js public API freeze candidate. It is an **API freeze candidate**, not a final API freeze, pending final validation.
