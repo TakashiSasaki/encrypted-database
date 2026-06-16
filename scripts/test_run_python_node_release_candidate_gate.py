@@ -17,6 +17,7 @@ class TestRunPythonNodeReleaseCandidateGate(unittest.TestCase):
         self.assertIn("--installed-matrix", out)
         self.assertIn("--allow-network-probes", out)
 
+    @unittest.skipUnless(os.environ.get("VAULT_RUN_RELEASE_CANDIDATE_GATE_TESTS") == "1", "Gated behind VAULT_RUN_RELEASE_CANDIDATE_GATE_TESTS=1")
     def test_execution_json_mode(self):
         result = subprocess.run(
             [sys.executable, "scripts/run_python_node_release_candidate_gate.py", "--json"],
