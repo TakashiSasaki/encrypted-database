@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const aadPolicy = require('./aadPolicy');
 const cryptoUtils = require('./crypto');
 const errors = require('./errors');
-const schemaSql = require('!!raw-loader!../../docs/backend/sqlite/schema.sql').default;
+const schemaSql = require('../../docs/backend/sqlite/schema.sql').default;
 
 class EncryptedStorage {
     constructor() {

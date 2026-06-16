@@ -22,6 +22,10 @@ module.exports = {
     module: {
         rules: [
             {
+                test: /\.sql$/i,
+                type: 'asset/source'
+            },
+            {
                 test: /argon2\.js$/,
                 loader: 'string-replace-loader',
                 options: {
