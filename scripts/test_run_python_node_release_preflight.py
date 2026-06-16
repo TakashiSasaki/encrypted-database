@@ -1,3 +1,4 @@
+import sys
 import json
 import subprocess
 import os
@@ -6,7 +7,7 @@ import unittest
 class TestRunPythonNodeReleasePreflight(unittest.TestCase):
     def test_help_argument(self):
         result = subprocess.run(
-            ["python", "scripts/run_python_node_release_preflight.py", "--help"],
+            [sys.executable, "scripts/run_python_node_release_preflight.py", "--help"],
             capture_output=True, text=True
         )
         self.assertEqual(result.returncode, 0)
@@ -18,8 +19,19 @@ class TestRunPythonNodeReleasePreflight(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get("VAULT_RUN_DISTRIBUTION_PREFLIGHT_TESTS") == "1", "Gated behind VAULT_RUN_DISTRIBUTION_PREFLIGHT_TESTS=1")
     def test_execution_json_mode(self):
+        # Ensure json mode stdout is only json
+        result2 = subprocess.run(
+            [sys.executable, "scripts/run_python_node_release_preflight.py", "--json"],
+            capture_output=True, text=True
+        )
+        self.assertEqual(result2.returncode, 0)
+        try:
+            json.loads(result2.stdout.strip())
+        except Exception as e:
+            self.fail(f"stdout is not pure JSON: {e}\n{result2.stdout}")
+
         result = subprocess.run(
-            ["python", "scripts/run_python_node_release_preflight.py", "--json"],
+            [sys.executable, "scripts/run_python_node_release_preflight.py", "--json"],
             capture_output=True, text=True
         )
         self.assertEqual(result.returncode, 0)

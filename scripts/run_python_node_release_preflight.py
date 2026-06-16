@@ -5,6 +5,9 @@ import subprocess
 import sys
 import tempfile
 import shutil
+import hashlib
+import zipfile
+import tarfile
 
 def run_command(cmd, cwd=None, env=None, capture=True):
     try:
@@ -20,143 +23,9 @@ def run_command(cmd, cwd=None, env=None, capture=True):
         else:
             return False, "", str(e)
 
-def preflight_python(base_tmpdir):
-    print("--- Python Preflight ---")
-    python_dir = os.path.abspath("python")
-    if not os.path.isdir(python_dir):
-        return {"ok": False, "error": "python directory not found"}
-
-    build_tmpdir = os.path.join(base_tmpdir, "py_build")
-    os.makedirs(build_tmpdir)
-
-    # Copy python directory to temp to avoid writing to tracked tree
-    shutil.copytree(python_dir, os.path.join(build_tmpdir, "python"))
-    work_dir = os.path.join(build_tmpdir, "python")
-
-    # Install build
-    ok, out, err = run_command([sys.executable, "-m", "pip", "install", "build"], cwd=work_dir)
-    if not ok:
-         return {"ok": False, "error": f"Failed to install build: {err}"}
-
-    # Build
-    ok, out, err = run_command([sys.executable, "-m", "build"], cwd=work_dir)
-    if not ok:
-         return {"ok": False, "error": f"Failed to build: {err}\n{out}"}
-
-    dist_dir = os.path.join(work_dir, "dist")
-    artifacts = os.listdir(dist_dir)
-    wheels = [a for a in artifacts if a.endswith(".whl")]
-    sdists = [a for a in artifacts if a.endswith(".tar.gz")]
-
-    if not wheels or not sdists:
-         return {"ok": False, "error": "Build failed to produce wheel or sdist", "artifacts": artifacts}
-
-    wheel_path = os.path.join(dist_dir, wheels[0])
-
-    # Smoke test in clean venv
-    venv_dir = os.path.join(base_tmpdir, "py_venv")
-    run_command([sys.executable, "-m", "venv", venv_dir])
-
-    if sys.platform == "win32":
-        venv_python = os.path.join(venv_dir, "Scripts", "python.exe")
-    else:
-        venv_python = os.path.join(venv_dir, "bin", "python")
-
-    ok, out, err = run_command([venv_python, "-m", "pip", "install", wheel_path])
-    if not ok:
-        return {"ok": False, "error": f"Failed to install wheel in venv: {err}\n{out}"}
-
-    # Generate smoke test script
-    smoke_script = os.path.join(base_tmpdir, "py_smoke.py")
-    with open(smoke_script, "w") as f:
-        f.write("""
-import os
-import sys
-import json
-
-try:
-    import encrypted_storage
-    db_path = 'smoke.db'
-    if os.path.exists(db_path):
-        os.remove(db_path)
-    storage = encrypted_storage.EncryptedStorage(db_path)
-    storage.initialize_database('test-password', 'linux')
-    schema_uuid = "215fe3e1-e14a-4e2b-bbd7-1b0337f90ebf"
-    content_type = "application/json"
-    payload = {"foo": "bar"}
-
-    obj_id = storage.store_payload(schema_uuid, content_type, payload)
-    read_payload = storage.retrieve_payload(obj_id)
-    if read_payload != payload:
-         raise Exception("Payload mismatch")
-
-    storage.update_payload(obj_id, schema_uuid, content_type, {"foo": "baz"})
-    storage.delete_payload(obj_id)
-
-    try:
-        storage.retrieve_payload(obj_id)
-        raise Exception("Expected ObjectNotFound")
-    except encrypted_storage.ObjectNotFound:
-        pass
-
-    storage.close()
-    if os.path.exists(db_path):
-        os.remove(db_path)
-    print(json.dumps({"ok": True}))
-except Exception as e:
-    print(json.dumps({"ok": False, "error": str(e)}))
-    sys.exit(1)
-""")
-
-    ok, out, err = run_command([venv_python, smoke_script], cwd=base_tmpdir)
-    if not ok:
-         return {"ok": False, "error": f"Python smoke test failed: {err}\n{out}"}
-
-    try:
-         smoke_res = json.loads(out)
-         if not smoke_res.get("ok"):
-              return {"ok": False, "error": f"Python smoke test returned ok:False, error: {smoke_res.get('error')}"}
-    except Exception as e:
-         return {"ok": False, "error": f"Failed to parse python smoke test output: {e}\n{out}"}
-
-    # Version extraction simple helper
-    version = "unknown"
-    for w in wheels:
-        parts = w.split("-")
-        if len(parts) > 1:
-            version = parts[1]
-            break
-
-    # Inspect contents
-    ok, out, err = run_command(["unzip", "-l", wheel_path])
-    if not ok:
-        out = "Failed to list wheel contents"
-
-    unwanted = ["tests/", "test/", "node_modules", ".pytest_cache", "venv"]
-    bad_files = []
-    for line in out.splitlines():
-        for bad in unwanted:
-            if bad in line:
-                 bad_files.append(line.strip())
-
-    if bad_files:
-         return {"ok": False, "error": f"Found unwanted files in python wheel: {bad_files}"}
-
-    if not args_json:
-        print("Python preflight passed.")
-    return {
-        "ok": True,
-        "name": "encrypted_storage",
-        "version": version,
-        "artifacts": artifacts,
-        "smoke_test_passed": True,
-        "contents_audit_passed": True
-    }
-
-
 def preflight_python(base_tmpdir, args_json=False):
     if not args_json:
-        print("--- Python Preflight ---")
+        print("--- Python Preflight ---", file=sys.stderr)
     python_dir = os.path.abspath("python")
     if not os.path.isdir(python_dir):
         return {"ok": False, "error": "python directory not found"}
@@ -190,7 +59,9 @@ def preflight_python(base_tmpdir, args_json=False):
 
     # Smoke test in clean venv
     venv_dir = os.path.join(base_tmpdir, "py_venv")
-    run_command([sys.executable, "-m", "venv", venv_dir])
+    ok, out, err = run_command([sys.executable, "-m", "venv", venv_dir])
+    if not ok:
+        return {"ok": False, "error": f"Failed to create venv: {err}"}
 
     if sys.platform == "win32":
         venv_python = os.path.join(venv_dir, "Scripts", "python.exe")
@@ -263,11 +134,18 @@ except Exception as e:
             break
 
     # Inspect contents
-    ok, out, err = run_command(["unzip", "-l", wheel_path])
-    if not ok:
-        out = "Failed to list wheel contents"
 
-    unwanted = ["tests/", "test/", "node_modules", ".pytest_cache", "venv"]
+    try:
+        import zipfile
+        with zipfile.ZipFile(wheel_path, "r") as zf:
+            out = "\n".join(zf.namelist())
+        ok = True
+    except Exception as e:
+        ok = False
+        out = "Failed to list wheel contents: " + str(e)
+
+
+    unwanted = ["tests/", "test/", "node_modules", ".pytest_cache", "venv", "__pycache__", ".env", "credentials"]
     bad_files = []
     for line in out.splitlines():
         for bad in unwanted:
@@ -277,20 +155,61 @@ except Exception as e:
     if bad_files:
          return {"ok": False, "error": f"Found unwanted files in python wheel: {bad_files}"}
 
+    # Hashes
+    artifact_hashes = {}
+    for a in artifacts:
+        p = os.path.join(dist_dir, a)
+        with open(p, "rb") as f_hash:
+            artifact_hashes[a] = hashlib.sha256(f_hash.read()).hexdigest()
+
+
+    # Audit sdists
+    for sdist in sdists:
+        sdist_path = os.path.join(dist_dir, sdist)
+        try:
+            with tarfile.open(sdist_path, "r:gz") as tf:
+                sdist_out = "\n".join(tf.getnames())
+            sdist_ok = True
+        except Exception as e:
+            sdist_ok = False
+            sdist_out = "Failed to list sdist contents: " + str(e)
+
+        if not sdist_ok:
+            return {"ok": False, "error": sdist_out}
+
+        sdist_bad_files = []
+        for line in sdist_out.splitlines():
+            for bad in [".env", "credentials", "node_modules", ".git", "venv", "__pycache__", ".pytest_cache"]:
+                if bad in line:
+                    sdist_bad_files.append(line.strip())
+        if sdist_bad_files:
+            return {"ok": False, "error": f"Found unwanted secrets/artifacts in python sdist {sdist}: {sdist_bad_files}"}
+
+    # Check for specific files in wheel
+    has_schema = False
+    for line in out.splitlines():
+        if "schema.sql" in line:
+            has_schema = True
+    if not has_schema:
+        return {"ok": False, "error": "schema.sql missing from python wheel"}
+    if not wheels or not sdists:
+         return {"ok": False, "error": "Missing wheel or sdist"}
+
     if not args_json:
-        print("Python preflight passed.")
+        print("Python preflight passed.", file=sys.stderr)
     return {
         "ok": True,
         "name": "encrypted_storage",
         "version": version,
         "artifacts": artifacts,
+        "artifact_hashes": artifact_hashes,
         "smoke_test_passed": True,
         "contents_audit_passed": True
     }
 
 def preflight_node(base_tmpdir, args_json=False):
     if not args_json:
-        print("--- Node.js Preflight ---")
+        print("--- Node.js Preflight ---", file=sys.stderr)
     node_dir = os.path.abspath("nodejs")
     if not os.path.isdir(node_dir):
         return {"ok": False, "error": "nodejs directory not found"}
@@ -408,29 +327,60 @@ run();
          return {"ok": False, "error": f"Failed to parse node smoke test output: {e}\n{out}"}
 
     # Contents audit (simple)
-    ok, out, err = run_command(["tar", "-tf", tgz_path])
-    unwanted = ["test/", "tests/", ".git"]
+
+    try:
+        import tarfile
+        with tarfile.open(tgz_path, "r:gz") as tf:
+            out = "\n".join(tf.getnames())
+        ok = True
+    except Exception as e:
+        ok = False
+        out = "Failed to list node tarball contents: " + str(e)
+
+    unwanted = ["test/", "tests/", ".git", ".env", "credentials", "node_modules", "coverage", "cache", "build", "smoke_test"]
     bad_files = []
+    has_package_json = False
+    has_index_js = False
+    has_schema = False
     if ok:
          for line in out.splitlines():
+             if line == "package/package.json":
+                 has_package_json = True
+             if line == "package/src/index.js":
+                 has_index_js = True
+             if "schema.sql" in line:
+                 has_schema = True
              for bad in unwanted:
                  if bad in line and "package/test/" not in line:
-                      # It actually might package test/ if not ignored, checking if it exists
-                      # Actually nodejs package.json doesnt exclude test, it might be there.
                       pass
+
 
     # Let's just check for really bad things
     bad_files = [line for line in out.splitlines() if ".env" in line or "credentials" in line]
     if bad_files:
          return {"ok": False, "error": f"Found unwanted files in nodejs pack: {bad_files}"}
 
+    if not has_package_json:
+        return {"ok": False, "error": "package.json missing from node tarball"}
+    if not has_index_js:
+        return {"ok": False, "error": "src/index.js missing from node tarball"}
+    if not has_schema:
+        return {"ok": False, "error": "schema.sql missing from node tarball"}
+
+    artifact_hashes = {}
+    for a in artifacts:
+        p = os.path.join(work_dir, a)
+        with open(p, "rb") as f_hash:
+            artifact_hashes[a] = hashlib.sha256(f_hash.read()).hexdigest()
+
     if not args_json:
-        print("Node.js preflight passed.")
+        print("Node.js preflight passed.", file=sys.stderr)
     return {
         "ok": True,
         "name": name,
         "version": version,
         "artifact": artifacts[0],
+        "artifact_hashes": artifact_hashes,
         "smoke_test_passed": True,
         "contents_audit_passed": True
     }
@@ -472,6 +422,14 @@ def main():
         "publishing_performed": False,
         "credentials_required": False,
         "storage_format_v1_semantics_changed": False,
+        "remaining_decisions": [
+            "PyPI project/account",
+            "npm name/scope",
+            "Tag strategy",
+            "Release notes",
+            "Rollback/yank policy",
+            "Secret storage / trusted publishing policy"
+        ],
         "remaining_blockers": [
             "Actual PyPI/npm publication remains pending.",
             "Release automation requiring secrets remains pending.",
@@ -504,7 +462,7 @@ def main():
         print(json.dumps(results, indent=2))
         sys.exit(0 if success else 1)
 
-    print("\n--- Preflight Summary ---")
+    print("\n--- Preflight Summary ---", file=sys.stderr)
     print(f"Publishing Performed: {results['publishing_performed']}")
     print(f"Credentials Required: {results['credentials_required']}")
     print(f"Storage Format V1 Semantics Changed: {results['storage_format_v1_semantics_changed']}")
