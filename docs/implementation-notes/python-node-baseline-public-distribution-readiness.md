@@ -74,6 +74,21 @@ Generated package artifacts (like `.whl`, `.tar.gz`, `.tgz`), build directories 
 *   Securely provide publish credentials to the CI environment.
 *   Final review of package namespace availability (e.g., `encrypted-storage` vs scoped `@vault/encrypted-storage`).
 
+## Phase 8 Release Preflight
+A non-publishing release preflight script exists at `scripts/run_python_node_release_preflight.py` to test building, packing, and smoke-testing both languages.
+It creates a clean virtual environment and `npm init` environment, avoiding generated artifacts from being committed.
+
+Run the preflight command via:
+```bash
+python scripts/run_python_node_release_preflight.py
+```
+For machine-readable output:
+```bash
+python scripts/run_python_node_release_preflight.py --json
+```
+
+**Note:** The next step after this Phase 8 stride is credentialed release workflow design or actual controlled publication, not Storage Format V1 changes. No actual publishing to PyPI/npm is done.
+
 ## Storage Format V1 Non-Change Statement
 **This process does NOT alter Storage Format V1 semantics.**
 Bytes-on-disk semantics, metadata semantics, AAD rules, AEAD envelope layout, UUID policy, feature/version policy, SQLite profile semantics, provider_config semantics, Argon2id profile, key hierarchy, and JCS semantics remain strictly stable and unchanged.
