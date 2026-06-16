@@ -28,6 +28,15 @@ The detailed harness lives at:
 
 The repository uses a monorepo setup for multi-language implementations of an encrypted database library. The `Storage Format V1` is strictly **Stable**. Any incompatible changes to storage-format semantics must be deferred to V2. Do not use terms like 'Draft' or 'Candidate', and the historical 'controlled-v1-amendment' concept is deprecated.
 
+
+### Release Status
+* Phase 11 (Release Candidate Freeze) is **complete**.
+* Phase 12 (Execution Readiness and Publication Runbook) is the **current** scope. It establishes the non-publishing execution readiness gate.
+* **Actual PyPI/npm publication has not occurred.**
+* No credentials are configured or committed.
+* No release tags are created or pushed in this stride.
+* Python and Node.js are **baseline-public**; C/C++/Go/Rust/Zig/browser-test must not be overclaimed as production-ready.
+
 ### Implementations
 
 *   **Python:** Found under `python/`. This is a *baseline implementation*. Uses `cryptography` for crypto ops. Make sure to run `pip install -e .[test]` and run tests using `pytest tests/`.

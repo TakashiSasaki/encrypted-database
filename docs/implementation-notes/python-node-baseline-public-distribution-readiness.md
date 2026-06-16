@@ -92,7 +92,7 @@ For machine-readable output:
 python scripts/run_python_node_release_preflight.py --json
 ```
 
-**Note:** The next step after this Phase 8 stride is credentialed release workflow design or actual controlled publication, not Storage Format V1 changes. No actual publishing to PyPI/npm is done.
+**Note:** Phase 8 through Phase 12 prepare for publication (candidate freeze and execution readiness), not Storage Format V1 changes. No actual publishing to PyPI/npm is done.
 
 ## Storage Format V1 Non-Change Statement
 **This process does NOT alter Storage Format V1 semantics.**
