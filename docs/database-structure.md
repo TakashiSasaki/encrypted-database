@@ -207,7 +207,7 @@ sequenceDiagram
         Note right of App: CreateNew(db_path, passphrase, platform)
         App->>Writer: Create new database
         Writer->>DB: Apply SQLite backend PRAGMAs
-        Note over DB: page_size=4096, auto_vacuum=NONE before schema.sql;<br/>journal_mode=WAL and synchronous=NORMAL outside transaction
+        Note over DB: page_size=4096, auto_vacuum=NONE before schema.sql<br/>journal_mode=WAL and synchronous=NORMAL outside transaction
         Writer->>DB: Execute schema.sql
         Note over DB: Populates seed tables: key_class_tbl, key_profile_tbl,<br>unlock_method_tbl, unlock_provider_tbl, platform_tbl, unlock_provider_platform_tbl
         Writer->>DB: PRAGMA application_id & user_version
