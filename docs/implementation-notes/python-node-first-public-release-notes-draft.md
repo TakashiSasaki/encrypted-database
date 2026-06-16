@@ -1,12 +1,12 @@
-# Python/Node.js First Public Release Notes Draft
+# Python/Node.js First Public Release Candidate Notes Draft
 
 ## Overview
-We are excited to announce the first public release of the `encrypted_storage` library for Python and Node.js.
+We are preparing for the first public release candidate of the `encrypted_storage` library for Python and Node.js.
 
 Both the Python and Node.js implementations have been certified as **`baseline-public`**, meaning they provide stable, production-ready public APIs for reading and writing to the Encrypted Database.
 
 ## Storage Format V1 Stable
-This release affirms that **Storage Format V1 is Stable**. There are no changes to the bytes-on-disk semantics, JCS canonical exactness, metadata structures, or security profiles.
+This release candidate affirms that **Storage Format V1 is Stable**. There are no changes to the bytes-on-disk semantics, JCS canonical exactness, metadata structures, or security profiles.
 
 ## Supported APIs
 The following core capabilities are supported in both languages:
@@ -30,8 +30,8 @@ The following advanced features are not supported in this initial release:
 Please note that this release does **not** constitute an external security audit.
 Furthermore, exact memory zeroization of sensitive material is runtime-dependent (particularly in Node.js and standard Python) and not strongly guaranteed.
 
-## Installation
-*(Placeholders - actual package names and instructions will be finalized prior to publish)*
+## Future Installation
+*(The following commands represent future publication-time installation instructions, not evidence of current publication. Packages are not yet published.)*
 
 **Python:**
 ```bash
