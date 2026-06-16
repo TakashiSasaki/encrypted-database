@@ -108,7 +108,7 @@ except Exception as e:
     sys.exit(1)
 """)
 
-    ok, out, err = run_command([venv_python, smoke_script])
+    ok, out, err = run_command([venv_python, smoke_script], cwd=base_tmpdir)
     if not ok:
          return {"ok": False, "error": f"Python smoke test failed: {err}\n{out}"}
 
