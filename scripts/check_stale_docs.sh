@@ -242,6 +242,9 @@ check_phrase "credentials committed" "False claim: Credentials must never be com
 check_phrase "installed-distribution matrix means publishing completed" "False claim: installed-distribution matrix does not mean publishing is completed"
 check_phrase "release preflight published to PyPI" "False claim: release preflight does not publish to PyPI"
 check_phrase "release preflight published to npm" "False claim: release preflight does not publish to npm"
+check_phrase "Phase 10 published packages" "False claim: Phase 10 prepares release readiness, but does not publish packages"
+check_phrase "external security audit complete" "False claim: There is no external security audit"
+check_phrase "Storage Format V1 changed by release preflight" "False claim: Storage Format V1 is unchanged"
 
 # END OF NEW RULES
 
