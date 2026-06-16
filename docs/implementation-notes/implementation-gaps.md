@@ -247,6 +247,16 @@ Note: C and C++ parser-free generated-vector bridges now exist. Both are generat
 **Why it matters:** Good visibility into CI test coverage encourages maintainability and testing standards.
 **Recommended next action:** None. Future hardening may include per-flag badges, coverage thresholds, or Codecov status checks.
 
+
+### Python/Node.js Distribution Preflight and Publishing
+
+**Status:** Active
+**Area:** Distribution
+**Current state:** Python/Node.js are baseline-public certified. A non-publishing Phase 8 distribution preflight script (`scripts/run_python_node_release_preflight.py`) is implemented and runs successfully to verify wheel/sdist and npm pack artifact generation, clean install, and smoke tests. Actual PyPI/npm publication remains pending. Release automation requiring secrets remains pending. Namespace/account decisions must be resolved.
+**Expected or intended state:** Actual publication of Python and Node.js artifacts via secure, credentialed automated CI/CD releases.
+**Why it matters:** Library users require standard distribution channels.
+**Recommended next action:** Decide on package namespace (e.g. `encrypted-storage`), define secure credential workflows, and perform controlled public package release.
+
 ### Browser real-runtime coverage not implemented
 
 **Status:** Active
