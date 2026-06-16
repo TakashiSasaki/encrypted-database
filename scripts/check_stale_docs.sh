@@ -239,6 +239,10 @@ check_phrase "Storage Format V1 changed by preflight" "False claim: Storage Form
 check_phrase "publishing_performed: true" "False claim: Publishing has not been performed"
 check_phrase "credentials committed" "False claim: Credentials must never be committed"
 
+check_phrase "installed-distribution matrix means publishing completed" "False claim: installed-distribution matrix does not mean publishing is completed"
+check_phrase "release preflight published to PyPI" "False claim: release preflight does not publish to PyPI"
+check_phrase "release preflight published to npm" "False claim: release preflight does not publish to npm"
+
 # END OF NEW RULES
 
 if [ "$FOUND_STALE" -eq 1 ]; then

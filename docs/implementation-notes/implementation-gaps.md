@@ -252,7 +252,7 @@ Note: C and C++ parser-free generated-vector bridges now exist. Both are generat
 
 **Status:** Active
 **Area:** Distribution
-**Current state:** Python/Node.js are baseline-public certified. A non-publishing Phase 8 distribution preflight script (`scripts/run_python_node_release_preflight.py`) is implemented and runs successfully to verify wheel/sdist and npm pack artifact generation, clean install, and smoke tests. Actual PyPI/npm publication remains pending. Release automation requiring secrets remains pending. Namespace/account decisions must be resolved.
+**Current state:** Python/Node.js are baseline-public certified. A non-publishing Phase 8 distribution preflight script (`scripts/run_python_node_release_preflight.py`) is implemented and runs successfully to verify wheel/sdist and npm pack artifact generation, clean install, and smoke tests. Phase 9 installed-distribution matrix and artifact hash manifest generation are complete and passing. Actual PyPI/npm publication remains pending. Release automation requiring secrets remains pending. Namespace/account decisions must be resolved.
 **Expected or intended state:** Actual publication of Python and Node.js artifacts via secure, credentialed automated CI/CD releases.
 **Why it matters:** Library users require standard distribution channels.
 **Recommended next action:** Decide on package namespace (e.g. `encrypted-storage`), define secure credential workflows, and perform controlled public package release.

@@ -53,7 +53,7 @@ Python and Node.js have been formally certified as `baseline-public`. Distributi
 4.  Discard the temporary test directory and `test_smoke.sqlite`.
 
 ## Cross-language Matrix Validation
-If testing the matrix *after* a package install, replace the local editable or source-based installs with the compiled distribution artifacts inside a clean environment, then invoke the wrapper tests over those environments.
+If testing the matrix *after* a package install, replace the local editable or source-based installs with the compiled distribution artifacts inside a clean environment, then invoke the wrapper tests over those environments. This has been completed in the Phase 9 installed-distribution matrix preflight.
 
 ## Release Notes Checklist
 - [ ] Confirm baseline-public status for included implementations.
@@ -80,6 +80,8 @@ Generated package artifacts (like `.whl`, `.tar.gz`, `.tgz`), build directories 
 ## Phase 8 Release Preflight
 A non-publishing release preflight script exists at `scripts/run_python_node_release_preflight.py` to test building, packing, and smoke-testing both languages.
 It creates a clean virtual environment and `npm init` environment, avoiding generated artifacts from being committed.
+
+The preflight optionally writes an artifact hash manifest with `--write-manifest` and runs a full cross-language installed-distribution matrix with `--installed-matrix`.
 
 Run the preflight command via:
 ```bash
