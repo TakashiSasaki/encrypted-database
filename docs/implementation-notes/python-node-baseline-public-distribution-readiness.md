@@ -77,7 +77,7 @@ Generated package artifacts (like `.whl`, `.tar.gz`, `.tgz`), build directories 
 *   Securely provide publish credentials to the CI environment.
 *   Final review of package namespace availability (e.g., `encrypted-storage` vs scoped `@vault/encrypted-storage`).
 
-## Phase 8 Release Preflight
+## Phase 8 and Phase 9 Release Preflight
 A non-publishing release preflight script exists at `scripts/run_python_node_release_preflight.py` to test building, packing, and smoke-testing both languages.
 It creates a clean virtual environment and `npm init` environment, avoiding generated artifacts from being committed.
 

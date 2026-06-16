@@ -587,13 +587,16 @@ run();
     def run_wrapper(lang, env_path, wrapper_path, op, db_path, obj_uuid=None):
         cmd = []
         cwd = matrix_dir
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        env = os.environ.copy()
+        env["EXPECTED_REPO_ROOT"] = repo_root
+
         if lang == "python":
             python_bin = os.path.join(env_path, "bin", "python")
             if os.name == "nt":
                 python_bin = os.path.join(env_path, "Scripts", "python")
             cmd = [python_bin, wrapper_path, op, db_path]
             # Avoid PYTHONPATH and ensure isolation
-            env = os.environ.copy()
             if "PYTHONPATH" in env:
                 del env["PYTHONPATH"]
         else: # node
@@ -602,7 +605,6 @@ run();
             cwd = env_path
             wrapper_path = os.path.abspath(wrapper_path) # Absolute path since cwd is different
             cmd[1] = wrapper_path
-            env = os.environ.copy()
             if "NODE_PATH" in env:
                 del env["NODE_PATH"]
 
@@ -723,7 +725,8 @@ run();
         "pairs_total": len(pairs),
         "pairs_passed": passed_count,
         "records": records,
-        "public_quality_certification": True,  # Representing already completed baseline-public certification
+        "baseline_public_certification": "previously-certified",
+        "installed_distribution_preflight_passed": True,
         "publishing_certification": False,
         "artifact_publication": False
     }
@@ -738,6 +741,7 @@ def main():
     parser.add_argument("--json", action="store_true", help="Output in JSON format")
     parser.add_argument("--installed-matrix", action="store_true", help="Run cross-language matrix on installed artifacts")
     parser.add_argument("--write-manifest", type=str, help="Path to write the artifact hash manifest")
+    parser.add_argument("--write-report", type=str, help="Path to write the JSON preflight report")
 
     args = parser.parse_args()
 
@@ -842,6 +846,13 @@ def main():
                 print(f"Manifest written to {args.write_manifest}", file=sys.stderr)
 
 
+
+
+    if args.write_report:
+        with open(args.write_report, "w") as f:
+            json.dump(results, f, indent=2)
+        if not args.json:
+            print(f"Report written to {args.write_report}", file=sys.stderr)
 
     if args.json:
         print(json.dumps(results, indent=2))
