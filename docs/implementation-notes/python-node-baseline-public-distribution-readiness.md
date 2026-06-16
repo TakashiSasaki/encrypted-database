@@ -59,6 +59,7 @@ If testing the matrix *after* a package install, replace the local editable or s
 - [ ] Confirm baseline-public status for included implementations.
 - [ ] Document Storage Format V1 stability and unchanged semantics.
 - [ ] List any notable bug fixes or known boundaries.
+- [ ] Artifact hash manifest generation and verification.
 
 ## Versioning Checklist
 - [ ] Python: `pyproject.toml` version matches tag.
@@ -69,6 +70,8 @@ If testing the matrix *after* a package install, replace the local editable or s
 Generated package artifacts (like `.whl`, `.tar.gz`, `.tgz`), build directories (`dist/`, `build/`, `*.egg-info`), and temporary node_modules/virtual environments must never be committed to the repository.
 
 ## Remaining Blockers Before Actual PyPI/npm Publishing
+*   Manual release approval gate passed.
+*   Rollback/yank policy definition.
 *   Decide on GitHub Actions/CI configuration for automated releases.
 *   Provision PyPI and npm organizational accounts or scopes.
 *   Securely provide publish credentials to the CI environment.

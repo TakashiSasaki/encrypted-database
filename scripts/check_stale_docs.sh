@@ -235,6 +235,7 @@ check_phrase "all languages are baseline-public" "False claim: Only Python and N
 check_phrase "C/C\+\+ are production storage libraries" "False claim: C/C++ are bootstrap scaffolds, not production storage libraries"
 check_phrase "external security audit completion" "False claim: Security notes are internal sign-offs, not an external audit"
 check_phrase "external security audit is complete" "False claim: Security notes are internal sign-offs, not an external audit"
+check_phrase "Storage Format V1 changed by preflight" "False claim: Storage Format V1 is unchanged"
 check_phrase "publishing_performed: true" "False claim: Publishing has not been performed"
 check_phrase "credentials committed" "False claim: Credentials must never be committed"
 

@@ -11,7 +11,7 @@ This library provides the Python implementation of the Encrypted Database, an ap
 - Stores metadata using SQLite (`docs/backend/sqlite/schema.sql`).
 
 ## Installation
-**Note:** Python and Node.js are baseline-public certified. Distribution/publication may still be manual or pending; actual PyPI publication is not yet done, and release automation does not yet exist.
+**Note:** Python and Node.js are `baseline-public` certified. Packages are not yet published to PyPI. A local/monorepo install remains available. Actual publication status must not be overclaimed.
 
 To install the module locally from the repository:
 ```bash

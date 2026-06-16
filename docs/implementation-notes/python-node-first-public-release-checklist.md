@@ -13,6 +13,7 @@ This document tracks the Phase 8 release preflight readiness and outlines the fi
 - [ ] Both languages use identical version identifiers.
 
 ## Package Namespace Decision
+- [ ] Manual release approval gate passed.
 - [ ] PyPI project name (`encrypted_storage`) vs alternatives decided.
 - [ ] npm package scope/name (`encrypted-storage` vs `@vault/encrypted-storage`) decided.
 
@@ -21,6 +22,8 @@ This document tracks the Phase 8 release preflight readiness and outlines the fi
 - [ ] Node.js distribution installs correctly in a clean test project and smoke test passes.
 
 ## PyPI/npm Project Readiness
+- [ ] PyPI trusted publishing or API-token decision.
+- [ ] npm trusted publishing / automation decision.
 - [ ] PyPI project account or org exists.
 - [ ] npm organization/scope exists.
 
@@ -29,6 +32,7 @@ This document tracks the Phase 8 release preflight readiness and outlines the fi
 - [ ] README long-description correctly styled and verified.
 
 ## Release Notes & Tag Strategy
+- [ ] Artifact hash manifest generation and verification.
 - [ ] Release notes drafted summarizing baseline-public features.
 - [ ] Semantic versioning tag strategy established.
 - [ ] Rollback/yank policy documented.

@@ -34,3 +34,8 @@ Repository = "https://github.com/TakashiSasaki/vault.moukaeritai.work"
 
 [tool.setuptools.package-data]
 "encrypted_storage" = ["schema.sql"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["encrypted_storage*"]
+exclude = ["tests*", "test*"]
