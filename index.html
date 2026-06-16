@@ -22,6 +22,12 @@
                 padding: 15px;
             }
         }
+
+        nav a[aria-current="page"] {
+            font-weight: bold;
+            color: #24292f; /* slightly darker for current, or could just rely on bold */
+            text-decoration: underline;
+        }
     </style>
     <!-- Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -125,7 +131,19 @@
                 const filename = file.split('/').pop();
                 document.title = `${filename} - Encrypted Database Library`;
 
+                // Update aria-current for navigation links
+                const navLinks = document.querySelectorAll('nav[aria-label="Main Navigation"] a');
+                navLinks.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href === `?file=${file}` || (file === 'README.md' && href === '?file=README.md')) {
+                        link.setAttribute('aria-current', 'page');
+                    } else {
+                        link.removeAttribute('aria-current');
+                    }
+                });
+
                 // Security check to prevent fetching external resources
+
                 if (/^[a-zA-Z]+:/.test(file) || file.startsWith('//')) {
                     contentDiv.innerHTML = `<p>Error: Loading external files is not allowed.</p>`;
                     pathDisplayDiv.innerHTML = '';
