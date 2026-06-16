@@ -259,22 +259,6 @@ check_phrase "all languages are baseline-public" "False claim: Only Python and N
 check_phrase "C/C\+\+ production storage library" "False claim: C/C++ are bootstrap scaffolds, not production storage libraries"
 
 
-# 36. Phase 12 Guardrails
-check_phrase "Phase 12 published packages" "False claim: Phase 12 does not publish packages"
-check_phrase "publication readiness gate published to PyPI" "False claim: publication readiness gate does not publish"
-check_phrase "publication readiness gate published to npm" "False claim: publication readiness gate does not publish"
-check_phrase "trusted publishing configured" "False claim: trusted publishing is not configured yet"
-check_phrase "post-publication verification complete" "False claim: post-publication verification is pending"
-check_phrase "release execution readiness pushed tag" "False claim: tags are not pushed in Phase 12"
-check_phrase "Storage Format V1 changed by release readiness" "False claim: Storage Format V1 is unchanged"
-
-if [ "$FOUND_STALE" -eq 1 ]; then
-    echo "⚠️  Stale documentation found. Please update the affected files."
-    exit 1
-else
-    echo "✅ No stale documentation phrases found."
-    exit 0
-fi
 
 # 36. Phase 12 Guardrails
 check_phrase "Phase 12 published packages" "False claim: Phase 12 does not publish packages"
@@ -285,3 +269,11 @@ check_phrase "post-publication verification complete" "False claim: post-publica
 check_phrase "release execution readiness pushed tag" "False claim: tags are not pushed in Phase 12"
 check_phrase "Storage Format V1 changed by release readiness" "False claim: Storage Format V1 is unchanged"
 check_phrase "release execution readiness created credentials" "False claim: release execution readiness does not create credentials"
+
+if [ "$FOUND_STALE" -eq 1 ]; then
+    echo "⚠️  Stale documentation found. Please update the affected files."
+    exit 1
+else
+    echo "✅ No stale documentation phrases found."
+    exit 0
+fi
