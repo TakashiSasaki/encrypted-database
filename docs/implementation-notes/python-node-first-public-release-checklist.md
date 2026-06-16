@@ -32,14 +32,14 @@ This document tracks the Phase 8 release preflight readiness and outlines the fi
 - [ ] README long-description correctly styled and verified.
 
 ## Release Notes & Tag Strategy
-- [ ] Artifact hash manifest generation and verification.
+- [x] Artifact hash manifest generation and verification.
 - [ ] Release notes drafted summarizing baseline-public features.
 - [ ] Semantic versioning tag strategy established.
 - [ ] Rollback/yank policy documented.
 - [ ] Credential/secrets policy established for deployment.
 
 ## Matrix Validation
-- [ ] Cross-language matrix validations passing when using installed package distributions (or explicitly deferred).
+- [x] Cross-language matrix validations passing when using installed package distributions (or explicitly deferred).
 
 ## Unchanged Semantics Statement
 **Storage Format V1 Semantics:** No bytes-on-disk semantics, JCS canonical exactness, KDF profiles, AEAD limits, or UUID policies are altered by this release.

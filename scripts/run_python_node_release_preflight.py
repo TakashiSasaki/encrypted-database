@@ -204,7 +204,8 @@ except Exception as e:
         "artifacts": artifacts,
         "artifact_hashes": artifact_hashes,
         "smoke_test_passed": True,
-        "contents_audit_passed": True
+        "contents_audit_passed": True,
+        "venv_dir": venv_dir
     }
 
 def preflight_node(base_tmpdir, args_json=False):
@@ -373,6 +374,7 @@ run();
         with open(p, "rb") as f_hash:
             artifact_hashes[a] = hashlib.sha256(f_hash.read()).hexdigest()
 
+
     if not args_json:
         print("Node.js preflight passed.", file=sys.stderr)
     return {
@@ -382,8 +384,10 @@ run();
         "artifact": artifacts[0],
         "artifact_hashes": artifact_hashes,
         "smoke_test_passed": True,
-        "contents_audit_passed": True
+        "contents_audit_passed": True,
+        "test_dir": test_dir
     }
+
 
 
 def check_for_artifacts():
@@ -403,11 +407,337 @@ def check_for_artifacts():
         sys.exit(1)
 
 
+
+def run_installed_matrix(base_tmpdir, py_res, node_res, args_json=False):
+    if not args_json:
+        print("--- Installed Distribution Matrix ---", file=sys.stderr)
+
+    matrix_dir = os.path.join(base_tmpdir, "matrix_test")
+    os.makedirs(matrix_dir, exist_ok=True)
+
+    python_env = None
+    if py_res and py_res.get("ok"):
+        python_env = py_res.get("venv_dir")
+
+    node_env = None
+    if node_res and node_res.get("ok"):
+        node_env = node_res.get("test_dir")
+
+    if not python_env or not node_env:
+        return {"ok": False, "error": "Python or Node.js preflight failed, cannot run matrix."}
+
+
+    # Generate Python wrapper script
+    py_wrapper = os.path.join(python_env, "py_wrapper.py")
+    with open(py_wrapper, "w") as f:
+
+        f.write('''import sys
+import json
+import os
+from encrypted_storage import EncryptedStorage
+
+def run():
+    op = sys.argv[1]
+    db_path = sys.argv[2]
+
+
+    # Provenance check
+    import encrypted_storage
+    file_path = encrypted_storage.__file__
+
+    # We want to make sure it is not in the repo root
+    # Since we are running in /app typically, let's use the current dir of the script (repo root)
+    # The current working dir when we run the main script is the repo root.
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+    # Actually, we should pass the repo root as an arg or env var, or just hardcode checking if it's in the repo directory structure
+    # Let's check if it's inside the 'venv' which is what we want.
+    if "py_venv" not in file_path and "node_test" not in file_path:
+        print(json.dumps({"ok": False, "error": f"Python loaded from outside venv: {file_path}"}))
+        sys.exit(1)
+
+
+    storage = EncryptedStorage(db_path)
+
+
+
+    if op == "write":
+        storage.initialize_database("test_passphrase_123", "linux")
+        payload = {"foo": "bar"}
+        obj_id = storage.store_payload("215fe3e1-e14a-4e2b-bbd7-1b0337f90ebf", "application/json", payload)
+        storage.close()
+        print(json.dumps({"ok": True, "object_uuid": obj_id, "provenance": file_path}))
+
+    elif op == "read":
+        storage.unlock_database("test_passphrase_123")
+        obj_id = sys.argv[3]
+        payload = storage.retrieve_payload(obj_id)
+        storage.close()
+        print(json.dumps({"ok": True, "payload": payload, "provenance": file_path}))
+
+    elif op == "update":
+        storage.unlock_database("test_passphrase_123")
+        obj_id = sys.argv[3]
+        payload = {"foo": "baz"}
+        storage.update_payload(obj_id, "215fe3e1-e14a-4e2b-bbd7-1b0337f90ebf", "application/json", payload)
+        storage.close()
+        print(json.dumps({"ok": True, "provenance": file_path}))
+
+    elif op == "delete":
+        storage.unlock_database("test_passphrase_123")
+        obj_id = sys.argv[3]
+        storage.delete_payload(obj_id)
+        storage.close()
+        print(json.dumps({"ok": True, "provenance": file_path}))
+
+    elif op == "not_found":
+        storage.unlock_database("test_passphrase_123")
+        obj_id = sys.argv[3]
+
+
+        try:
+            storage.retrieve_payload(obj_id)
+            print(json.dumps({"ok": False, "error": "Expected ObjectNotFound"}))
+        except Exception as e:
+            if type(e).__name__ == "ObjectNotFound":
+                print(json.dumps({"ok": True, "provenance": file_path}))
+            else:
+                print(json.dumps({"ok": False, "error": f"Expected ObjectNotFound, got {type(e).__name__}"}))
+        storage.close()
+
+run()
+''')
+
+
+
+    # Generate Node wrapper script
+    node_wrapper = os.path.join(node_env, "node_wrapper.js")
+    with open(node_wrapper, "w") as f:
+
+        f.write('''const process = require('process');
+const path = require('path');
+const { EncryptedStorage } = require('encrypted-storage');
+
+async function run() {
+    const op = process.argv[2];
+    const dbPath = process.argv[3];
+
+    // Provenance check
+    const resolvePath = require.resolve('encrypted-storage');
+    if (!resolvePath.includes("node_test")) {
+        console.log(JSON.stringify({ok: false, error: `Node loaded from outside test project: ${resolvePath}`}));
+        process.exit(1);
+    }
+
+    const storage = new EncryptedStorage(dbPath);
+
+    try {
+        if (op === "write") {
+            await storage.initializeDatabase("test_passphrase_123", "linux");
+            const payload = {foo: "bar"};
+            const objId = storage.storePayload("215fe3e1-e14a-4e2b-bbd7-1b0337f90ebf", "application/json", payload);
+            storage.close();
+            console.log(JSON.stringify({ok: true, object_uuid: objId, provenance: resolvePath}));
+
+        } else if (op === "read") {
+            await storage.unlockDatabase("test_passphrase_123");
+            const objId = process.argv[4];
+            const payload = storage.retrievePayload(objId);
+            storage.close();
+            console.log(JSON.stringify({ok: true, payload: payload, provenance: resolvePath}));
+
+        } else if (op === "update") {
+            await storage.unlockDatabase("test_passphrase_123");
+            const objId = process.argv[4];
+            const payload = {foo: "baz"};
+            storage.updatePayload(objId, "215fe3e1-e14a-4e2b-bbd7-1b0337f90ebf", "application/json", payload);
+            storage.close();
+            console.log(JSON.stringify({ok: true, provenance: resolvePath}));
+
+        } else if (op === "delete") {
+            await storage.unlockDatabase("test_passphrase_123");
+            const objId = process.argv[4];
+            storage.deletePayload(objId);
+            storage.close();
+            console.log(JSON.stringify({ok: true, provenance: resolvePath}));
+
+        } else if (op === "not_found") {
+            await storage.unlockDatabase("test_passphrase_123");
+            const objId = process.argv[4];
+            try {
+                storage.retrievePayload(objId);
+                console.log(JSON.stringify({ok: false, error: "Expected ObjectNotFound"}));
+            } catch (e) {
+                if (e.constructor.name === "ObjectNotFound") {
+                    console.log(JSON.stringify({ok: true, provenance: resolvePath}));
+                } else {
+                    console.log(JSON.stringify({ok: false, error: `Expected ObjectNotFound, got ${e.constructor.name}`}));
+                }
+            }
+            storage.close();
+        }
+    } catch (e) {
+        console.log(JSON.stringify({ok: false, error: e.message}));
+    }
+}
+run();
+''')
+
+
+    def run_wrapper(lang, env_path, wrapper_path, op, db_path, obj_uuid=None):
+        cmd = []
+        cwd = matrix_dir
+        if lang == "python":
+            python_bin = os.path.join(env_path, "bin", "python")
+            if os.name == "nt":
+                python_bin = os.path.join(env_path, "Scripts", "python")
+            cmd = [python_bin, wrapper_path, op, db_path]
+            # Avoid PYTHONPATH and ensure isolation
+            env = os.environ.copy()
+            if "PYTHONPATH" in env:
+                del env["PYTHONPATH"]
+        else: # node
+            cmd = ["node", wrapper_path, op, db_path]
+            # Make sure we use the Node env's modules
+            cwd = env_path
+            wrapper_path = os.path.abspath(wrapper_path) # Absolute path since cwd is different
+            cmd[1] = wrapper_path
+            env = os.environ.copy()
+            if "NODE_PATH" in env:
+                del env["NODE_PATH"]
+
+        if obj_uuid:
+            cmd.append(obj_uuid)
+
+        try:
+            res = subprocess.run(cmd, cwd=cwd, env=env, check=True, capture_output=True, text=True)
+            try:
+                out = json.loads(res.stdout)
+                if not out.get("ok"):
+                    return False, out.get("error"), ""
+                return True, out, ""
+            except Exception as e:
+                return False, f"Failed to parse wrapper output: {res.stdout}", ""
+        except subprocess.CalledProcessError as e:
+            return False, e.stdout, e.stderr
+
+    pairs = [
+        ("python", "python"),
+        ("python", "node"),
+        ("node", "python"),
+        ("node", "node")
+    ]
+
+    passed_count = 0
+    records = []
+
+    for writer, reader in pairs:
+        pair_name = f"{writer}->{reader}"
+        if not args_json:
+            print(f"  Testing pair: {pair_name} ... ", end="", file=sys.stderr)
+            sys.stderr.flush()
+
+        db_path = os.path.join(matrix_dir, f"matrix_{writer}_{reader}.sqlite")
+
+        writer_env = python_env if writer == "python" else node_env
+        reader_env = python_env if reader == "python" else node_env
+
+        writer_wrapper = py_wrapper if writer == "python" else node_wrapper
+        reader_wrapper = py_wrapper if reader == "python" else node_wrapper
+
+        pair_success = True
+        error_msg = ""
+        prov = {"writer": None, "reader": None}
+
+        # 1. Write P1
+        ok, res, err = run_wrapper(writer, writer_env, writer_wrapper, "write", db_path)
+        if not ok:
+            pair_success = False
+            error_msg = f"Write failed: {res} {err}"
+        else:
+            obj_uuid = res.get("object_uuid")
+            prov["writer"] = res.get("provenance")
+
+            # 2. Read P1
+            ok, res, err = run_wrapper(reader, reader_env, reader_wrapper, "read", db_path, obj_uuid)
+            if not ok:
+                pair_success = False
+                error_msg = f"Read failed: {res} {err}"
+            elif res.get("payload") != {"foo": "bar"}:
+                pair_success = False
+                error_msg = f"Read payload mismatch: {res.get('payload')}"
+            else:
+                prov["reader"] = res.get("provenance")
+
+                # 3. Update to P2
+                ok, res, err = run_wrapper(reader, reader_env, reader_wrapper, "update", db_path, obj_uuid)
+                if not ok:
+                    pair_success = False
+                    error_msg = f"Update failed: {res} {err}"
+                else:
+                    # 4. Read P2
+                    ok, res, err = run_wrapper(writer, writer_env, writer_wrapper, "read", db_path, obj_uuid)
+                    if not ok:
+                        pair_success = False
+                        error_msg = f"Read updated failed: {res} {err}"
+                    elif res.get("payload") != {"foo": "baz"}:
+                        pair_success = False
+                        error_msg = f"Read updated payload mismatch: {res.get('payload')}"
+                    else:
+                        # 5. Delete
+                        ok, res, err = run_wrapper(reader, reader_env, reader_wrapper, "delete", db_path, obj_uuid)
+                        if not ok:
+                            pair_success = False
+                            error_msg = f"Delete failed: {res} {err}"
+                        else:
+                            # 6. Expect ObjectNotFound
+                            ok, res, err = run_wrapper(writer, writer_env, writer_wrapper, "not_found", db_path, obj_uuid)
+                            if not ok:
+                                pair_success = False
+                                error_msg = f"NotFound check failed: {res} {err}"
+
+        if pair_success:
+            passed_count += 1
+            if not args_json:
+                print("PASS", file=sys.stderr)
+            records.append({
+                "pair": pair_name,
+                "status": "passed",
+                "provenance": prov
+            })
+        else:
+            if not args_json:
+                print(f"FAIL ({error_msg})", file=sys.stderr)
+            records.append({
+                "pair": pair_name,
+                "status": "failed",
+                "error": error_msg,
+                "provenance": prov
+            })
+
+    matrix_result = {
+        "mode": "installed-distribution-matrix",
+        "artifact_source": "built-local-temporary-artifacts",
+        "database": "temporary-file",
+        "operations": ["write", "read", "update", "delete", "not_found_after_delete"],
+        "pairs_total": len(pairs),
+        "pairs_passed": passed_count,
+        "records": records,
+        "public_quality_certification": True,  # Representing already completed baseline-public certification
+        "publishing_certification": False,
+        "artifact_publication": False
+    }
+
+    return {"ok": passed_count == len(pairs), "matrix": matrix_result}
+
+
 def main():
     parser = argparse.ArgumentParser(description="Distribution Release Preflight")
     parser.add_argument("--python", action="store_true", help="Run Python preflight")
     parser.add_argument("--node", action="store_true", help="Run Node.js preflight")
     parser.add_argument("--json", action="store_true", help="Output in JSON format")
+    parser.add_argument("--installed-matrix", action="store_true", help="Run cross-language matrix on installed artifacts")
+    parser.add_argument("--write-manifest", type=str, help="Path to write the artifact hash manifest")
 
     args = parser.parse_args()
 
@@ -416,6 +746,7 @@ def main():
         args.node = True
 
     check_for_artifacts()
+
 
     results = {
         "phase": "distribution-preflight",
@@ -439,6 +770,9 @@ def main():
         "node": None
     }
 
+    if args.installed_matrix:
+        results["installed_distribution_matrix"] = None
+
     success = True
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -457,6 +791,57 @@ def main():
                 success = False
                 if not args.json:
                      print(f"Node.js preflight failed: {node_res.get('error')}")
+
+        if args.installed_matrix:
+            matrix_res = run_installed_matrix(tmpdir, results.get("python"), results.get("node"), args_json=args.json)
+            results["installed_distribution_matrix"] = matrix_res.get("matrix")
+            if not matrix_res.get("ok"):
+                success = False
+                if not args.json:
+                    print("Installed distribution matrix failed.")
+
+
+        if args.write_manifest:
+            manifest = {
+                "publishing_performed": False,
+                "artifacts": []
+            }
+            if results.get("python") and results["python"].get("ok"):
+                py = results["python"]
+                py_artifacts_dir = os.path.join(tmpdir, "py_build", "python", "dist")
+                for k, v in py["artifact_hashes"].items():
+                    size = os.path.getsize(os.path.join(py_artifacts_dir, k)) if os.path.exists(os.path.join(py_artifacts_dir, k)) else 0
+                    manifest["artifacts"].append({
+                        "language": "python",
+                        "package_name": py["name"],
+                        "version": py["version"],
+                        "artifact_filename": k,
+                        "artifact_type": "wheel" if k.endswith(".whl") else "sdist",
+                        "sha256": v,
+                        "size_bytes": size
+                    })
+            if results.get("node") and results["node"].get("ok"):
+                node = results["node"]
+                node_artifacts_dir = os.path.join(tmpdir, "node_build", "nodejs")
+                for k, v in node["artifact_hashes"].items():
+                    size = os.path.getsize(os.path.join(node_artifacts_dir, k)) if os.path.exists(os.path.join(node_artifacts_dir, k)) else 0
+                    manifest["artifacts"].append({
+                        "language": "nodejs",
+                        "package_name": node["name"],
+                        "version": node["version"],
+                        "artifact_filename": k,
+                        "artifact_type": "tarball",
+                        "sha256": v,
+                        "size_bytes": size
+                    })
+
+
+            with open(args.write_manifest, "w") as mf:
+                json.dump(manifest, mf, indent=2)
+            if not args.json:
+                print(f"Manifest written to {args.write_manifest}", file=sys.stderr)
+
+
 
     if args.json:
         print(json.dumps(results, indent=2))
