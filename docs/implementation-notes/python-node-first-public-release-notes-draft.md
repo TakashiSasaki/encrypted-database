@@ -10,8 +10,8 @@ This release affirms that **Storage Format V1 is Stable**. There are no changes 
 
 ## Supported APIs
 The following core capabilities are supported in both languages:
-- **Lifecycle:** `initializeDatabase` (or `initialize_database`), `unlockDatabase`, `lock`, `close`, `isClosed`, `isUnlocked`
-- **Payload Operations:** `storePayload`, `retrievePayload`, `updatePayload`, `deletePayload`
+- **Lifecycle:** `initializeDatabase` (Node.js) / `initialize_database` (Python), `unlockDatabase` (Node.js) / `unlock_database` (Python), `lock`, `close`, `isClosed` (Node.js) / `is_closed` (Python), `isUnlocked` (Node.js) / `is_unlocked` (Python)
+- **Payload Operations:** `storePayload` (Node.js) / `store_payload` (Python), `retrievePayload` (Node.js) / `retrieve_payload` (Python), `updatePayload` (Node.js) / `update_payload` (Python), `deletePayload` (Node.js) / `delete_payload` (Python)
 
 ## Quality & Compatibility Evidence
 - **Cross-language Compatibility:** A comprehensive read/write matrix guarantees that databases created in Python can be seamlessly read and modified in Node.js, and vice-versa.
