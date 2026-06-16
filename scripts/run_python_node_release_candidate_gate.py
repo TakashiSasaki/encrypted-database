@@ -197,11 +197,20 @@ def main():
         preflight_cmd.append("--installed-matrix")
 
     rc, stdout, stderr = run_command(preflight_cmd)
+
+    if rc != 0:
+        results["remaining_blockers"].append("Preflight script exited with non-zero status.")
+
     try:
         preflight_res = json.loads(stdout)
         results["preflight"] = preflight_res
         if not preflight_res.get("python", {}).get("ok") or not preflight_res.get("node", {}).get("ok"):
-            results["remaining_blockers"].append("Preflight checks failed.")
+            results["remaining_blockers"].append("Preflight checks failed for Python or Node.js.")
+
+        if args.installed_matrix:
+            matrix = preflight_res.get("installed_distribution_matrix", {})
+            if matrix.get("pairs_total", 0) == 0 or matrix.get("pairs_total") != matrix.get("pairs_passed"):
+                results["remaining_blockers"].append("Installed-distribution matrix failed.")
     except Exception as e:
         results["preflight"] = {"ok": False, "error": f"Failed to parse preflight output: {e}"}
         results["remaining_blockers"].append("Preflight script failed to return valid JSON.")

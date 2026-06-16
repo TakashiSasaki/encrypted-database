@@ -248,13 +248,6 @@ check_phrase "Storage Format V1 changed by release preflight" "False claim: Stor
 
 # END OF NEW RULES
 
-if [ "$FOUND_STALE" -eq 1 ]; then
-    echo "⚠️  Stale documentation found. Please update the affected files."
-    exit 1
-else
-    echo "✅ No stale documentation phrases found."
-    exit 0
-fi
 # 35. Phase 11 Guardrails
 check_phrase "Phase 11 published packages" "False claim: Phase 11 does not publish packages"
 check_phrase "release candidate gate published to PyPI" "False claim: release candidate gate does not publish to PyPI"
@@ -263,4 +256,12 @@ check_phrase "release candidate freeze created credentials" "False claim: releas
 check_phrase "release candidate freeze pushed tag" "False claim: release candidate freeze does not push tags"
 check_phrase "release candidate freeze changed Storage Format V1" "False claim: Storage Format V1 is unchanged"
 check_phrase "all languages are baseline-public" "False claim: Only Python and Node.js are baseline-public"
-check_phrase "C/C++ production storage library" "False claim: C/C++ are bootstrap scaffolds, not production storage libraries"
+check_phrase "C/C\+\+ production storage library" "False claim: C/C++ are bootstrap scaffolds, not production storage libraries"
+
+if [ "$FOUND_STALE" -eq 1 ]; then
+    echo "⚠️  Stale documentation found. Please update the affected files."
+    exit 1
+else
+    echo "✅ No stale documentation phrases found."
+    exit 0
+fi
