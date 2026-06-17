@@ -1,6 +1,6 @@
 # Python/Node.js First Public Release Checklist
 
-This document tracks the Phase 8 through Phase 13 release preflight, execution readiness, and human decision gate, and outlines the final checklist before actual public publishing to PyPI and npm occurs.
+This document tracks Phase 8 through Phase 14 release preflight, execution readiness, human decision gate, and dry-run registry readiness, outlining the final checklist before actual public publishing to PyPI and npm occurs.
 
 ## Completed Automated Evidence
 - [x] Python distribution builds properly.
@@ -32,7 +32,14 @@ This document tracks the Phase 8 through Phase 13 release preflight, execution r
 - [x] Decision gate added/hardened.
 - [x] Decision gate tests added/hardened.
 - [x] Docs updated for Phase 13.
-- [x] Stale-doc guardrails updated to prevent false Phase 12/13 claims.
+
+## Phase 14 Dry-Run & Registry-Readiness Evidence
+- [x] Publication readiness gate hardened with explicit TOML/JSON metadata validation.
+- [x] Unauthenticated registry probes implemented (opt-in).
+- [x] Dry-run aggregator script and tests added.
+- [x] Registry-readiness documentation added.
+- [x] Stale-doc guardrails updated to prevent false Phase 14 claims.
+- [x] Docs updated for Phase 14.
 
 ## Manual Approval Evidence (Pending)
 - [ ] PyPI project name (`encrypted_storage`) vs alternatives decided.

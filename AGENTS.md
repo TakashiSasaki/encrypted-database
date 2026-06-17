@@ -31,11 +31,19 @@ The repository uses a monorepo setup for multi-language implementations of an en
 
 ### Release Status
 * Phase 11 (Release Candidate Freeze) is **complete**.
-* Phase 12 (Execution Readiness and Publication Runbook) is the **current** scope. It establishes the non-publishing execution readiness gate.
-* **Actual PyPI/npm publication has not occurred.**
+* Phase 12 (Execution Readiness and Publication Runbook) is **complete**.
+* Phase 13 (Human Decision Gate) is **complete**.
+* Phase 14 (External Registry Readiness, Approval Input Normalization, and Dry-Run Evidence) is the **current** scope. Phase 14 remains non-publishing.
+* Actual PyPI/npm publication has not occurred.
 * No credentials are configured or committed.
-* No release tags are created or pushed in this stride.
-* Python and Node.js are **baseline-public**; C/C++/Go/Rust/Zig/browser-test must not be overclaimed as production-ready.
+* No trusted-publishing secrets are configured.
+* No release tags are created or pushed.
+* Python and Node.js are baseline-public.
+* C/C++ are bootstrap scaffolds, not production storage libraries.
+* Go/Rust/Zig are portability-validation/scaffold implementations, not baseline-public.
+* browser-test is a harness, not full browser-runtime baseline-public coverage.
+* Storage Format V1 remains Stable and unchanged.
+* No external security audit is complete.
 
 ### Implementations
 
