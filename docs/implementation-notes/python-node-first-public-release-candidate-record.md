@@ -21,6 +21,7 @@ The following commands were used to validate the release candidate freeze:
 - **Storage Format V1 Semantics:** **Unchanged**
 
 ## Artifacts & Evidence
+- **Human Approval Packet:** [First Public Release Human Approval Packet](./python-node-first-public-release-human-approval-packet.md)
 - **Artifact Manifest Location:** `[PLACEHOLDER_MANIFEST_LOCATION]`
 - **Release Notes Draft:** [First Public Release Notes Draft](./python-node-first-public-release-notes-draft.md)
 

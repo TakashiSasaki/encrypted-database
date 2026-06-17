@@ -276,3 +276,31 @@ else
     echo "✅ No stale documentation phrases found."
     exit 0
 fi
+
+# 37. Phase 13 Guardrails
+check_phrase "Phase 12 published packages" "False claim: Phase 12 does not publish packages"
+check_phrase "Phase 13 published packages" "False claim: Phase 13 does not publish packages"
+check_phrase "publication readiness gate published to PyPI" "False claim: publication readiness gate does not publish"
+check_phrase "publication readiness gate published to npm" "False claim: publication readiness gate does not publish"
+check_phrase "human decision gate published to PyPI" "False claim: human decision gate does not publish"
+check_phrase "human decision gate published to npm" "False claim: human decision gate does not publish"
+check_phrase "human approval packet authorizes publication" "False claim: approval packet remains a draft until specifically approved"
+check_phrase "publication decision record proves publication" "False claim: decision record is not proof of actual publication"
+check_phrase "trusted publishing configured" "False claim: trusted publishing is not configured yet"
+check_phrase "release execution readiness pushed tag" "False claim: execution readiness does not push tags"
+check_phrase "human decision gate pushed tag" "False claim: human decision gate does not push tags"
+check_phrase "post-publication verification complete" "False claim: post-publication verification is pending"
+check_phrase "PyPI publication complete" "False claim: PyPI publication is pending"
+check_phrase "npm publication complete" "False claim: npm publication is pending"
+check_phrase "Storage Format V1 changed by release readiness" "False claim: Storage Format V1 is unchanged"
+check_phrase "external security audit complete" "False claim: No external security audit"
+check_phrase "all languages are baseline-public" "False claim: Only Python and Node.js are baseline-public"
+check_phrase "C/C\+\+ production storage library" "False claim: C/C++ are bootstrap scaffolds"
+
+if [ "$FOUND_STALE" -eq 1 ]; then
+    echo "⚠️  Stale documentation found. Please update the affected files."
+    exit 1
+else
+    echo "✅ No stale documentation phrases found."
+    exit 0
+fi
