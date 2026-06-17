@@ -13,6 +13,7 @@ The following commands were used to validate the release candidate freeze:
 - [ ] `bash scripts/check_stale_docs.sh`
 - [ ] `python scripts/run_python_node_release_candidate_gate.py --json`
 - [ ] `python scripts/run_python_node_release_candidate_gate.py --installed-matrix --json`
+- [ ] `python scripts/run_python_node_first_public_release_dry_run.py --json`
 
 ## Status
 - **Publication Status:** **Not Published**

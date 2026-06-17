@@ -6,17 +6,17 @@ This runbook outlines the steps to execute the first public release of the `base
 - **Phase 11: Release Candidate Freeze** (Completed: Non-publishing freeze of metadata and artifacts).
 - **Phase 12: Publication Readiness Gate** (Completed: Automated checks for readiness without publishing).
 - **Phase 13: Human Decision Gate** (Completed: Structured explicit authorization tracking without publishing).
+- **Phase 14: Dry-Run and Registry Readiness** (Completed: Aggregated dry-run checking and unauthenticated registry probes without publishing).
 - **Actual Publication** (Future explicit phase).
 
 ## Prerequisites
 1. **Approval:** The publication decision must be documented and signed off in `python-node-first-public-release-decision-record.md`, replacing all `PENDING` and `PLACEHOLDER` fields.
-2. **Release Candidate Freeze:** The repository must be at a verified commit matching the release-candidate hash, passing the Phase 11 release-candidate gate (`scripts/run_python_node_release_candidate_gate.py`).
-3. **Execution Readiness Gate:** `scripts/run_python_node_publication_readiness_gate.py --require-publication-ready` must pass.
+2. **Dry Run Gate:** The repository must pass the full aggregated dry-run gate, which includes the release candidate and publication readiness gates: `scripts/run_python_node_first_public_release_dry_run.py --require-publication-ready --include-installed-matrix --allow-network-probes`.
 
 ## Step 1: Pre-execution Validation (Future)
-Run the execution readiness gate to verify approval and readiness:
+Run the dry-run aggregator to verify approval and readiness:
 ```bash
-python scripts/run_python_node_publication_readiness_gate.py --require-publication-ready
+python scripts/run_python_node_first_public_release_dry_run.py --require-publication-ready --include-installed-matrix --allow-network-probes
 ```
 
 ## Step 2: Secret Management & Trusted Publishing (Future)

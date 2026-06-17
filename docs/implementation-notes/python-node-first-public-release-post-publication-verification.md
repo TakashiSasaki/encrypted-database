@@ -1,6 +1,6 @@
 # Python/Node.js First Public Release Post-Publication Verification Plan
 
-**Note: Actual publication has not yet occurred. These are pending steps.**
+**Phase 14 Note: Actual publication has not yet occurred. These are pending steps. Phase 14 dry-run registry readiness is non-publishing.**
 
 Once the packages have been published to PyPI and npm, the following steps must be taken to verify their integrity and correctness in real-world environments.
 

@@ -12,7 +12,7 @@ class TestRunPythonNodePublicationReadinessGate(unittest.TestCase):
             capture_output=True, text=True
         )
         self.assertEqual(result.returncode, 0)
-        self.assertIn("First Public Release Publication Readiness Gate", result.stdout)
+        self.assertIn("First Public Release Execution Approval Readiness Gate", result.stdout)
 
     def test_default_informational_mode(self):
         result = subprocess.run(
@@ -22,7 +22,7 @@ class TestRunPythonNodePublicationReadinessGate(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         data = json.loads(result.stdout)
 
-        self.assertEqual(data["phase"], "first-public-release-human-decision-gate")
+        self.assertEqual(data["phase"], "first-public-release-execution-approval-readiness")
         self.assertTrue(data["decision_record_found"])
         self.assertFalse(data["publication_authorized"])
         self.assertFalse(data["publication_ready"])
@@ -57,7 +57,7 @@ class TestRunPythonNodePublicationReadinessGate(unittest.TestCase):
             self.assertEqual(result.returncode, 0)
             with open(report_path, "r") as f:
                 data = json.load(f)
-            self.assertEqual(data["phase"], "first-public-release-human-decision-gate")
+            self.assertEqual(data["phase"], "first-public-release-execution-approval-readiness")
         finally:
             if os.path.exists(report_path):
                 os.remove(report_path)
@@ -73,8 +73,11 @@ class TestRunPythonNodePublicationReadinessGate(unittest.TestCase):
         self.assertIn("Decision record not found", data["remaining_blockers"][0])
 
     def test_approved_decision_record(self):
+        # We need to get the real HEAD sha to avoid the blocker
+        head_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("utf-8").strip()
+
         # Create a mock approved decision record file that doesn't trigger any blockers
-        mock_content = """# Python/Node.js First Public Release Decision Record
+        mock_content = f"""# Python/Node.js First Public Release Decision Record
 - Status: APPROVED
 - Publication Authorized: true
 - Publishing Performed: false
@@ -87,8 +90,12 @@ class TestRunPythonNodePublicationReadinessGate(unittest.TestCase):
 - npm Package/Scope/Account Decision: Done
 - Trusted Publishing/Token Decision: Done
 - Release Manager Approval: Alice
-- Candidate Commit SHA: abcdef123456
+- Candidate Commit SHA: {head_sha}
 - Gate Result: PASS
+
+## Target Packages
+- **Python:** `encrypted_storage` (Version: 0.1.0)
+- **Node.js:** `encrypted-storage` (Version: 0.1.0)
 """
         with tempfile.NamedTemporaryFile(suffix=".md", delete=False, mode="w") as tf:
             tf.write(mock_content)
