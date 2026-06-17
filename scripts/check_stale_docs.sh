@@ -269,14 +269,6 @@ check_phrase "release execution readiness pushed tag" "False claim: tags are not
 check_phrase "Storage Format V1 changed by release readiness" "False claim: Storage Format V1 is unchanged"
 check_phrase "release execution readiness created credentials" "False claim: release execution readiness does not create credentials"
 
-if [ "$FOUND_STALE" -eq 1 ]; then
-    echo "⚠️  Stale documentation found. Please update the affected files."
-    exit 1
-else
-    echo "✅ No stale documentation phrases found."
-    exit 0
-fi
-
 # 37. Phase 13 Guardrails
 check_phrase "Phase 12 published packages" "False claim: Phase 12 does not publish packages"
 check_phrase "Phase 13 published packages" "False claim: Phase 13 does not publish packages"
