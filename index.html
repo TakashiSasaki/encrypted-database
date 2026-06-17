@@ -290,6 +290,11 @@
                 indexList.innerHTML = '<li>Loading document list...</li>';
                 document.title = 'Index - Encrypted Database Library';
 
+                // Clear any stale aria-current states since we are showing the index overlay
+                document.querySelectorAll('nav[aria-label="Main Navigation"] a').forEach(link => {
+                    link.removeAttribute('aria-current');
+                });
+
                 // Update URL to empty file parameter so reloading doesn't show a specific file if they are on index
                 const newUrl = new URL(window.location);
                 newUrl.searchParams.delete('file');
