@@ -4,6 +4,19 @@
 
 Once the packages have been published to PyPI and npm, the following steps must be taken to verify their integrity and correctness in real-world environments.
 
+## Expected Evidence Schema (Future)
+For each verification step, record the following:
+- **Registry:** (PyPI / npm)
+- **Package:** (`encrypted_storage` / `encrypted-storage`)
+- **Version:** (`0.1.0`)
+- **Install Source:** (e.g., `pip install`, `npm install`)
+- **Environment:** (e.g., Python 3.10 venv, Node 18 empty project)
+- **Command:** (Exact execution command)
+- **Result:** (Pass/Fail)
+- **Artifact Hash:** (SHA-256 of downloaded tarball/wheel, if available)
+- **Cross-Language Matrix Result:** (Pass/Fail across language pairs)
+- **Failure Handling:** (Action taken if issues found)
+
 ## 1. Registry Inspection
 - **PyPI:** Visit the PyPI project page for `encrypted_storage` and verify that the version, README, authors, license, and repository links are correctly displayed.
 - **npm:** Visit the npm package page for `encrypted-storage` and verify the metadata, README, and public accessibility.
