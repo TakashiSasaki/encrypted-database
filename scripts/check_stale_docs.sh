@@ -224,7 +224,70 @@ check_phrase "public_quality_certification: true" "False certification claim: pu
 check_phrase "remaining JCS conformance coverage" "Vague blocker phrase: Use explicit vector names or document deferrals"
 check_phrase "CI evidence: Achieved" "Stale claim: CI evidence must remain accurately classified as historical or separated from local evidence"
 
+# 34. Guard against Distribution false claims and overclaims
+check_phrase "PyPI publication complete" "False claim: PyPI publication is not complete"
+check_phrase "npm publication complete" "False claim: npm publication is not complete"
+check_phrase "PyPI and npm package publication is complete" "False claim: PyPI and npm package publication is not complete"
+check_phrase "release automation exists" "False claim: Release automation requiring secrets does not exist"
+check_phrase "Python.*baseline-candidate" "Stale/false underclaim: Python is now baseline-public certified"
+check_phrase "Node.js.*baseline-candidate" "Stale/false underclaim: Node.js is now baseline-public certified"
+check_phrase "all languages are baseline-public" "False claim: Only Python and Node.js are baseline-public"
+check_phrase "C/C\+\+ are production storage libraries" "False claim: C/C++ are bootstrap scaffolds, not production storage libraries"
+check_phrase "external security audit completion" "False claim: Security notes are internal sign-offs, not an external audit"
+check_phrase "external security audit is complete" "False claim: Security notes are internal sign-offs, not an external audit"
+check_phrase "Storage Format V1 changed by preflight" "False claim: Storage Format V1 is unchanged"
+check_phrase "publishing_performed: true" "False claim: Publishing has not been performed"
+check_phrase "credentials committed" "False claim: Credentials must never be committed"
+
+check_phrase "installed-distribution matrix means publishing completed" "False claim: installed-distribution matrix does not mean publishing is completed"
+check_phrase "release preflight published to PyPI" "False claim: release preflight does not publish to PyPI"
+check_phrase "release preflight published to npm" "False claim: release preflight does not publish to npm"
+check_phrase "Phase 10 published packages" "False claim: Phase 10 prepares release readiness, but does not publish packages"
+check_phrase "external security audit complete" "False claim: There is no external security audit"
+check_phrase "Storage Format V1 changed by release preflight" "False claim: Storage Format V1 is unchanged"
+
 # END OF NEW RULES
+
+# 35. Phase 11 Guardrails
+check_phrase "Phase 11 published packages" "False claim: Phase 11 does not publish packages"
+check_phrase "release candidate gate published to PyPI" "False claim: release candidate gate does not publish to PyPI"
+check_phrase "release candidate gate published to npm" "False claim: release candidate gate does not publish to npm"
+check_phrase "release candidate freeze created credentials" "False claim: release candidate freeze does not create credentials"
+check_phrase "release candidate freeze pushed tag" "False claim: release candidate freeze does not push tags"
+check_phrase "release candidate freeze changed Storage Format V1" "False claim: Storage Format V1 is unchanged"
+check_phrase "all languages are baseline-public" "False claim: Only Python and Node.js are baseline-public"
+check_phrase "C/C\+\+ production storage library" "False claim: C/C++ are bootstrap scaffolds, not production storage libraries"
+
+
+# 36. Phase 12 Guardrails
+check_phrase "Phase 12 published packages" "False claim: Phase 12 does not publish packages"
+check_phrase "publication readiness gate published to PyPI" "False claim: publication readiness gate does not publish"
+check_phrase "publication readiness gate published to npm" "False claim: publication readiness gate does not publish"
+check_phrase "trusted publishing configured" "False claim: trusted publishing is not configured yet"
+check_phrase "post-publication verification complete" "False claim: post-publication verification is pending"
+check_phrase "release execution readiness pushed tag" "False claim: tags are not pushed in Phase 12"
+check_phrase "Storage Format V1 changed by release readiness" "False claim: Storage Format V1 is unchanged"
+check_phrase "release execution readiness created credentials" "False claim: release execution readiness does not create credentials"
+
+# 37. Phase 13 Guardrails
+check_phrase "Phase 12 published packages" "False claim: Phase 12 does not publish packages"
+check_phrase "Phase 13 published packages" "False claim: Phase 13 does not publish packages"
+check_phrase "publication readiness gate published to PyPI" "False claim: publication readiness gate does not publish"
+check_phrase "publication readiness gate published to npm" "False claim: publication readiness gate does not publish"
+check_phrase "human decision gate published to PyPI" "False claim: human decision gate does not publish"
+check_phrase "human decision gate published to npm" "False claim: human decision gate does not publish"
+check_phrase "human approval packet authorizes publication" "False claim: approval packet remains a draft until specifically approved"
+check_phrase "publication decision record proves publication" "False claim: decision record is not proof of actual publication"
+check_phrase "trusted publishing configured" "False claim: trusted publishing is not configured yet"
+check_phrase "release execution readiness pushed tag" "False claim: execution readiness does not push tags"
+check_phrase "human decision gate pushed tag" "False claim: human decision gate does not push tags"
+check_phrase "post-publication verification complete" "False claim: post-publication verification is pending"
+check_phrase "PyPI publication complete" "False claim: PyPI publication is pending"
+check_phrase "npm publication complete" "False claim: npm publication is pending"
+check_phrase "Storage Format V1 changed by release readiness" "False claim: Storage Format V1 is unchanged"
+check_phrase "external security audit complete" "False claim: No external security audit"
+check_phrase "all languages are baseline-public" "False claim: Only Python and Node.js are baseline-public"
+check_phrase "C/C\+\+ production storage library" "False claim: C/C++ are bootstrap scaffolds"
 
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."

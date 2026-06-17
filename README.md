@@ -81,7 +81,8 @@ Zig now provides a generalized scaffold CLI for reading and decrypting a request
 - 検索可能性: HMAC などを利用した Blind Index による、暗号化データのセキュアな検索
 
 ## インストールと使い方
-各言語ディレクトリの README ファイルをご参照ください。
+PythonとNode.js実装は `baseline-public` として認定されていますが、実際のPyPI/npmへのパッケージ公開はまだ行われておらず、リリース自動化も存在しません。
+インストール方法などの詳細は、各言語ディレクトリの README ファイルをご参照ください。
 
 ## Testing and Coverage
 

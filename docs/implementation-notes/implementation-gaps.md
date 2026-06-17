@@ -115,12 +115,12 @@ Note: C and C++ parser-free generated-vector bridges now exist. Both are generat
 **Why it matters:** Relying solely on database constraints can lead to unhandled database errors bubbling up instead of providing clear, early validation errors to the caller.
 **Recommended next action:** Implement stricter MIME type parsing, and evaluate whether JSON Schema and UUID registry validations are within scope or out of scope.
 
-### Packaging and distribution maturity is incomplete
+### Packaging and distribution maturity is incomplete (actual publication pending)
 
 **Status:** Active (Partial)
 **Area:** Deployment
-**Current state:** Python and Node.js packaging metadata, entrypoints, versioning, and public documentation have been improved to support reliable local/monorepo usage and accurate version provenance. Placeholders have been removed, and entrypoints correctly expose public APIs and error classes. Cross-language compatibility testing now operates through public entrypoints for the full write/read/update/delete matrix. However, neither library is yet declared `baseline-public`. Comprehensive publishing automation, npm/PyPI publishing credentials, and formal public release management remain future work.
-**Expected or intended state:** Production-ready packages that can be seamlessly published to PyPI and npm with correct dependencies, exports, and documentation.
+**Current state:** Python and Node.js are `baseline-public` certified. Packaging metadata, entrypoints, versioning, and public documentation support reliable local/monorepo usage and accurate version provenance. A distribution dry-run has been completed and documented, verifying that `sdist`/`wheel` (Python) and `pack` (Node.js) build and install successfully in clean environments without exposing actual credentials. However, actual PyPI and npm package publication has not yet been done, and release automation requiring secrets does not exist.
+**Expected or intended state:** Packages that are actually published to PyPI and npm with automated release workflows.
 **Why it matters:** Incomplete packaging hinders adoption and makes it difficult for other projects to cleanly depend on the library.
 **Recommended next action:** Refine remaining automated publishing processes when moving to `baseline-public`.
 
@@ -246,6 +246,16 @@ Note: C and C++ parser-free generated-vector bridges now exist. Both are generat
 **Expected or intended state:** Coverage badges correctly display on the `README.md` using the verified Codecov badge URL.
 **Why it matters:** Good visibility into CI test coverage encourages maintainability and testing standards.
 **Recommended next action:** None. Future hardening may include per-flag badges, coverage thresholds, or Codecov status checks.
+
+
+### Python/Node.js Distribution Preflight and Publishing
+
+**Status:** Active
+**Area:** Distribution
+**Current state:** Python/Node.js are baseline-public certified. A non-publishing Phase 8 distribution preflight script (`scripts/run_python_node_release_preflight.py`) is implemented and runs successfully to verify wheel/sdist and npm pack artifact generation, clean install, and smoke tests. Phase 9 installed-distribution matrix and artifact hash manifest generation are complete and passing. Phase 11 (Release Candidate Freeze) and Phase 12 (Execution Readiness) are complete. Actual PyPI/npm publication remains pending. Release automation requiring secrets remains pending. Namespace/account decisions must be resolved.
+**Expected or intended state:** Actual publication of Python and Node.js artifacts via secure, credentialed automated CI/CD releases.
+**Why it matters:** Library users require standard distribution channels.
+**Recommended next action:** Decide on package namespace (e.g. `encrypted-storage`), define secure credential workflows, and perform controlled public package release.
 
 ### Browser real-runtime coverage not implemented
 
