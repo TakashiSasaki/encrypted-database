@@ -267,6 +267,7 @@ check_phrase "trusted publishing configured" "False claim: trusted publishing is
 check_phrase "post-publication verification complete" "False claim: post-publication verification is pending"
 check_phrase "release execution readiness pushed tag" "False claim: tags are not pushed in Phase 12"
 check_phrase "Storage Format V1 changed by release readiness" "False claim: Storage Format V1 is unchanged"
+check_phrase "release execution readiness created credentials" "False claim: release execution readiness does not create credentials"
 
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."
