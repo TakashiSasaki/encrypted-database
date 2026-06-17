@@ -259,7 +259,6 @@ check_phrase "all languages are baseline-public" "False claim: Only Python and N
 check_phrase "C/C\+\+ production storage library" "False claim: C/C++ are bootstrap scaffolds, not production storage libraries"
 
 
-
 # 36. Phase 12 Guardrails
 check_phrase "Phase 12 published packages" "False claim: Phase 12 does not publish packages"
 check_phrase "publication readiness gate published to PyPI" "False claim: publication readiness gate does not publish"
