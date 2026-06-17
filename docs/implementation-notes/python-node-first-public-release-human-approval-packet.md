@@ -18,9 +18,7 @@ This packet gathers the necessary information for a human approver to make an ex
 
 ## Required Automation Gates
 The following gates **must pass** locally before this packet can be considered actionable and publication can be performed:
-1.  **Release Preflight:** `scripts/run_python_node_release_preflight.py --installed-matrix --json` must return success.
-2.  **Release Candidate Gate:** `scripts/run_python_node_release_candidate_gate.py --json` must return success and `release_candidate_freeze_ready: true`.
-3.  **Publication Readiness Gate:** `scripts/run_python_node_publication_readiness_gate.py --require-publication-ready` must exit 0, meaning all placeholders in the decision record are resolved and approval is granted.
+1.  **Dry Run Aggregator:** `scripts/run_python_node_first_public_release_dry_run.py --require-publication-ready --include-installed-matrix --allow-network-probes --json` must return success, meaning all internal gates (preflight, release candidate gate, and publication readiness gate) pass and all decision placeholders are resolved.
 
 ## Explicit Non-Goals
 This release is strictly scoped. It explicitly does **not** include or claim:
