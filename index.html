@@ -159,6 +159,10 @@
                 githubLink.textContent = file;
                 pathDisplayDiv.appendChild(githubLink);
 
+                contentDiv.style.opacity = '0.5';
+                contentDiv.style.transition = 'opacity 0.2s';
+                contentDiv.setAttribute('aria-busy', 'true');
+
                 try {
                     const response = await fetch(file);
                     if (!response.ok) {
@@ -272,8 +276,12 @@
                             }
                         }, 100);
                     }
+                    contentDiv.style.opacity = '1';
+                    contentDiv.removeAttribute('aria-busy');
 
                 } catch (error) {
+                    contentDiv.style.opacity = '1';
+                    contentDiv.removeAttribute('aria-busy');
                     contentDiv.innerHTML = `<p>Error loading markdown file: <code>${file}</code></p><p>${error.message}</p>`;
                 }
             }
@@ -285,6 +293,8 @@
 
                 // Hide content, show index
                 contentDiv.style.display = 'none';
+                contentDiv.style.opacity = '1';
+                contentDiv.removeAttribute('aria-busy');
                 pathDisplayDiv.innerHTML = 'Index';
                 indexContainer.style.display = 'block';
                 indexList.innerHTML = '<li>Loading document list...</li>';
