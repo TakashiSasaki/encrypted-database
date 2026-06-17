@@ -1,6 +1,6 @@
 # Python/Node.js First Public Release Checklist
 
-This document tracks the Phase 8, Phase 9, Phase 10, and Phase 11 release preflight readiness and outlines the final checklist before actual public publishing to PyPI and npm occurs.
+This document tracks the Phase 8 through Phase 12 release preflight and execution readiness and outlines the final checklist before actual public publishing to PyPI and npm occurs.
 
 ## Completed Automated Evidence
 - [x] Python distribution builds properly.
@@ -20,6 +20,12 @@ This document tracks the Phase 8, Phase 9, Phase 10, and Phase 11 release prefli
 - [x] Local artifact/report generation policy verified (no generated artifacts committed).
 - [x] `python/dist/` contains no tracked `.whl` or `.tar.gz` files.
 - [x] `nodejs/` tarball generation path is clean of committed artifacts.
+
+## Phase 12 Execution Readiness Evidence
+- [x] Publication readiness gate script added and passing in informational mode.
+- [x] Release execution runbook documented.
+- [x] Publication decision record template prepared.
+- [x] Post-publication verification plan documented.
 
 ## Manual Approval Evidence (Pending)
 - [ ] PyPI project name (`encrypted_storage`) vs alternatives decided.

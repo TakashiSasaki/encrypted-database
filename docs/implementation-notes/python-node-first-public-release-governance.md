@@ -2,7 +2,7 @@
 
 ## Scope
 This document outlines the governance and policy decisions for the upcoming first public release of the `baseline-public` certified Python and Node.js packages.
-This stride (Phase 11) prepares the release-candidate freeze but does **not** actually publish any artifacts, create credentials, or push tags.
+Phase 11 prepared the release-candidate freeze. Phase 12 establishes the non-publishing publication runbook and execution readiness gate. Neither phase actually publishes artifacts, creates credentials, or pushes tags.
 
 - **Python package scope:** Stable read/write implementation of Storage Format V1.
 - **Node.js package scope:** Stable read/write implementation of Storage Format V1.
