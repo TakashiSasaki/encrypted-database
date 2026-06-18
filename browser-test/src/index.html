@@ -19,6 +19,8 @@
         .tab-content { display: none; border: 1px solid #ccc; border-top: none; padding: 20px; max-height: 600px; overflow-y: auto; background: #fff; }
         .tab-content.active { display: block; }
 
+        #output:focus-visible, .table-wrapper:focus-visible, .tab-content:focus-visible { outline: 2px solid #0969da; outline-offset: -2px; }
+
         .table-wrapper { margin-bottom: 30px; border: 1px solid #ddd; padding: 10px; border-radius: 5px; overflow-x: auto; }
         .table-wrapper h3 { margin-top: 0; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 10px; min-width: 600px; table-layout: fixed; }
@@ -60,7 +62,7 @@
         <li class="step-item pending" id="step-8">[-] ステップ 9: ペイロードの削除</li>
     </ul>
 
-    <div id="output" aria-live="polite"></div>
+    <div id="output" aria-live="polite" tabindex="0" role="region" aria-label="テストログ"></div>
     <div id="tables-container">
         <div class="tabs" role="tablist" aria-label="Database Tables">
             <button class="tab-button active" data-tab-target="dynamic-tables" role="tab" aria-selected="true" aria-controls="dynamic-tables" id="tab-dynamic-tables" tabindex="0">Dynamic Data</button>

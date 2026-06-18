@@ -172,8 +172,13 @@ function renderTables(storage) {
 
         const wrapper = document.createElement('div');
         wrapper.className = 'table-wrapper';
+        wrapper.setAttribute('tabindex', '0');
+        wrapper.setAttribute('role', 'region');
+        const h3Id = `table-heading-${tableName}`;
+        wrapper.setAttribute('aria-labelledby', h3Id);
 
         const h3 = document.createElement('h3');
+        h3.id = h3Id;
         h3.textContent = tableName;
         wrapper.appendChild(h3);
 
