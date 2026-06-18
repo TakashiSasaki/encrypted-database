@@ -37,28 +37,25 @@ A valid certification PR must provide execution evidence (either locally or via 
   ```
 
 ## Required Review Sign-Offs
-The certification PR must have documented reviewer sign-off on the following items. These items are currently marked as "ready-for-signoff" in the release candidate gate:
+The certification PR had documented reviewer sign-off on the following items:
 
-- [ ] **API Freeze**: The public entrypoints, instantiation, lifecycle methods, and core read/write methods are frozen and aligned.
-- [ ] **Error Taxonomy**: The public error model and cross-language mappings are consistent and aligned.
-- [ ] **JCS Conformance Closure**: Active positive vectors are consumed and boundaries defined.
-- [ ] **Security Notes**: The limitations regarding memory zeroization and out-of-scope cryptographic claims are reviewed and accurate.
-- [ ] **README/Package Metadata**: Public documentation is clear, accurate, uses the correct package metadata, and disclaimers are removed.
-- [ ] **Storage Format V1 Non-Change**: Confirmation that absolutely no semantic changes to Storage Format V1 bytes-on-disk were made.
+- [x] **API Freeze**: The public entrypoints, instantiation, lifecycle methods, and core read/write methods are frozen and aligned.
+- [x] **Error Taxonomy**: The public error model and cross-language mappings are consistent and aligned.
+- [x] **JCS Conformance Closure**: Active positive vectors are consumed and boundaries defined.
+- [x] **Security Notes**: The limitations regarding memory zeroization and out-of-scope cryptographic claims are reviewed and accurate.
+- [x] **README/Package Metadata**: Public documentation is clear, accurate, uses the correct package metadata, and disclaimers are removed.
+- [x] **Storage Format V1 Non-Change**: Confirmation that absolutely no semantic changes to Storage Format V1 bytes-on-disk were made.
 
 ## Explicitly Forbidden Changes in Certification PR
-The following items must **NOT** be included in the baseline-public certification PR. If necessary, they must be handled in separate, properly scoped PRs before or after certification.
+The following items were **NOT** included in the baseline-public certification PR:
 
 - No Storage Format V1 semantic changes (bytes-on-disk, JCS behavior, metadata structure).
 - No changes to cryptography, AAD rules, SQLite profile behavior, or UUID generation policies.
 - No production claims added for C, C++, Go, Rust, or Zig scaffolds.
 - No publishing credentials, GitHub Actions release automation, or changes to PyPI/npm release pipelines.
 
-## Future Wording Details (Not Active Until Certification)
-Upon successful certification, the following statements will become valid:
-- "Python and Node.js will be marked as baseline-public storage libraries."
-- "Python and Node.js implementations will possess public-quality certification."
-- The `baseline-candidate` and `preview-library` disclaimers will be removed from `python/README.md` and `nodejs/README.md`.
-- `public_quality_certification` set to `true` will be permissible in the cross-language runner evidence mode under strict conditions.
-
-*(Note: These statements remain false during the release-candidate/preflight stride.)*
+## Certification Wording Details
+Upon successful certification, the following statements became valid:
+- "Python and Node.js are marked as baseline-public storage libraries."
+- "Python and Node.js implementations possess public-quality certification."
+- The `baseline-candidate` and `preview-library` disclaimers were removed from `python/README.md` and `nodejs/README.md`.

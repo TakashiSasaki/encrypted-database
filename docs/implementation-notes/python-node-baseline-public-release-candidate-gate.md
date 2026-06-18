@@ -3,9 +3,9 @@
 ## Purpose and Scope
 This document serves as the final release-candidate evidence gate for the promotion of the Python and Node.js implementations to `baseline-public`. It serves as an auditable checklist tracking the required stability, testing, and alignment for Storage Format V1 capabilities.
 
-## Status: NOT YET BASELINE-PUBLIC
-**Python and Node.js are currently `baseline-candidate` / `preview-library` implementations.**
-They have passed the public-entrypoint test-wrapper matrix but have not yet received final release certification.
+## Status: BASELINE-PUBLIC CERTIFIED
+**Python and Node.js are officially certified as `baseline-public` implementations.**
+They have successfully passed the Phase 6 certification.
 
 ## Storage Format V1 Stable Relationship
 Storage Format V1 is Stable. No bytes-on-disk semantic changes, cryptographic adjustments, or schema modifications will be introduced. This document strictly concerns the readiness of the Python and Node.js client libraries to faithfully read and write this stable format.
@@ -23,32 +23,24 @@ Storage Format V1 is Stable. No bytes-on-disk semantic changes, cryptographic ad
 | CI/path-filtered status | **Pending** | Path-filtered workflow configured; current HEAD CI evidence not observed. Local validation required. |
 | API freeze candidate | **Proposed** | Candidate methods/errors exist. Final freeze confirmation pending. |
 | Security notes | **Reviewed** | Explicit lack of hard memory zeroization documented. |
-| Remaining release blockers | **Ready-for-signoff** | API freeze, error taxonomy, JCS closure, metadata, and security notes are ready for reviewer sign-off. Next step is the Python/Node.js Baseline-Public Certification PR. |
+| Remaining release blockers | **Signed-off** | API freeze, error taxonomy, JCS closure, metadata, and security notes are signed-off for Python/Node.js baseline-public certification. |
 
 ## Release-Candidate Checklist
-The following items must be verified before proceeding to a final certification PR. This checklist does not imply certification is complete.
+The following items were successfully verified to achieve baseline-public certification:
 
-- [x] Confirm public API freeze candidate for Python and Node.js (Ready-for-signoff).
-- [x] Confirm public error taxonomy and cross-language error mapping (Ready-for-signoff).
+- [x] Confirm public API freeze candidate for Python and Node.js (Signed-off).
+- [x] Confirm public error taxonomy and cross-language error mapping (Signed-off).
 - [x] Confirm `direct-public-api` default matrix passes for Python -> Python, Python -> Node.js, Node.js -> Python, Node.js -> Node.js.
 - [x] Confirm explicit `public-entrypoint-wrapper` supporting matrix passes.
 - [x] Confirm evidence includes write/read/update/delete/not-found-after-delete.
-- [x] Confirm `public_quality_certification` remains false until final certification.
-- [x] Confirm shared vector coverage status and list any remaining vector gaps (JCS closure ready-for-signoff).
-- [x] Confirm security notes have been reviewed and sign-off status is explicit (Ready-for-signoff).
-- [x] Confirm README/package metadata are release-candidate ready (Ready-for-signoff).
-- [x] Confirm no baseline-public wording remains outside a future certification PR.
+- [x] Confirm shared vector coverage status and list any remaining vector gaps (Signed-off).
+- [x] Confirm security notes have been reviewed and sign-off status is explicit (Signed-off).
+- [x] Confirm README/package metadata are baseline-public ready (Signed-off).
 - [x] Confirm no Storage Format V1 semantic changes were made.
 - [x] Confirm CI/local validation distinction (do not overclaim CI).
 
-## Certification PR Requirements
-A future final certification PR must show:
-- All checklist items above are checked and independently verified.
-- The cross-language compatibility runner passing across stable, non-test-wrapper library APIs.
-- The removal of `baseline-candidate` / `preview-library` disclaimers from the public READMEs.
-
-## Required Validation Commands
-Run the following commands to gather local evidence during the RC phase:
+## Validation Commands
+The following commands were run to gather local evidence for certification:
 
 ```bash
 # Verify stale documentation guardrails
@@ -85,12 +77,10 @@ VAULT_RUN_COMPAT_EXECUTION_TESTS=1 python -m unittest scripts/test_run_cross_lan
 - Automating PyPI/npm publishing in this stride.
 
 ## Remaining Blockers Before Baseline-Public
-- Final reviewer sign-off for API freeze, error taxonomy, and JCS closure.
-- Final reviewer sign-off for security notes.
-- Python/Node.js Baseline-Public Certification PR.
+None. Certification complete. See `python-node-baseline-public-certification-record.md`.
 
-## API Freeze Candidate Notes
-This section documents the current Python and Node.js public API freeze candidate. It is an **API freeze candidate**, not a final API freeze, pending final validation.
+## API Freeze Notes
+This section documents the Python and Node.js public API freeze that was signed off.
 
 ### Python Package Import
 - `from encrypted_storage import EncryptedStorage`

@@ -10,8 +10,8 @@ Can a database written by language A be read by language B with identical Storag
 
 | Language | Implementation path | Current role | Public read support | Public write support | Scaffold read/write | Stable API? | Include in this stride? | Notes |
 |---|---|---|---|---|---|---|---|---|
-| Python | `python/` | baseline-candidate | known-api-unverified | known-api-unverified | N/A | existing library API used by public-entrypoint test wrappers; public-quality certification pending | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
-| Node.js | `nodejs/` | baseline-candidate | known-api-unverified | known-api-unverified | N/A | existing library API used by public-entrypoint test wrappers; public-quality certification pending | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix via wrappers. |
+| Python | `python/` | baseline-public | certified | certified | N/A | public-quality certification complete | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix. |
+| Node.js | `nodejs/` | baseline-public | certified | certified | N/A | public-quality certification complete | Yes | Exposes library API (`EncryptedStorage`). Integrated into execution matrix. |
 | Go | `go/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
 | Rust | `rust/` | portability-validation | not implemented | not implemented | Yes | No | No | Portability validation scaffold, no stable public API. |
 | Zig | `zig/` | portability-validation | not implemented | not implemented | Yes | No | No | Scaffold-level CLI, not a stable storage library. |
@@ -31,7 +31,6 @@ Can a database written by language A be read by language B with identical Storag
 
 ## Active Testing Pairs
 Python and Node.js are actively integrated and passing the cross-language baseline test pairs through direct library API execution.
-Note explicitly that direct API success is stronger evidence toward compatibility, but still, not public-quality certification. See the [Baseline-Public Readiness Gap Analysis](baseline-public-readiness-gap-analysis.md) for remaining certification steps.
 
 ## Current Matrix Status
 
@@ -73,4 +72,4 @@ Specifically, the operations follow this flow:
 - The test operates entirely on temporary files.
 
 ## Next Safe Stride
-Python and Node.js Baseline-Public Release-Candidate Closure and Final Certification Review.
+Monitor the implemented matrices. Future strides may involve promoting additional languages or advancing browser interoperability matrix coverage.

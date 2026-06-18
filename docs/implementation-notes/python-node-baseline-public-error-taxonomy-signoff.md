@@ -33,4 +33,4 @@ The following error classes map 1-to-1 between the Python and Node.js implementa
 
 ## Sign-off Readiness
 No unmapped error conditions or taxonomy blockers remain.
-**Status: Ready for reviewer sign-off.**
+**Status: Signed off for Python/Node.js baseline-public certification.**

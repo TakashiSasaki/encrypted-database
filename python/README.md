@@ -2,7 +2,7 @@
 
 This library provides the Python implementation of the Encrypted Database, an application-layer encryption and key management solution.
 
-**Status:** `baseline-candidate` / `preview-library`. Storage Format V1 is stable, but package and public readiness certification is pending.
+**Status:** `baseline-public`. Storage Format V1 is stable.
 
 ## Features
 - Manages encryption key hierarchies (`unlock_kek` -> `database_kek` -> `record_dek`).
@@ -11,7 +11,9 @@ This library provides the Python implementation of the Encrypted Database, an ap
 - Stores metadata using SQLite (`docs/backend/sqlite/schema.sql`).
 
 ## Installation
-You can install this module and its dependencies using pip:
+**Note:** Python and Node.js are `baseline-public` certified. Packages are not yet published to PyPI. A local/monorepo install remains available. Actual publication status must not be overclaimed.
+
+To install the module locally from the repository:
 ```bash
 pip install .
 ```

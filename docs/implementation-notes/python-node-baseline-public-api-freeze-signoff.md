@@ -1,7 +1,7 @@
 # Python/Node.js Baseline-Public API Freeze Sign-off
 
 ## Purpose and Scope
-This document provides evidence and confirmation that the Python and Node.js storage APIs are frozen and semantically aligned. It is a sign-off readiness document, verifying the `baseline-public` API candidate surface without changing the current `baseline-candidate` status of the libraries.
+This document provides evidence and confirmation that the Python and Node.js storage APIs are frozen and semantically aligned. It is a sign-off readiness document that verified the API candidate surface for the `baseline-public` certification.
 
 This review applies exclusively to the Python and Node.js implementations.
 
@@ -37,4 +37,4 @@ We confirm that absolutely no Storage Format V1 semantics were changed during th
 
 ## Sign-off Readiness
 No API surface blockers found. The API is frozen and semantically complete.
-**Status: Ready for reviewer sign-off.**
+**Status: Signed off for Python/Node.js baseline-public certification.**

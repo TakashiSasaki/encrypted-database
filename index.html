@@ -149,7 +149,19 @@
                 const filename = file.split('/').pop();
                 document.title = `${filename} - Encrypted Database Library`;
 
+                // Update aria-current for navigation links
+                const navLinks = document.querySelectorAll('nav[aria-label="Main Navigation"] a');
+                navLinks.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href === `?file=${file}` || (file === 'README.md' && href === '?file=README.md')) {
+                        link.setAttribute('aria-current', 'page');
+                    } else {
+                        link.removeAttribute('aria-current');
+                    }
+                });
+
                 // Security check to prevent fetching external resources
+
                 if (/^[a-zA-Z]+:/.test(file) || file.startsWith('//')) {
                     contentDiv.innerHTML = `<p>Error: Loading external files is not allowed.</p>`;
                     pathDisplayDiv.innerHTML = '';
@@ -164,6 +176,10 @@
                 githubLink.rel = 'noopener noreferrer';
                 githubLink.textContent = file;
                 pathDisplayDiv.appendChild(githubLink);
+
+                contentDiv.style.opacity = '0.5';
+                contentDiv.style.transition = 'opacity 0.2s';
+                contentDiv.setAttribute('aria-busy', 'true');
 
                 try {
                     const response = await fetch(file);
@@ -278,8 +294,12 @@
                             }
                         }, 100);
                     }
+                    contentDiv.style.opacity = '1';
+                    contentDiv.removeAttribute('aria-busy');
 
                 } catch (error) {
+                    contentDiv.style.opacity = '1';
+                    contentDiv.removeAttribute('aria-busy');
                     contentDiv.innerHTML = `<p>Error loading markdown file: <code>${file}</code></p><p>${error.message}</p>`;
                 }
             }
@@ -297,10 +317,17 @@
 
                 // Hide content, show index
                 contentDiv.style.display = 'none';
+                contentDiv.style.opacity = '1';
+                contentDiv.removeAttribute('aria-busy');
                 pathDisplayDiv.innerHTML = 'Index';
                 indexContainer.style.display = 'block';
                 indexList.innerHTML = '<li>Loading document list...</li>';
                 document.title = 'Index - Encrypted Database Library';
+
+                // Clear any stale aria-current states since we are showing the index overlay
+                document.querySelectorAll('nav[aria-label="Main Navigation"] a').forEach(link => {
+                    link.removeAttribute('aria-current');
+                });
 
                 // Update URL to empty file parameter so reloading doesn't show a specific file if they are on index
                 const newUrl = new URL(window.location);

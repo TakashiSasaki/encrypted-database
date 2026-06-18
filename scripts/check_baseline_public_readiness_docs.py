@@ -43,12 +43,11 @@ def main():
         if not check_content(gap_doc,
             require_patterns=[
                 r"python-node-baseline-public-api-error-semantics-audit.md",
-                r"not release certification",
-                r"implemented-public\*|pending|partial" # Should have pending items
+                r"Python and Node.js have met all requirements and are officially \*\*certified\*\* as `baseline-public`"
             ],
             forbid_patterns=[
-                r"Python and Node\.js are baseline-public",
-                r"baseline-public certification complete",
+                r"not release certification",
+                r"implemented-public\*",
                 r"test-wrapper-passed means public-quality"
             ]
         ):
@@ -62,7 +61,6 @@ def main():
                 r"json-canonicalize" # Ensure we corrected the custom implementation note
             ],
             forbid_patterns=[
-                r"Python and Node\.js are baseline-public",
                 r"baseline-public certification complete",
                 r"Node\.js uses a custom JCS implementation"
             ]
