@@ -22,11 +22,20 @@
                 padding: 15px;
             }
         }
-
+        /* Active Navigation State Styles */
+        nav a {
+            color: #0969da;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
         nav a[aria-current="page"] {
             font-weight: bold;
-            color: #24292f; /* slightly darker for current, or could just rely on bold */
+            color: #24292f;
             text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 4px;
         }
     </style>
     <!-- Marked.js -->
@@ -47,7 +56,7 @@
 </head>
 <body class="markdown-body">
     <nav aria-label="Main Navigation" style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eaecef;">
-        <a href="#" id="show-index-btn" role="button" aria-controls="index-container content" aria-expanded="false" style="font-weight: bold; margin-right: 15px; color: #0969da; text-decoration: none;">Navigation:</a>
+        <a href="#" id="show-index-btn" role="button" aria-controls="index-container content" aria-expanded="false" style="margin-right: 15px;">Navigation Index</a>
         <a href="?file=README.md" style="margin-right: 15px;">Home (README)</a>
         <a href="?file=docs/database-structure.md" style="margin-right: 15px;">Database Structure</a>
         <a href="demo/index.html" style="margin-right: 15px;">Browser Demo</a>
@@ -126,6 +135,15 @@
                 contentDiv.style.display = 'block';
 
                 let file = getQueryParam('file') || 'README.md';
+
+                // Update active navigation state
+                document.querySelectorAll('nav[aria-label="Main Navigation"] a').forEach(link => {
+                    link.removeAttribute('aria-current');
+                    const linkHref = link.getAttribute('href');
+                    if (linkHref && linkHref.includes(`file=${file}`)) {
+                        link.setAttribute('aria-current', 'page');
+                    }
+                });
 
                 // Update document title for accessibility and UX
                 const filename = file.split('/').pop();
@@ -282,6 +300,12 @@
             showIndexBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 showIndexBtn.setAttribute('aria-expanded', 'true');
+
+                // Set aria-current for the navigation index view
+                document.querySelectorAll('nav[aria-label="Main Navigation"] a').forEach(link => {
+                    link.removeAttribute('aria-current');
+                });
+                showIndexBtn.setAttribute('aria-current', 'page');
 
                 // Hide content, show index
                 contentDiv.style.display = 'none';
