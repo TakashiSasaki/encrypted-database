@@ -4,6 +4,8 @@
 
 Once the packages have been published to PyPI and npm, the following steps must be taken to verify their integrity and correctness in real-world environments.
 
+*Note: Java is out-of-scope for the current Python/Node.js release stream.*
+
 ## Expected Evidence Schema (Future)
 For each verification step, record the following:
 - **Registry:** (PyPI / npm)

@@ -1,6 +1,7 @@
 # Python/Node.js First Public Release Governance
 
 ## Scope
+*Note: Java is out-of-scope for the current Python/Node.js release stream.*
 This document outlines the governance and policy decisions for the upcoming first public release of the `baseline-public` certified Python and Node.js packages.
 Phase 11 prepared the release-candidate freeze. Phase 12 established the non-publishing publication runbook and execution readiness gate. Phase 13 established the Human Decision Gate without publishing. Phase 14 established registry readiness, metadata normalization, and dry-run aggregation. None of these phases actually publish artifacts, create credentials, or push tags.
 

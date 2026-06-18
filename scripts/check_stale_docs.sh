@@ -305,7 +305,20 @@ check_phrase "npm publication complete" "False claim: npm publication is pending
 check_phrase "Storage Format V1 changed by release readiness" "False claim: Storage Format V1 is unchanged"
 check_phrase "external security audit complete" "False claim: No external security audit"
 check_phrase "all languages are baseline-public" "False claim: Only Python and Node.js are baseline-public"
+check_phrase "all languages including Java are baseline-public" "False claim: Only Python and Node.js are baseline-public"
 check_phrase "C/C\+\+ production storage library" "False claim: C/C++ are bootstrap scaffolds"
+
+# 39. Java Guardrails
+check_phrase "Java is baseline-public" "False claim: Java is not baseline-public"
+check_phrase "Java baseline-public" "False claim: Java is not baseline-public"
+check_phrase "Java production storage library" "False claim: Java is a future target, not a production storage library"
+check_phrase "Java public release complete" "False claim: Java public release is not complete"
+check_phrase "Java package published" "False claim: No Java package has been published"
+check_phrase "Java Maven Central publication complete" "False claim: Java Maven Central publication is not complete"
+check_phrase "Java supports Storage Format V1 read/write" "False claim: Java does not yet support read/write"
+check_phrase "Java write support complete" "False claim: Java write support is not complete"
+check_phrase "Java cross-language matrix passed" "False claim: Java has not passed the cross-language matrix"
+check_phrase "Java implementation certified" "False claim: Java implementation is not certified"
 
 if [ "$FOUND_STALE" -eq 1 ]; then
     echo "⚠️  Stale documentation found. Please update the affected files."

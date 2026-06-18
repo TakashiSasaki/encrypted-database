@@ -2,6 +2,8 @@
 
 This runbook outlines the steps to execute the first public release of the `baseline-public` certified Python and Node.js packages. This document provides non-secret, non-publishing rehearsal instructions. **Actual publication, credential setup, and tag pushing are currently pending.**
 
+*Note: Java is out-of-scope for the current Python/Node.js release stream.*
+
 ## Phases Overview
 - **Phase 11: Release Candidate Freeze** (Completed: Non-publishing freeze of metadata and artifacts).
 - **Phase 12: Publication Readiness Gate** (Completed: Automated checks for readiness without publishing).

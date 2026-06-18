@@ -16,6 +16,7 @@ LANGUAGES = {
     "zig": {"public_read": "not-implemented", "public_write": "not-implemented", "scaffold_only": True},
     "c": {"public_read": "not-implemented", "public_write": "not-implemented", "scaffold_only": True},
     "cpp": {"public_read": "not-implemented", "public_write": "not-implemented", "scaffold_only": True},
+    "java": {"public_read": "missing", "public_write": "missing", "jcs": "needs-decision", "argon2id": "needs-decision", "sqlite_profile": "needs-decision", "cross_language_execution": "out-of-scope", "future_target": True, "execution_enabled": False},
 }
 
 TEST_PAYLOADS = [
@@ -475,7 +476,11 @@ def main():
     all_passed = True
     for w, r in pairs_to_run:
         if args.execute:
-            if args.mode == "direct-public-api":
+            if LANGUAGES[w].get("future_target") or LANGUAGES[r].get("future_target"):
+                status = "skipped"
+                reason = "future target execution not supported"
+                evidence = None
+            elif args.mode == "direct-public-api":
                 status, reason, evidence = execute_pair_direct(w, r)
             else:
                 status, reason, evidence = execute_pair(w, r)
@@ -483,7 +488,13 @@ def main():
                 all_passed = False
         else:
             evidence = None
-            if LANGUAGES[w]["scaffold_only"]:
+            if LANGUAGES[w].get("future_target"):
+                status = "skipped"
+                reason = "writer is a future target only; execution disabled"
+            elif LANGUAGES[r].get("future_target"):
+                status = "skipped"
+                reason = "reader is a future target only; execution disabled"
+            elif LANGUAGES[w]["scaffold_only"]:
                 status = "skipped"
                 reason = "writer is scaffold-only; lacks stable public API"
             elif LANGUAGES[r]["scaffold_only"]:
