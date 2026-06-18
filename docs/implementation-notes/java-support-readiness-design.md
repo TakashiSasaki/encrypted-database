@@ -36,11 +36,11 @@
 - SQLite/JDBC provider decision: needs-decision
 - cryptographic provider decision: needs-decision
 - test framework decision: needs-decision
-- build tool decision: needs-decision
+- build tool decision: gradle
 
 ## Proposed Java Readiness Phases
-- Phase J0: design and risk inventory. (Current Phase)
-- Phase J1: read-only metadata/parser scaffold.
+- Phase J0: design and risk inventory. (Complete)
+- Phase J1: read-only metadata/parser scaffold. (Current Phase)
 - Phase J2: test-vector consumer for shared fixtures.
 - Phase J3: read-only decrypt compatibility.
 - Phase J4: write-path scaffold.
@@ -48,7 +48,7 @@
 - Phase J6: public API candidate.
 - Phase J7: baseline-public certification candidate.
 
-*Note: Only J0 is in scope for this stride.*
+*Note: J0 and J1 are complete.*
 
 ## Cross-Language Validation Plan
 - Java must first consume existing shared vectors.
