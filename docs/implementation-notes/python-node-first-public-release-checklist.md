@@ -2,6 +2,8 @@
 
 This document tracks Phase 8 through Phase 14 release preflight, execution readiness, human decision gate, and dry-run registry readiness, outlining the final checklist before actual public publishing to PyPI and npm occurs.
 
+*Note: Java is out-of-scope for the current Python/Node.js release stream.*
+
 ## Completed Automated Evidence
 - [x] Python distribution builds properly.
 - [x] Node.js distribution builds properly.

@@ -19,6 +19,7 @@ Implementations are classified into one of the following levels:
 
 | Language | Implementation path | Current role | Public read support | Public write support | Scaffold read/write | Cross-read | Cross-write | Shared vectors | CI | Public package/docs | Status | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+
 | Python | `python/` | baseline-public | implemented-public* | implemented-public* | not applicable | direct-public-api-passed | direct-public-api-passed | implemented-public* | path-filtered | certified | baseline-public | Baseline-public. API exists and passes execution matrix via direct-public-api. Public-quality certification completed. |
 | Node.js | `nodejs/` | baseline-public | implemented-public* | implemented-public* | not applicable | direct-public-api-passed | direct-public-api-passed | implemented-public* | path-filtered | certified | baseline-public | Baseline-public. API exists and passes execution matrix via direct-public-api. Public-quality certification completed. |
 | browser-test | `browser-test/` | portability-validation | not implemented | not implemented | implemented-test-harness | deferred | deferred | implemented-test-harness | path-filtered | out-of-scope | scaffold-only | WebCrypto harness, not a full browser library. |
@@ -27,6 +28,7 @@ Implementations are classified into one of the following levels:
 | Zig | `zig/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Scaffold CLI only. Stable Zig version is 0.16.0. stable public API missing; cross-language matrix not runnable; package/docs incomplete; scaffold-only or portability-only status. |
 | C | `c/` | bootstrap-scaffold | not implemented | not implemented | not implemented | deferred | deferred | partial | path-filtered | missing | scaffold-only | Parser-free generic JCS bootstrap scaffold only. no storage reader; no storage writer; no crypto; no SQLite storage profile; no matrix participation; only parser-free JCS/AAD/UUID-type scaffold coverage. |
 | C++ | `cpp/` | bootstrap-scaffold | not implemented | not implemented | not implemented | deferred | deferred | partial | path-filtered | missing | scaffold-only | Parser-free generic JCS bootstrap scaffold only. no storage reader; no storage writer; no crypto; no SQLite storage profile; no matrix participation; only parser-free JCS/AAD/UUID-type scaffold coverage. |
+| Java | `java/` | future | missing | missing | missing | out-of-scope | out-of-scope | missing | missing | out-of-scope | future-target | Java is a future JVM target only. No implementation exists. |
 
 ## Current Matrix Status
 

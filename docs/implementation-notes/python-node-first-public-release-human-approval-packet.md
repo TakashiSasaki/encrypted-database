@@ -4,6 +4,8 @@
 
 This packet gathers the necessary information for a human approver to make an explicit decision to publish the `baseline-public` Python and Node.js packages to the public registries (PyPI and npm).
 
+*Note: Java is out-of-scope for the current Python/Node.js release stream.*
+
 ## Candidate Summary
 - **Candidate Version:** `0.1.0`
 - **Candidate Commit SHA:** `[PLACEHOLDER_COMMIT_SHA]`

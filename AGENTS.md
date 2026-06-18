@@ -33,7 +33,12 @@ The repository uses a monorepo setup for multi-language implementations of an en
 * Phase 11 (Release Candidate Freeze) is **complete**.
 * Phase 12 (Execution Readiness and Publication Runbook) is **complete**.
 * Phase 13 (Human Decision Gate) is **complete**.
-* Phase 14 (External Registry Readiness, Approval Input Normalization, and Dry-Run Evidence) is the **current** scope. Phase 14 remains non-publishing.
+* Phase 14 is complete: non-publishing dry-run / registry-readiness evidence is present.
+* Phase 15 is current: Java support readiness design and JVM scaffold boundary.
+
+* Actual PyPI/npm publication remains pending.
+* No credentials, trusted-publishing secrets, release tags, or generated artifacts are part of Phase 15.
+* Java is a future JVM target only, not baseline-public and not a production storage library. Initial Java work must be readiness/design/scaffold-only. Java support must preserve Storage Format V1 Stable semantics exactly, and must not change bytes-on-disk format, metadata semantics, JCS semantics, UUID policy, Argon2id profile, AEAD envelope layout, AAD construction, or SQLite Storage Profile semantics. Java work must not publish to Maven Central, GitHub Packages, or any registry in this stride.
 * Actual PyPI/npm publication has not occurred.
 * No credentials are configured or committed.
 * No trusted-publishing secrets are configured.

@@ -2,6 +2,8 @@
 
 **Phase 14 Note:** This document tracks registry-readiness decisions for the `baseline-public` Python and Node.js packages prior to explicit public release approval.
 
+*Note: Java is out-of-scope for the current Python/Node.js release stream.*
+
 ## Non-Publishing Registry Probes
 
 The automated release gates include optional unauthenticated registry probes. These probes:
