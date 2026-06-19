@@ -64,6 +64,7 @@ public class ScaffoldValidatorsTest {
 
     @Test
     public void testMetadataWhitespaceOnlyRejected() {
+        assertFalse(ScaffoldValidators.isValidMetadata("\u2003"));
         assertFalse(ScaffoldValidators.isValidMetadata("   "));
         assertFalse(ScaffoldValidators.isValidMetadata("\t\n"));
     }

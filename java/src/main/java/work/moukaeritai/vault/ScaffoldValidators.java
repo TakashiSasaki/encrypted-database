@@ -40,6 +40,11 @@ public class ScaffoldValidators {
 
     public static boolean isValidMetadata(String metadata) {
         if (metadata == null) return false;
-        return !metadata.trim().isEmpty();
+        for (int i = 0; i < metadata.length(); i++) {
+            if (!Character.isWhitespace(metadata.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 }
