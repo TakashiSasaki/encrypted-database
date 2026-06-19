@@ -28,7 +28,7 @@ Implementations are classified into one of the following levels:
 | Zig | `zig/` | portability-validation | not implemented | not implemented | implemented-scaffold | partial | missing | implemented-scaffold | path-filtered | missing | scaffold-only | Scaffold CLI only. Stable Zig version is 0.16.0. stable public API missing; cross-language matrix not runnable; package/docs incomplete; scaffold-only or portability-only status. |
 | C | `c/` | bootstrap-scaffold | not implemented | not implemented | not implemented | deferred | deferred | partial | path-filtered | missing | scaffold-only | Parser-free generic JCS bootstrap scaffold only. no storage reader; no storage writer; no crypto; no SQLite storage profile; no matrix participation; only parser-free JCS/AAD/UUID-type scaffold coverage. |
 | C++ | `cpp/` | bootstrap-scaffold | not implemented | not implemented | not implemented | deferred | deferred | partial | path-filtered | missing | scaffold-only | Parser-free generic JCS bootstrap scaffold only. no storage reader; no storage writer; no crypto; no SQLite storage profile; no matrix participation; only parser-free JCS/AAD/UUID-type scaffold coverage. |
-| Java | `java/` | future | missing | missing | missing | out-of-scope | out-of-scope | missing | missing | out-of-scope | future-target | Java is a future JVM target only. No implementation exists. |
+| Java | `java/` | future | missing | missing | missing | out-of-scope | out-of-scope | missing | missing | out-of-scope | future-target | Java is a future JVM target only. A J1 scaffold exists but is not a production storage library. |
 
 ## Current Matrix Status
 

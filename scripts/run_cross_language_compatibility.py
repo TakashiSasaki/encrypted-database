@@ -16,7 +16,7 @@ LANGUAGES = {
     "zig": {"public_read": "not-implemented", "public_write": "not-implemented", "scaffold_only": True},
     "c": {"public_read": "not-implemented", "public_write": "not-implemented", "scaffold_only": True},
     "cpp": {"public_read": "not-implemented", "public_write": "not-implemented", "scaffold_only": True},
-    "java": {"public_read": "missing", "public_write": "missing", "jcs": "needs-decision", "argon2id": "needs-decision", "sqlite_profile": "needs-decision", "cross_language_execution": "out-of-scope", "future_target": True, "execution_enabled": False},
+    "java": {"public_read": "missing", "public_write": "missing", "jcs": "needs-decision", "argon2id": "needs-decision", "sqlite_profile": "needs-decision", "cross_language_execution": "out-of-scope", "future_target": True, "execution_enabled": False}, # Future entry path: J1 scaffold validators -> J2 shared fixture consumer -> J3 read-only -> J4 write scaffold -> J5 cross-language matrix
 }
 
 TEST_PAYLOADS = [

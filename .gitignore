@@ -15,3 +15,8 @@ go/bin/
 # C/C++ build directories
 /c/build/
 /cpp/build/
+# Java J1 Scaffold
+java/build/
+java/.gradle/
+java/bin/
+java/out/
