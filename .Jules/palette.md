@@ -15,3 +15,7 @@
 ## 2024-06-16 - Clearing Aria-Current on Overlays/Index Views
 **Learning:** If a custom SPA introduces an overlay or a "meta-view" (like an index or search page) that completely replaces the content without being represented by one of the primary static navigation links, leaving `aria-current="page"` on the previously viewed link causes a stale state. Assistive technology will falsely announce the user is still on that previous page.
 **Action:** When swapping content to an overlay or non-navigational index, explicitly clear `aria-current` from all main navigation links.
+
+## 2024-06-18 - Keyboard Accessibility for Custom Scrollable Regions
+**Learning:** Elements with `overflow: auto` or `overflow: scroll` (like code blocks, logs, or wide data tables) are not focusable by default. Keyboard-only users cannot scroll these regions using arrow keys unless they can focus the container.
+**Action:** Always add `tabindex="0"`, `role="region"`, and an accessible name (via `aria-label` or `aria-labelledby`) to custom scrollable containers. Additionally, ensure there is a clear `:focus-visible` styling for the container so users know it has focus.
