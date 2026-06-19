@@ -37,6 +37,12 @@
             text-decoration-thickness: 2px;
             text-underline-offset: 4px;
         }
+        /* Accessibility for scrollable regions */
+        .markdown-body pre:focus-visible,
+        .markdown-body table:focus-visible {
+            outline: 2px solid #0969da;
+            outline-offset: -2px;
+        }
     </style>
     <!-- Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -212,6 +218,21 @@
                     // Allow class="mermaid" in DOMPurify
                     const cleanHtml = DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['class'] });
                     contentDiv.innerHTML = cleanHtml;
+
+                    // Add a11y attributes to scrollable regions
+                    const codeBlocks = contentDiv.querySelectorAll('pre');
+                    codeBlocks.forEach(pre => {
+                        pre.setAttribute('tabindex', '0');
+                        pre.setAttribute('role', 'region');
+                        pre.setAttribute('aria-label', 'Code snippet');
+                    });
+
+                    const dataTables = contentDiv.querySelectorAll('table');
+                    dataTables.forEach(table => {
+                        table.setAttribute('tabindex', '0');
+                        table.setAttribute('role', 'region');
+                        table.setAttribute('aria-label', 'Data table');
+                    });
 
                     // Initialize and render Mermaid diagrams if any exist
                     if (contentDiv.querySelector('.mermaid')) {
