@@ -34,11 +34,11 @@ The repository uses a monorepo setup for multi-language implementations of an en
 * Phase 12 (Execution Readiness and Publication Runbook) is **complete**.
 * Phase 13 (Human Decision Gate) is **complete**.
 * Phase 14 is complete: non-publishing dry-run / registry-readiness evidence is present.
-* Phase 15 is current: Java Support Readiness Design.
+* Phase 16 is current: Java J1 Minimal Build Harness and Read-only Metadata Boundary Scaffold.
 
 * Actual PyPI/npm publication remains pending.
 * No credentials, trusted-publishing secrets, release tags, or generated artifacts are part of Phase 15.
-* Java J1 scaffold exists as a minimal build harness and read-only metadata boundary. Java is a future JVM target (Phase 15 scope). It is strictly excluded from current release streams, package publications, and cross-language execution. API parity classifications for Java use conservative tags like `missing`, `needs-decision`, or `out-of-scope`, and it is skipped in runner scripts via `future_target: true`. Java is a future JVM target only, not baseline-public and not a production storage library. Initial Java work must be readiness/design/scaffold-only. Java support must preserve Storage Format V1 Stable semantics exactly, and must not change bytes-on-disk format, metadata semantics, JCS semantics, UUID policy, Argon2id profile, AEAD envelope layout, AAD construction, or SQLite Storage Profile semantics. Java work must not publish to Maven Central, GitHub Packages, or any registry in this stride.
+* Java J1 scaffold exists as a minimal build harness and read-only metadata boundary. Java is a future JVM target (Phase 16 scope). It is strictly excluded from current release streams, package publications, and cross-language execution. API parity classifications for Java use conservative tags like `missing`, `needs-decision`, or `out-of-scope`, and it is skipped in runner scripts via `future_target: true`. Java is a future JVM target only, not baseline-public and not a production storage library. Initial Java work must be readiness/design/scaffold-only. Java support must preserve Storage Format V1 Stable semantics exactly, and must not change bytes-on-disk format, metadata semantics, JCS semantics, UUID policy, Argon2id profile, AEAD envelope layout, AAD construction, or SQLite Storage Profile semantics. Java work must not publish to Maven Central, GitHub Packages, or any registry in this stride.
 * Actual PyPI/npm publication has not occurred.
 * No credentials are configured or committed.
 * No trusted-publishing secrets are configured.
