@@ -37,7 +37,7 @@ def main():
     im_checked = args.include_installed_matrix
     im_passed = False
     if pf_data and "installed_distribution_matrix" in pf_data:
-        im_passed = pf_data["installed_distribution_matrix"].get("passed", False)
+        im_passed = pf_data["installed_distribution_matrix"].get("installed_distribution_preflight_passed", False)
 
     # Release Candidate
     rc_args = []
@@ -90,7 +90,7 @@ def main():
 
     if args.json:
         print(json.dumps(results, indent=2))
-        if args.require_publication_ready and not publication_ready:
+        if args.require_publication_ready and not (publication_ready and pf_passed and rc_passed and (im_passed if args.include_installed_matrix else True)):
             sys.exit(1)
         sys.exit(0)
 
@@ -110,7 +110,7 @@ def main():
     if registry_probes_requested:
         print(f"\nRegistry Probes: {registry_probe_results}", file=sys.stderr)
 
-    if args.require_publication_ready and not publication_ready:
+    if args.require_publication_ready and not (publication_ready and pf_passed and rc_passed and (im_passed if args.include_installed_matrix else True)):
         print("\nFAILURE: Publication is not ready.", file=sys.stderr)
         sys.exit(1)
 

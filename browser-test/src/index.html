@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Encrypted Storage Browser Test</title>
     <style>
+        .hidden { display: none; }
+        @media (min-width: 640px) {
+            .sm-inline { display: inline; }
+        }
         body { font-family: sans-serif; padding: 20px; }
         #output { margin-top: 20px; padding: 10px; background: #f0f0f0; border: 1px solid #ccc; font-family: monospace; white-space: pre-wrap; min-height: 200px; max-height: 300px; overflow-y: auto; }
         button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
@@ -46,7 +50,7 @@
     <div class="controls">
         <button id="nextStepBtn">テスト開始 / 次のステップへ</button>
         <button id="resetTestBtn" style="display: none;">テストをリセット</button>
-        <button id="closeDbBtn" disabled>データベースを閉じる</button>
+        <button id="closeDbBtn" aria-label="Exit" disabled><span aria-hidden="true">🚪</span> <span class="hidden sm-inline">Exit</span></button>
         <button id="downloadDbBtn" disabled>データベースファイルをダウンロード</button>
     </div>
 

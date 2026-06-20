@@ -726,7 +726,7 @@ run();
         "pairs_passed": passed_count,
         "records": records,
         "baseline_public_certification": "previously-certified",
-        "installed_distribution_preflight_passed": True,
+        "installed_distribution_preflight_passed": passed_count == len(pairs),
         "publishing_certification": False,
         "artifact_publication": False
     }
