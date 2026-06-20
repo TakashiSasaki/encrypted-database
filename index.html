@@ -230,8 +230,7 @@
                     const dataTables = contentDiv.querySelectorAll('table');
                     dataTables.forEach(table => {
                         table.setAttribute('tabindex', '0');
-                        table.setAttribute('role', 'region');
-                        table.setAttribute('aria-label', 'Data table');
+                        // Preserve native table semantics while allowing keyboard scrolling
                     });
 
                     // Initialize and render Mermaid diagrams if any exist
