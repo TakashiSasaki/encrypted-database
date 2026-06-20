@@ -37,7 +37,7 @@ def main():
     im_checked = args.include_installed_matrix
     im_passed = False
     if pf_data and "installed_distribution_matrix" in pf_data:
-        im_passed = pf_data["installed_distribution_matrix"].get("passed", False)
+        im_passed = pf_data["installed_distribution_matrix"].get("installed_distribution_preflight_passed", False)
 
     # Release Candidate
     rc_args = []
