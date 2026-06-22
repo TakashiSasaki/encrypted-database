@@ -22,6 +22,26 @@
                 padding: 15px;
             }
         }
+        /* Skip to Content Link Styles */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #0969da;
+            color: white;
+            padding: 8px;
+            z-index: 100;
+            transition: top 0.2s;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 0 0 4px 0;
+        }
+        .skip-link:focus-visible {
+            top: 0;
+            outline: 2px solid #0969da;
+            outline-offset: 2px;
+        }
+
         /* Active Navigation State Styles */
         nav a {
             color: #0969da;
@@ -61,6 +81,7 @@
     </script>
 </head>
 <body class="markdown-body">
+    <a href="#content" class="skip-link">Skip to main content</a>
     <nav aria-label="Main Navigation" style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eaecef;">
         <a href="#" id="show-index-btn" role="button" aria-controls="index-container content" aria-expanded="false" style="margin-right: 15px;">Navigation Index</a>
         <a href="?file=README.md" style="margin-right: 15px;">Home (README)</a>
