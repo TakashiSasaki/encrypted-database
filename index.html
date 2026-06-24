@@ -39,7 +39,7 @@
         }
         /* Accessibility for scrollable regions */
         .markdown-body pre:focus-visible,
-        .markdown-body table:focus-visible {
+        .markdown-body .table-wrapper:focus-visible {
             outline: 2px solid #0969da;
             outline-offset: -2px;
         }
@@ -229,8 +229,16 @@
 
                     const dataTables = contentDiv.querySelectorAll('table');
                     dataTables.forEach(table => {
-                        table.setAttribute('tabindex', '0');
                         // Preserve native table semantics while allowing keyboard scrolling
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'table-wrapper';
+                        wrapper.style.overflow = 'auto';
+                        wrapper.setAttribute('tabindex', '0');
+                        wrapper.setAttribute('role', 'region');
+                        wrapper.setAttribute('aria-label', 'Data table');
+
+                        table.parentNode.insertBefore(wrapper, table);
+                        wrapper.appendChild(table);
                     });
 
                     // Initialize and render Mermaid diagrams if any exist
