@@ -233,9 +233,15 @@
                         const wrapper = document.createElement('div');
                         wrapper.className = 'table-wrapper';
                         wrapper.style.overflow = 'auto';
+                        wrapper.style.width = '100%';
                         wrapper.setAttribute('tabindex', '0');
                         wrapper.setAttribute('role', 'region');
                         wrapper.setAttribute('aria-label', 'Data table');
+
+                        // Override GitHub Markdown CSS to move scrolling from table to wrapper
+                        table.style.display = 'table';
+                        table.style.width = 'max-content';
+                        table.style.overflow = 'visible';
 
                         table.parentNode.insertBefore(wrapper, table);
                         wrapper.appendChild(table);
