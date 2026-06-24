@@ -124,6 +124,7 @@ The repository uses a monorepo setup for multi-language implementations of an en
 *   **UX Persona (Palette):** When assuming the 'Palette' UX persona, record critical UX and accessibility learnings in `.Jules/palette.md` using the exact format: `## YYYY-MM-DD - [Title]\n**Learning:** [UX/a11y insight]\n**Action:** [How to apply next time]`. Do not journal routine work or generic web practices (e.g., opacity-based loading states).
 
 
+*   **GitHub Actions:** GitHub Actions workflows in the repository must be hardened by using pinned action SHAs (e.g., `actions/checkout@<sha>`).
 *   **Zig Toolchain:** When downloading the Zig toolchain in an agent environment, manual tarball download (e.g., `zig-x86_64-linux-0.16.0.tar.xz`) is required. Place it outside the repository (e.g., `/tmp/zig`). Do not use `mlugg/setup-zig` action.
 *   **No Temporary Files:** Final execution reports must be provided directly in chat. Never commit temporary status files (e.g., `final-report.md`), test logs, generated database binaries, temporary agent artifacts, or one-off mutation scripts (e.g., `fix_*.py`) to the repository. They must be removed or converted into documented, tested tooling before committing, as they weaken maintainability.
 *   **Zig Artifacts:** Zig build artifacts and compiler caches, such as `.zig-cache/` and `zig-out/`, must be explicitly ignored and never committed to the repository.
