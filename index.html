@@ -43,6 +43,12 @@
             outline: 2px solid #0969da;
             outline-offset: -2px;
         }
+        /* Override GitHub Markdown CSS inner table overflow */
+        .table-wrapper table {
+            display: table !important;
+            width: 100% !important;
+            overflow: visible !important;
+        }
     </style>
     <!-- Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
