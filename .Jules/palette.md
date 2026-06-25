@@ -19,3 +19,7 @@
 ## 2024-06-18 - Keyboard Accessibility for Custom Scrollable Regions
 **Learning:** Elements with `overflow: auto` or `overflow: scroll` (like code blocks, logs, or wide data tables) are not focusable by default. Keyboard-only users cannot scroll these regions using arrow keys unless they can focus the container.
 **Action:** Always add `tabindex="0"`, `role="region"`, and an accessible name (via `aria-label` or `aria-labelledby`) to custom scrollable containers. Additionally, ensure there is a clear `:focus-visible` styling for the container so users know it has focus.
+
+## 2024-06-24 - Table Accessibility and Semantic Integrity
+**Learning:** Adding `tabindex="0"` directly to a `<table>` to make it keyboard-scrollable breaks its semantic meaning for screen readers. Instead, the `<table>` should be wrapped in a focusable `<div>` container with `overflow: auto`, `tabindex="0"`, `role="region"`, and an appropriate `aria-label` (e.g., "Data table").
+**Action:** When implementing keyboard-scrollable tables, always wrap the table in a container rather than applying focus attributes directly to the table element to preserve its native accessibility semantics.
