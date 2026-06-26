@@ -23,3 +23,7 @@
 ## 2024-06-24 - Table Accessibility and Semantic Integrity
 **Learning:** Adding `tabindex="0"` directly to a `<table>` to make it keyboard-scrollable breaks its semantic meaning for screen readers. Instead, the `<table>` should be wrapped in a focusable `<div>` container with `overflow: auto`, `tabindex="0"`, `role="region"`, and an appropriate `aria-label` (e.g., "Data table").
 **Action:** When implementing keyboard-scrollable tables, always wrap the table in a container rather than applying focus attributes directly to the table element to preserve its native accessibility semantics.
+
+## 2024-06-25 - SPA Focus Management and aria-live Misuse
+**Learning:** Using `aria-live="polite"` on main content containers in a Single Page Application (SPA) causes screen readers to read the entire document contents upon every navigation, which is overwhelming and a known anti-pattern. Furthermore, when content is replaced without a page reload, the focus remains on the clicked navigation link, and the scroll position is not reset, breaking the standard expectation of page navigation.
+**Action:** Remove `aria-live` from large content containers used for entire page views. Instead, hook into the client-side routing logic to explicitly manage focus by programmatically focusing the main `<main>` container (which should have `tabindex="-1"` and `outline: none;`) and resetting the scroll position (`window.scrollTo(0, 0);`) after new content is loaded.
