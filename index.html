@@ -97,8 +97,8 @@
     </nav>
     <div id="file-path-display" style="margin-bottom: 15px; font-size: 0.9em; color: #57606a;"></div>
     <main id="main" tabindex="-1" style="outline: none;">
-        <div id="content" aria-live="polite" style="background-color: #ffffe0; padding: 20px; border-radius: 6px;">Loading...</div>
-        <div id="index-container" aria-live="polite" style="display: none; background-color: #f6f8fa; padding: 20px; border-radius: 6px;">
+        <div id="content" style="background-color: #ffffe0; padding: 20px; border-radius: 6px;">Loading...</div>
+        <div id="index-container" style="display: none; background-color: #f6f8fa; padding: 20px; border-radius: 6px;">
             <h2>All Documents</h2>
             <ul id="index-list"></ul>
         </div>
@@ -340,7 +340,7 @@
                         }
                     });
 
-                    // Scroll to hash if present
+                    // Scroll to hash if present or set focus to top of main area
                     if (window.location.hash) {
                         setTimeout(() => {
                             const id = window.location.hash.substring(1);
@@ -348,8 +348,15 @@
                             const target = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
                             if (target) {
                                 target.scrollIntoView();
+                            } else {
+                                window.scrollTo(0, 0);
+                                document.querySelector('main').focus();
                             }
                         }, 100);
+                    } else {
+                        // Reset focus to top of the page for screen readers
+                        window.scrollTo(0, 0);
+                        document.querySelector('main').focus();
                     }
 
                 } catch (error) {
@@ -389,6 +396,8 @@
 
                 if (files.length === 0) {
                     indexList.innerHTML = '<li>Could not load document list.</li>';
+                    window.scrollTo(0, 0);
+                    document.querySelector('main').focus();
                     return;
                 }
 
@@ -411,6 +420,10 @@
                     li.appendChild(a);
                     indexList.appendChild(li);
                 });
+
+                // Reset focus and scroll
+                window.scrollTo(0, 0);
+                document.querySelector('main').focus();
             });
 
             // Handle browser back/forward buttons
