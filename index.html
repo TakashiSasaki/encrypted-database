@@ -97,8 +97,8 @@
     </nav>
     <div id="file-path-display" style="margin-bottom: 15px; font-size: 0.9em; color: #57606a;"></div>
     <main id="main" tabindex="-1" style="outline: none;">
-        <div id="content" aria-live="polite" style="background-color: #ffffe0; padding: 20px; border-radius: 6px;">Loading...</div>
-        <div id="index-container" aria-live="polite" style="display: none; background-color: #f6f8fa; padding: 20px; border-radius: 6px;">
+        <div id="content" style="background-color: #ffffe0; padding: 20px; border-radius: 6px;">Loading...</div>
+        <div id="index-container" style="display: none; background-color: #f6f8fa; padding: 20px; border-radius: 6px;">
             <h2>All Documents</h2>
             <ul id="index-list"></ul>
         </div>
@@ -350,6 +350,15 @@
                                 target.scrollIntoView();
                             }
                         }, 100);
+                    } else {
+                        // Programmatically manage client-side routing focus
+                        setTimeout(() => {
+                            const mainContainer = document.getElementById('main');
+                            if (mainContainer) {
+                                mainContainer.focus();
+                            }
+                            window.scrollTo(0, 0);
+                        }, 100);
                     }
 
                 } catch (error) {
@@ -374,6 +383,15 @@
                 indexContainer.style.display = 'block';
                 indexList.innerHTML = '<li>Loading document list...</li>';
                 document.title = 'Index - Encrypted Database Library';
+
+                // Programmatically manage client-side routing focus
+                setTimeout(() => {
+                    const mainContainer = document.getElementById('main');
+                    if (mainContainer) {
+                        mainContainer.focus();
+                    }
+                    window.scrollTo(0, 0);
+                }, 100);
 
                 // Clear any stale aria-current states since we are showing the index overlay
                 document.querySelectorAll('nav[aria-label="Main Navigation"] a').forEach(link => {
