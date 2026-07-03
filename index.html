@@ -97,8 +97,8 @@
     </nav>
     <div id="file-path-display" style="margin-bottom: 15px; font-size: 0.9em; color: #57606a;"></div>
     <main id="main" tabindex="-1" style="outline: none;">
-        <div id="content" aria-live="polite" style="background-color: #ffffe0; padding: 20px; border-radius: 6px;">Loading...</div>
-        <div id="index-container" aria-live="polite" style="display: none; background-color: #f6f8fa; padding: 20px; border-radius: 6px;">
+        <div id="content" style="background-color: #ffffe0; padding: 20px; border-radius: 6px;">Loading...</div>
+        <div id="index-container" style="display: none; background-color: #f6f8fa; padding: 20px; border-radius: 6px;">
             <h2>All Documents</h2>
             <ul id="index-list"></ul>
         </div>
@@ -350,6 +350,10 @@
                                 target.scrollIntoView();
                             }
                         }, 100);
+                    } else {
+                        // Programmatically manage client-side routing focus
+                        document.getElementById('main').focus();
+                        window.scrollTo(0, 0);
                     }
 
                 } catch (error) {
@@ -384,6 +388,10 @@
                 const newUrl = new URL(window.location);
                 newUrl.searchParams.delete('file');
                 window.history.pushState({ isIndex: true }, '', newUrl.toString());
+
+                // Manage programmatic focus for the index route
+                document.getElementById('main').focus();
+                window.scrollTo(0, 0);
 
                 const files = await fetchDocumentIndex();
 
