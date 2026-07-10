@@ -97,8 +97,8 @@
     </nav>
     <div id="file-path-display" style="margin-bottom: 15px; font-size: 0.9em; color: #57606a;"></div>
     <main id="main" tabindex="-1" style="outline: none;">
-        <div id="content" aria-live="polite" style="background-color: #ffffe0; padding: 20px; border-radius: 6px;">Loading...</div>
-        <div id="index-container" aria-live="polite" style="display: none; background-color: #f6f8fa; padding: 20px; border-radius: 6px;">
+        <div id="content" style="background-color: #ffffe0; padding: 20px; border-radius: 6px;">Loading...</div>
+        <div id="index-container" style="display: none; background-color: #f6f8fa; padding: 20px; border-radius: 6px;">
             <h2>All Documents</h2>
             <ul id="index-list"></ul>
         </div>
@@ -348,8 +348,16 @@
                             const target = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
                             if (target) {
                                 target.scrollIntoView();
+                            } else {
+                                // If no hash target, scroll to top and focus main
+                                window.scrollTo(0, 0);
+                                document.getElementById('main').focus();
                             }
                         }, 100);
+                    } else {
+                        // Scroll to top and focus main container for accessibility on route change
+                        window.scrollTo(0, 0);
+                        document.getElementById('main').focus();
                     }
 
                 } catch (error) {
@@ -411,6 +419,10 @@
                     li.appendChild(a);
                     indexList.appendChild(li);
                 });
+
+                // Scroll to top and focus main container for accessibility on route change
+                window.scrollTo(0, 0);
+                document.getElementById('main').focus();
             });
 
             // Handle browser back/forward buttons
